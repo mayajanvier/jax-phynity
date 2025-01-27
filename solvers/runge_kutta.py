@@ -114,12 +114,6 @@ def runge_kutta_step(
         raise NotImplementedError("Implicit Runge-Kutta methods are not supported yet.")  
 
 ### Butcher tableaux for Runge-Kutta methods
-rk4_tableau = ButcherTableau(
-    a_lower=(np.array([1 / 2]), np.array([0, 1 / 2]), np.array([0, 0, 1])),
-    b_sol=np.array([1 / 6, 1 / 3, 1 / 3, 1 / 6]),
-    b_error=np.array([1 / 6 - 1 / 6, 1 / 3 - 1 / 3, 1 / 3 - 1 / 3, 1 / 6 - 1 / 6]),
-    c=np.array([1 / 2, 1 / 2, 1]),
-)
 
 dopri5_tableau = ButcherTableau(
     a_lower=(
@@ -130,7 +124,9 @@ dopri5_tableau = ButcherTableau(
         np.array([9017 / 3168, -355 / 33, 46732 / 5247, 49 / 176, -5103 / 18656]),
         np.array([35 / 384, 0, 500 / 1113, 125 / 192, -2187 / 6784, 11 / 84]),
     ),
-    b_sol=np.array([35 / 384, 0, 500 / 1113, 125 / 192, -2187 / 6784, 11 / 84, 0]),
+    # 5th order weights 
+    b_sol=np.array([35 / 384, 0, 500 / 1113, 125 / 192, -2187 / 6784, 11 / 84, 0]), 
+    # b_error embeds the 4th order error estimate: bi(5) - bi(4)
     b_error=np.array(
         [
             35 / 384 - 1951 / 21600,
@@ -141,7 +137,7 @@ dopri5_tableau = ButcherTableau(
             11 / 84 - 649 / 6300,
             -1.0 / 60.0,
         ]
-    ),
+    ), 
     c=np.array([1 / 5, 3 / 10, 4 / 5, 8 / 9, 1.0, 1.0]),
 )
 
@@ -319,7 +315,6 @@ dopri8_tableau = ButcherTableau(
 
 
 RK_tableaux = {
-    "RK4": rk4_tableau,
     "DOPRI5": dopri5_tableau,
     "DOPRI8": dopri8_tableau,
 }
@@ -336,11 +331,13 @@ def RK_solver_fixed(fun, t_span, y0, t_eval, method, rtol=1e-10, n_step_max=1000
     #t, tf = t_span # needed when adaptive step size is used
     dt = t_eval[1] - t_eval[0]
     global_error = 0.
+    errors = []
     n_step = 0
     for tc in t_eval:
         y_next, error = runge_kutta_step(fun, y[n_step], tc, dt, tableau)
         n_step += 1 
         y = y.at[n_step].set(y_next)
         global_error += error
-    return y, global_error
+        errors.append(error)
+    return y, global_error, errors
 
