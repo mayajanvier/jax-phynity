@@ -85,6 +85,7 @@ def runge_kutta_step(
     t: jnp.ndarray,
     dt: jnp.ndarray,
     tableau: ButcherTableau,
+    k_first: Optional[jnp.ndarray] = None,
 ):
     """Perform a single step of a Runge--Kutta method.
 
@@ -94,22 +95,36 @@ def runge_kutta_step(
         t: The current time.
         dt: The step size.
         tableau: The Butcher tableau of the Runge--Kutta method.
+        k_first: First stage derivative (optional, used in FSAL).
 
     Returns:
-        Next state after taking a single step.
+        - Next state after the step.
+        - Error estimate for adaptive methods (optional).
+        - Last stage derivative (for FSAL-enabled methods).
     """
     num_stages = tableau.num_stages
     k = jnp.zeros((num_stages,) + y.shape, dtype=y.dtype) # shape (num_stages, y.shape)
      
+    # explicit Runge-Kutta methods
     if not tableau.implicit: # a_diagonal is None
-        k = k.at[0].set(f(y, t + dt * tableau.c1)) # k0 = f(y, t + c1 * dt)
+        if tableau.fsal and k_first is not None: # FSAL (First Same As Last) optimization
+            k = k.at[0].set(k_first) # k1 = k_first(n_step) = k_last(n_step-1)
+        else: 
+            k = k.at[0].set(f(y, t+ dt * tableau.c1)) # k1 = f(y, t + c1 * dt)
+
         for i in range(tableau.num_stages-1):
             ti = t + tableau.c[i] * dt
             yi = y + dt * jnp.dot(tableau.a_lower[i], k[:i+1])
             k = k.at[i+1].set(f(yi, ti))    
         y_next =  y + dt * jnp.dot(tableau.b_sol, k)
         error = jnp.dot(tableau.b_error, k)
-        return(y_next, error)
+
+        if tableau.fsal:
+            return y_next, error, k[-1] # return the last stage for FSAL
+        else:
+            return y_next, error 
+        
+    # implicit Runge-Kutta methods
     else:
         raise NotImplementedError("Implicit Runge-Kutta methods are not supported yet.")  
 
@@ -333,8 +348,13 @@ def RK_solver_fixed(fun, t_span, y0, t_eval, method, rtol=1e-10, n_step_max=1000
     global_error = 0.
     errors = []
     n_step = 0
+    k_first = None
+
     for tc in t_eval:
-        y_next, error = runge_kutta_step(fun, y[n_step], tc, dt, tableau)
+        if tableau.fsal:
+            y_next, error, k_first = runge_kutta_step(fun, y[n_step], tc, dt, tableau, k_first)
+        else:
+            y_next, error = runge_kutta_step(fun, y[n_step], tc, dt, tableau)
         n_step += 1 
         y = y.at[n_step].set(y_next)
         global_error += error
