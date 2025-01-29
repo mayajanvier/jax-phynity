@@ -65,11 +65,11 @@ MAX = np.iinfo(np.int32).max # maximum int value
 class DampedPendulum():
     parameters = OrderedDict(omega0_square=(2 * jnp.pi / 12) ** 2, alpha=0.2) # T0=12
 
-    def __init__(self, dt, time_horizon, path, group, params=None):
+    def __init__(self, dt, time_horizon, path, group, num_seq, params=None):
         super().__init__()
         self.dt = dt # time step
         self.time_horizon = time_horizon # final time 
-        self.len = int(self.time_horizon / self.dt)  
+        self.len = num_seq # number of trajectories 
         self.params = OrderedDict()     
         if params is None:
             self.params.update(self.parameters)
