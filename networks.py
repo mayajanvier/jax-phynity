@@ -17,6 +17,7 @@ class DampedPendulumParamPDE(eqx.Module):
         self.real_params = real_params
         self.is_complete = is_complete
         # TODO: ParameterDict replaced, see if problems later for derivatives
+        # TODO: what is the difference between params and params_org?
         self.params_org = OrderedDict({
             'omega0_square_org': jnp.array(0.2), 
             'alpha_org': jnp.array(0.1),
@@ -25,7 +26,7 @@ class DampedPendulumParamPDE(eqx.Module):
         if real_params is not None:
             self.params.update(real_params)
 
-    def forward(self, state):
+    def __call__(self, state):
         if self.real_params is None: # Param ODE incomplete and complete have w0^2
             self.params['omega0_square'] = self.params_org['omega0_square_org']
 
@@ -45,18 +46,15 @@ class DampedPendulumParamPDE(eqx.Module):
 
         return jnp.concat([dqdt, dpdt], axis=1)
     
-### Data driven model Fa
+### Data driven model Fa    
 class MLP(eqx.Module):
     layers: list # we need to define the type of the attributes of the class in jax
     state_c: int
-    #initializer: jax.nn.initializers
 
     def __init__(self, key, state_c, hidden, init_gain=0.2):
         super().__init__()
         key1, key2, key3 = jax.random.split(key, 3)
-        #self.initializer = jax.nn.initializers.orthogonal(scale=init_gain)
         self.state_c = state_c
-        # orthogonal initialisation for the weights, biases to zero
         self.layers = [
             eqx.nn.Linear(state_c, hidden, key=key1),
             jax.nn.relu,
@@ -64,9 +62,10 @@ class MLP(eqx.Module):
             jax.nn.relu,
             eqx.nn.Linear(hidden, state_c, key=key3)]
     
-    def forward(self, x):
+    def __call__(self, x):
         for layer in self.layers:
-            x = layer(x)
+            #x = layer(x)
+            x = jax.vmap(layer)(x)
         return x
 
     def get_derivatives(self, x):
@@ -86,13 +85,13 @@ if __name__ == '__main__':
     print(input.shape)
     model = MLP(jax.random.PRNGKey(0), 2, nb_neurons)
     print(model)
-    output = model.forward(input)
+    output = model(input)
     print(output.shape)
 
     model = DampedPendulumParamPDE(is_complete=True, real_params=None) 
     print(model)
     state = jax.random.normal(jax.random.PRNGKey(0), (1,2,3))
-    out = model.forward(state)
+    out = model(state)
     print(out.shape) # same shape as input
     print(model.params, model.params_org)
     
