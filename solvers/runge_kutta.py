@@ -114,10 +114,11 @@ def runge_kutta_step(
 
         for i in range(tableau.num_stages-1):
             ti = t + tableau.c[i] * dt
-            yi = y + dt * jnp.dot(tableau.a_lower[i], k[:i+1])
+            yi = y + dt * jnp.tensordot(tableau.a_lower[i], k[:i+1], axes=1)
+            #yi = y + dt * jnp.dot(tableau.a_lower[i], k[:i+1])
             k = k.at[i+1].set(f(yi, ti))    
-        y_next =  y + dt * jnp.dot(tableau.b_sol, k)
-        error = jnp.dot(tableau.b_error, k)
+        y_next =  y + dt * jnp.tensordot(tableau.b_sol, k, axes=1)
+        error = jnp.tensordot(tableau.b_error, k, axes=1)
 
         if tableau.fsal:
             return y_next, error, k[-1] # return the last stage for FSAL
@@ -129,6 +130,19 @@ def runge_kutta_step(
         raise NotImplementedError("Implicit Runge-Kutta methods are not supported yet.")  
 
 ### Butcher tableaux for Runge-Kutta methods
+    
+# 3/8 rule in odeint used in APHYNITY (torchdiffeq)
+RK4_tableau = ButcherTableau(
+    a_lower=(
+        np.array([1 / 3]),
+        np.array([-1 / 3, 1]),
+        np.array([1, -1, 1]),
+    ),
+    b_sol=np.array([1 / 8, 3 / 8, 3 / 8, 1 / 8]),
+    # TODO comment calculer une erreur pour RK4 ? 
+    b_error=np.array([0, 0, 0, 0]),
+    c =np.array([1 / 3, 2 / 3, 1]),
+)
 
 dopri5_tableau = ButcherTableau(
     a_lower=(
@@ -155,7 +169,6 @@ dopri5_tableau = ButcherTableau(
     ), 
     c=np.array([1 / 5, 3 / 10, 4 / 5, 8 / 9, 1.0, 1.0]),
 )
-
 
 dopri8_tableau = ButcherTableau(
     a_lower=(
@@ -330,6 +343,7 @@ dopri8_tableau = ButcherTableau(
 
 
 RK_tableaux = {
+    "RK4": RK4_tableau,
     "DOPRI5": dopri5_tableau,
     "DOPRI8": dopri8_tableau,
 }
@@ -337,6 +351,7 @@ RK_tableaux = {
 ### Runge-Kutta methods
 
 # fixed step size
+# TODO: add adaptive step size
 def RK_solver_fixed(fun, t_span, y0, t_eval, method, rtol=1e-10, n_step_max=1000):
     """Solve an initial value problem using the Dormand--Prince 5 method."""
     # initialize
