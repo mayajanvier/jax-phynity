@@ -69,10 +69,11 @@ class MLP(eqx.Module):
         return x
 
     def get_derivatives(self, x):
+        # bacth management
         batch_size, nc, T = x.shape 
         x = jnp.permute_dims(x, (0, 2, 1))
         x = jnp.reshape(x, (batch_size * T, nc))
-        x = self.forward(x)
+        x = self.__call__(x)
         x = jnp.reshape(x, (batch_size, T, self.state_c))
         x = jnp.permute_dims(x, (0, 2, 1))
         return x
