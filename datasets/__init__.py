@@ -1,5 +1,4 @@
 from .pendulum import DampedPendulum
-import math
 from torch.utils.data import DataLoader 
 
 # Build our dataloaders

@@ -5,6 +5,7 @@ import jax.numpy as jnp
 import equinox as eqx
 from time import sleep 
 from datetime import datetime
+import json
 
 # pure python utils from APHYNITY
 class Logger(object):
@@ -57,7 +58,13 @@ def make_basedir(root, timestamp=None, attempts=5):
             sleep(0.01)
     raise FileExistsError(root)
 
-# jax utils 
+# jax utils
+def save(filename, hyperparams, model): 
+    with open(filename, "wb") as f:
+        hyperparam_str = json.dumps(hyperparams)
+        f.write((hyperparam_str + "\n").encode())
+        eqx.tree_serialise_leaves(f, model)
+
 def l2normalize(v, eps=1e-12):
     # default is also Frobenius for matrix, L2 for vector
     return v / (jnp.linalg.norm(v) + eps) 
