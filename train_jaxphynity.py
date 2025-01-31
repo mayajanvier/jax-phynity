@@ -1,5 +1,5 @@
-from torch import optim
-import os, sys, argparse
+import optax 
+import os
 
 from experiments import APHYNITYExperiment
 from networks import *
@@ -30,10 +30,18 @@ def train_aphynity(dataset_name, model_phy_option, model_aug_option, path, devic
         niter = 5
         min_op = 'l2_normalized'
     
-    optimizer = optim.Adam(net.parameters(), lr=tau_1, betas=(0.9, 0.999))
+    optimizer = optax.adam(learning_rate=tau_1, b1=0.9, b2=0.999)
     experiment = APHYNITYExperiment(
             train=train, test=test, net=net, optimizer=optimizer, 
             min_op=min_op, lambda_0=lambda_0, tau_2=tau_2, niter=niter, nlog=10,
             nupdate=100, nepoch=50000, path=path, device=device
         )
     experiment.run()
+
+if __name__ == '__main__':
+    dataset_name = 'pendulum'
+    model_phy_option = 'complete'
+    model_aug_option = True
+    path = 'data/damped_pendulum'
+    device = 'cpu'
+    train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device)
