@@ -6,43 +6,36 @@ from collections import OrderedDict
 
 ### Physical model Fp
 class DampedPendulumParamPDE(eqx.Module):
+    # ParameterDict replaced, need to be jax object for array filtering (for gradient computation)
     is_complete: bool
-    real_params: dict
-    params_org: OrderedDict
-    params: OrderedDict
+    omega0_square_org: jax.Array 
+    alpha_org: jax.Array
+    omega0_square: jax.Array
+    alpha: jax.Array
 
 
     def __init__(self, is_complete=False, real_params=None):
         super().__init__()
-        self.real_params = real_params
         self.is_complete = is_complete
-        # TODO: ParameterDict replaced, see if problems later for derivatives
-        # TODO: what is the difference between params and params_org?
-        self.params_org = OrderedDict({
-            'omega0_square_org': jnp.array(0.2), 
-            'alpha_org': jnp.array(0.1),
-        })
-        self.params = OrderedDict()
+        self.omega0_square_org = jnp.array(0.2)
+        self.alpha_org = jnp.array(0.1)
+
         if real_params is not None:
-            self.params.update(real_params)
+            self.omega0_square = real_params["omega0_square"] 
+            self.alpha = real_params["alpha"] 
+        else:
+            self.omega0_square = self.omega0_square_org
+            if is_complete:
+                self.alpha = self.alpha_org
+            else:
+                self.alpha = jnp.array(0.0)
 
     def __call__(self, state):
-        if self.real_params is None: # Param ODE incomplete and complete have w0^2
-            self.params['omega0_square'] = self.params_org['omega0_square_org']
-
         q = state[:,0:1]
         p = state[:,1:2]
-        
-        if self.is_complete: # Complete has damped pendulum 
-            if self.real_params is None: # Only Param ODE complete have alpha
-                self.params['alpha'] = self.params_org['alpha_org']
-            (omega0_square, alpha) = list(self.params.values())
-            dqdt = p
-            dpdt = - omega0_square * jnp.sin(q) - alpha * p
-        else: # Incomplete is frictionless pendulum
-            (omega0_square, ) = list(self.params.values())
-            dqdt = p
-            dpdt = - omega0_square * jnp.sin(q)
+
+        dqdt = p
+        dpdt = - self.omega0_square * jnp.sin(q) - self.alpha * p
 
         return jnp.concat([dqdt, dpdt], axis=1)
     
@@ -64,16 +57,15 @@ class MLP(eqx.Module):
     
     def __call__(self, x):
         for layer in self.layers:
-            #x = layer(x)
-            x = jax.vmap(layer)(x)
+            x = layer(x)
         return x
 
     def get_derivatives(self, x):
-        # bacth management
+        # batch management
         batch_size, nc, T = x.shape 
         x = jnp.permute_dims(x, (0, 2, 1))
         x = jnp.reshape(x, (batch_size * T, nc))
-        x = self.__call__(x)
+        x = jax.vmap(self.__call__)(x)
         x = jnp.reshape(x, (batch_size, T, self.state_c))
         x = jnp.permute_dims(x, (0, 2, 1))
         return x
