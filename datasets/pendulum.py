@@ -4,12 +4,9 @@ import shelve
 import jax
 from jax import random
 import jax.numpy as jnp
-#import torch
-#from torch.utils.data import Dataset
 from collections import OrderedDict
 
 from solvers.runge_kutta import RK_solver_fixed
-from scipy.integrate import solve_ivp
 
 # DT = 0.5
 # TF = 20
@@ -114,11 +111,12 @@ class DampedPendulum():
                 t_eval=t_eval,
                 #rtol=1e-10
                 )
-            self.data[str(index)] = states
+            # save data as numpy array for Dataloader
+            self.data[str(index)] = np.array(states)
         else:
             print("Loading trajectory ", index)
             states = self.data[str(index)] # get trajectory from shelve
-        return {'states': states, 't': t_eval}
+        return {'states': np.array(states), 't': np.array(t_eval)}
 
 
     
