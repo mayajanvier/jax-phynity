@@ -132,15 +132,16 @@ class LoopExperiment(BaseExperiment):
         print(' '.join(sys.argv))
 
     def train_step(self, batch, val=False):
-        self.training()
-        batch = jax.device_put(batch) #convert_tensor(batch, self.device)
+        #self.training()
+        #batch = jax.device_put(batch) #convert_tensor(batch, self.device)
+
         loss, output = self.step(batch)
         metric = self.metric(**output, **batch)
         return batch, output, loss, metric
 
     def val_step(self, batch, val=False):
-        self.evaluating()
-        batch = jax.device_put(batch)
+        #self.evaluating()
+        #batch = jax.device_put(batch)
         loss, output = self.step(batch, backward=False)
         metric = self.metric(**output, **batch)
         return batch, output, loss, metric
@@ -184,42 +185,33 @@ class APHYNITYExperiment(LoopExperiment):
     def lambda_update(self, loss):
         self._lambda = self._lambda + self.tau_2 * loss
     
-    def _forward(self, states, t, backward):
+    def loss_fn(self, states, t): # one loss function for backpropagation
         target = states
-        y0 = states[:, :, 0]
-        pred = self.net(y0, t)
-
-        def loss_fn(net): # one loss function for backpropagation
-            pred = net(y0, t)
-            loss_value = self.traj_loss(pred, target)
-            aug_deriv = net.model_aug.get_derivatives(states)
-
-            if self.min_op == 'l2_normalized':
-                loss_op = ((jnp.linalg.norm(aug_deriv, ord=2, axis=1) / (jnp.linalg.norm(states, ord=2, axis=1) + 1e-8)) ** 2).mean()
-            elif self.min_op == 'l2':
-                loss_op = (jnp.linalg.norm(aug_deriv, ord=2, axis=1) ** 2).mean()
-            else:
-                loss_op = 0.0  # Default to zero if min_op is not recognized
-            
-            loss_total = loss_value * self._lambda + loss_op
-            return loss_total, (loss_value, loss_op)
+        y0 = target[:, :, 0] # shape batch_size x n_c
+        pred = self.net(y0,t) # shape batch_size x n_c x T
+        aug_deriv = self.net.model_aug.get_derivatives(states)
+        loss_value = self.traj_loss(pred, target) 
         
+        if self.min_op == 'l2_normalized':
+            loss_op = ((jnp.linalg.norm(aug_deriv, ord=2, axis=1) / (jnp.linalg.norm(states, ord=2, axis=1) + 1e-8)) ** 2).mean()
+        elif self.min_op == 'l2':
+            loss_op = (jnp.linalg.norm(aug_deriv, ord=2, axis=1) ** 2).mean()
+        else:
+            loss_op = 0.0  # Default to zero if min_op is not recognized
         
-        (loss_total, (loss, loss_op)), grads = eqx.filter_value_and_grad(loss_fn, has_aux=True)(self.net) # has_aux=True to return loss_value and loss_op
-        # loss, grads = eqx.filter_value_and_grad(self.traj_loss)(self.net, pred, target)
-        # aug_deriv = self.net.model_aug.get_derivatives(states)
-        # if self.min_op == 'l2_normalized':
-        #     loss_op = ((jnp.linalg.norm(aug_deriv, ord=2, axis=1) / (jnp.linalg.norm(states, ord=2, axis=1) + _EPSILON)) ** 2).mean()
-        # elif self.min_op == 'l2':
-        #     loss_op = (jnp.linalg.norm(aug_deriv, ord=2, axis=1) ** 2).mean()
+        loss_total = loss_value * self._lambda + loss_op
+        return loss_total, (loss_value, loss_op, pred)
+
+    def loss_and_grad(self, states, t):
+        return eqx.filter_value_and_grad(self.loss_fn, has_aux=True)(states, t) # has_aux=True to return loss_value, loss_op, pred 
+    
+    def _forward(self, states, t, backward):  
+        (loss_total, (loss, loss_op, pred)), grads = self.loss_and_grad(states, t) 
 
         if backward: 
             updates, self.opt_state = self.optimizer.update(
                 grads, self.opt_state, eqx.filter(self.net, eqx.is_array))
             self.net = eqx.apply_updates(self.net, updates)
-            # loss_total.backward()
-            # self.optimizer.step()
-            # self.optimizer.zero_grad()
 
         loss = {
             'loss': loss,
@@ -232,8 +224,8 @@ class APHYNITYExperiment(LoopExperiment):
         return loss, output
 
     def step(self, batch, backward=True):
-        states = batch['states']
-        t = batch['t'][0]
+        states = jnp.permute_dims(jnp.array(batch['states']), (0, 2, 1))
+        t = jnp.array(batch['t'][0])
         loss, output = self._forward(states, t, backward)
         return loss, output
 
@@ -247,12 +239,7 @@ class APHYNITYExperiment(LoopExperiment):
     def run(self):
         loss_test_min = None
         for epoch in range(self.nepoch): 
-            # for now batch_size = dataset_size 
-            for iteration, data in enumerate(self.train.dataset, 0):
-
-            #for iteration, data in zip(range(self.train.__len__()), self.train):
-            #for iteration, data in enumerate(self.train, 0):
-                
+            for iteration, data in enumerate(self.train, 0):  
                 for _ in range(self.niter):
                     _, _, loss, metric = self.train_step(data)
 
