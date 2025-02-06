@@ -101,7 +101,7 @@ class DampedPendulum():
     def __getitem__(self, index): # get one trajectory
         t_eval = jnp.arange(0, self.time_horizon, self.dt) # array of time points
         if self.data.get(str(index)) is None: # if trajectory is not saved
-            print("Generating trajectory ", index)
+            #print("Generating trajectory ", index)
             y0 = self._get_initial_condition(index)
             states, global_err, err_list = RK_solver_fixed(
                 fun=self.F,
@@ -114,7 +114,7 @@ class DampedPendulum():
             # save data as numpy array for Dataloader
             self.data[str(index)] = np.array(states)
         else:
-            print("Loading trajectory ", index)
+            #print("Loading trajectory ", index)
             states = self.data[str(index)] # get trajectory from shelve
         return {'states': np.array(states), 't': np.array(t_eval)}
 
