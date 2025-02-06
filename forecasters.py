@@ -19,7 +19,7 @@ class DerivativeEstimator(eqx.Module):
     def __call__(self, state, t):
         res_phy = self.model_phy(state)
         if self.is_augmented:
-            res_aug = self.model_aug(state)
+            res_aug = jax.vmap(self.model_aug)(state)
             return res_phy + res_aug
         else:
             return res_phy
@@ -28,7 +28,7 @@ class Forecaster(eqx.Module):
     """ Integrates a trajectory using int_ method """
     model_phy: eqx.Module
     model_aug: eqx.Module
-    derivative_estimator: DerivativeEstimator
+    derivative_estimator: eqx.Module
     method: str
     int_: callable
 
