@@ -42,15 +42,15 @@ class Logger(object):
             self.file.close()
             self.file = None
 
-def make_basedir(root, timestamp=None, attempts=5):
+def make_basedir(root, name_exp, timestamp=None, attempts=5):
     """Takes 5 shots at creating a folder from root,
     adding timestamp if desired.
     """
     for i in range(attempts):
         basedir = root
         if timestamp is None:
-            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
-            basedir = os.path.join(basedir, timestamp)
+            timestamp = datetime.now().strftime("%Y-%m-%d")
+            basedir = os.path.join(basedir, name_exp+ str(len(os.listdir(basedir)) + 1 -3)) # 3 data files 
         try:
             os.makedirs(basedir)
             return basedir
@@ -59,7 +59,7 @@ def make_basedir(root, timestamp=None, attempts=5):
     raise FileExistsError(root)
 
 # jax utils
-def save(filename, hyperparams, model): 
+def save(filename, hyperparams, model):
     with open(filename, "wb") as f:
         hyperparam_str = json.dumps(hyperparams)
         f.write((hyperparam_str + "\n").encode())
