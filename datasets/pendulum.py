@@ -86,7 +86,12 @@ class DampedPendulum():
             ])
     
     def _get_initial_condition(self, seed):
-        key = random.PRNGKey(seed if self.group == 'train' else MAX - seed)
+        if self.group == 'train':
+            key = random.PRNGKey(seed)
+        elif self.group == 'val':
+            key = random.PRNGKey(MAX/2 - seed)
+        else: # test 
+            key = random.PRNGKey(MAX - seed)
         
         # Generate random numbers
         key, subkey1, subkey2 = random.split(key, 3)
