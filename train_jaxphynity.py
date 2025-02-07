@@ -1,6 +1,8 @@
 import optax 
 import os
-
+import json
+import pandas as pd
+import wandb
 from experiments import APHYNITYExperiment
 from networks import *
 from forecasters import *
@@ -56,18 +58,47 @@ def loss_fn(model, y, t, min_op, lambda_):
     return lossT + lambda_ * loss_op, (lossT,loss_op, y_pred)
 
 # Routine
-def training_routine(train, test, net, optimizer, min_op, _lambda, tau_2, niter, path, device, nlog=1, nupdate=1, nepoch=10):
-    path = make_basedir(path)
+def training_routine(train, test, net, optimizer, min_op, _lambda,tau_1, tau_2, niter, path, device, nlog=1, nupdate=1, nepoch=10):   
+    # Setup to save logs 
+    name_experiment = model_phy_option+"_"+("aug" if model_aug_option else "physics")
+    path = make_basedir(path, name_experiment)
     logger = Logger(filename=os.path.join(path, 'log.txt'))
-    # write hyperparameters and settings
-    logger.write("lambda_0: {}, tau_2: {}, niter: {}, min_op: {}".format(_lambda, tau_2, niter, min_op))
-    logger.write("\n")
-    logger.write("nepoch: {}, nlog: {}, nupdate: {}".format(nepoch, nlog, nupdate))
-    logger.write("\n")
+
+    # save hyperparameters and settings (in case wandb crash)
+    hyperparameters = {
+        'lambda0': _lambda,
+        'tau_1': tau_1,
+        'tau_2': tau_2,
+        'niter': niter,
+        'min_op': min_op,
+        'nepoch': nepoch,
+        'nlog': nlog,
+        'nupdate': nupdate,
+    }
+    with open(os.path.join(path, 'hyperparameters.json'), 'w') as f:
+        json.dump(hyperparameters, f)
+    
+    # Weights and Biases
+    wandb.init(
+        project = "Damped_Pendulum", # set the wandb project where this run will be logged
+        name = name_experiment,     #
+        config={                    # track hyperparameters and run metadata
+        "learning_rate": tau_1,
+        "tau2": tau_2,
+        "architecture": model_phy_option,
+        "epochs": nepoch,
+        "batch_size": train.batch_size,
+        "Fa_norm": min_op,
+        "lambda0": _lambda,    
+        }
+        )
 
     # optimizer initialization
     opt_state = optimizer.init(eqx.filter(net, eqx.is_array))
     loss_test_min = None
+    # in case of wandb crash 
+    train_losses = []
+    val_losses = []
     for epoch in range(nepoch): 
         for iteration, data in enumerate(train, 0):  
             for _ in range(niter): 
@@ -88,11 +119,14 @@ def training_routine(train, test, net, optimizer, min_op, _lambda, tau_2, niter,
 
             total_iteration = epoch * (len(train)) + (iteration + 1)
             loss_train = loss['loss'].item()
+            loss_op = loss['loss_op'].item()
             _lambda = _lambda + tau_2 * loss_train
             print(f'lambda: {_lambda}')
             if total_iteration % nlog == 0:
                 log(train, epoch, iteration, loss, nepoch) # | metric)
 
+            # log metrics to wandb
+            wandb.log({"Train loss": loss_train, "Lambda": _lambda, "Loss_Fa": loss_op}) #, "Metric": metric})
             
             ### VALIDATION STEP
             if total_iteration % nupdate == 0:
@@ -112,6 +146,15 @@ def training_routine(train, test, net, optimizer, min_op, _lambda, tau_2, niter,
                     
                 loss_test /= j + 1
 
+                # log metrics to wandb
+                wandb.log({"Test loss": loss_test}) #, "Lambda": _lambda, "Iteration": total_iteration, "Epoch": epoch})
+
+                # save epoch losses to csv file
+                val_losses.append(loss_test)
+                train_losses.append(loss_train)
+                L = pd.DataFrame({'train_loss': train_losses, 'val_loss': val_losses})
+                L.to_csv(path+'/loss.csv', index=False)
+
                 if loss_test_min == None or loss_test_min > loss_test:
                     loss_test_min = loss_test
                     # save model using equinox
@@ -119,6 +162,7 @@ def training_routine(train, test, net, optimizer, min_op, _lambda, tau_2, niter,
                     hyperparameters = {
                         "epoch": epoch,
                         "loss": loss_test_min,
+                        "lambda": _lambda,
                         }
                     save(path + f'/model_{loss_test_min:.3e}.eqx', hyperparameters, net)
 
@@ -140,7 +184,7 @@ def training_routine(train, test, net, optimizer, min_op, _lambda, tau_2, niter,
 
 # Main
 def train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device):
-    train, test = init_dataloaders(dataset_name, os.path.join(path, dataset_name))
+    train, val, _ = init_dataloaders(dataset_name, os.path.join(path, dataset_name))
 
     if dataset_name == 'pendulum':
         if model_phy_option == 'incomplete':
@@ -154,15 +198,23 @@ def train_aphynity(dataset_name, model_phy_option, model_aug_option, path, devic
         model_aug = MLP(key=mkey, state_c=2, hidden=200)
         init_linear_weight(model_aug, orthogonal_init, key=ikey, init_gain=0.2) 
         net = Forecaster(model_phy=model_phy, model_aug=model_aug, is_augmented=model_aug_option)
-
-        lambda_0 = 1.0
+        
         tau_1 = 1e-3
-        tau_2 = 1
-        niter = 1 #5
+        niter = 5
+        if model_phy_option == 'incomplete':
+            lambda_0 = 1.0
+            tau_2 = 10.0
+        elif model_phy_option == 'complete':
+            lambda_0 = 1000.0
+            tau_2 = 100.0
+        
         min_op = 'l2_normalized'
+        nepoch = 20
+        nlog = 1
+        nupdate = 2
     
     optimizer = optax.adam(learning_rate=tau_1, b1=0.9, b2=0.999)
-    training_routine(train, test, net, optimizer, min_op, lambda_0, tau_2, niter, path, device)
+    training_routine(train, val, net, optimizer, min_op, lambda_0,tau_1, tau_2, niter, path, device, nlog, nupdate, nepoch)
     # experiment = APHYNITYExperiment(
     #         train=train, test=test, net=net, optimizer=optimizer, 
     #         min_op=min_op, lambda_0=lambda_0, tau_2=tau_2, niter=niter, nlog=10,
@@ -171,9 +223,10 @@ def train_aphynity(dataset_name, model_phy_option, model_aug_option, path, devic
     # experiment.run()
 
 if __name__ == '__main__':
+    wandb.login()
     dataset_name = 'pendulum'
     model_phy_option = 'complete'
     model_aug_option = True
-    path = 'data/damped_pendulum'
+    path = 'data/damped_pendulum_complete'
     device = 'cpu'
     train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device)
