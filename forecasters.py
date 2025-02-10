@@ -1,7 +1,8 @@
 from networks import *
 from solvers.runge_kutta import RK_solver_fixed
 import jax.numpy as jnp
-import equinox as eqx
+import equinox as eqx 
+from einops import rearrange
 
 class DerivativeEstimator(eqx.Module):
     """ Returns the model with the augmented model
@@ -42,15 +43,12 @@ class Forecaster(eqx.Module):
         self.method = method
         self.int_ = RK_solver_fixed #odeint 
         
-    # TODO comprendre ce que ca doit faire 
     def __call__(self, y0, t):
         # y0 = y[:,:,0]
         t_span = t[-1] - t[0]
         res, _, _ = self.int_(self.derivative_estimator, t_span=t_span, y0=y0, t_eval=t, method=self.method)
         # res: T x batch_size x n_c (x h x w)
-        dim_seq = y0.ndim + 1
-        dims = (1, 2, 0) + tuple(range(dim_seq))[3:]
-        return jnp.permute_dims(res, dims)   # batch_size x n_c x T (x h x w)
+        return rearrange(res, 'T b nc -> b nc T') # batch_size x n_c x T (x h x w)
     
     def get_pde_params(self):
         params = {

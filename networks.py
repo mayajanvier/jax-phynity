@@ -1,7 +1,7 @@
 import equinox as eqx
 import jax
 import jax.numpy as jnp
-from collections import OrderedDict
+from einops import rearrange
 
 
 ### Physical model Fp
@@ -61,22 +61,20 @@ class MLP(eqx.Module):
     def get_derivatives(self, x):
         # batch management
         batch_size, nc, T = x.shape 
-        x = jnp.permute_dims(x, (0, 2, 1))
-        x = jnp.reshape(x, (batch_size * T, nc))
+        x = rearrange(x, 'b nc T -> (b T) nc')
         x = jax.vmap(self.__call__)(x)
-        x = jnp.reshape(x, (batch_size, T, nc))
-        x = jnp.permute_dims(x, (0, 2, 1))
+        x = rearrange(x, '(b T) nc -> b nc T', b=batch_size)
         return x
     
 
 
 if __name__ == '__main__':
     nb_neurons = 200
-    input = jax.random.normal(jax.random.PRNGKey(0), (2,))
+    input = jax.random.normal(jax.random.PRNGKey(0), (25,2,40)) # batch, state, time
     print(input.shape)
     model_aug = MLP(jax.random.PRNGKey(0), 2, nb_neurons)
     print(model_aug)
-    output = model_aug(input)
+    output = model_aug.get_derivatives(input)
     print(output.shape)
 
     model_phy = DampedPendulumParamPDE(is_complete=True, real_params=None) 
