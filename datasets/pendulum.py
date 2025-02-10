@@ -118,11 +118,12 @@ class DampedPendulum():
                 #rtol=1e-10
                 )
             # save data as numpy array for Dataloader
-            self.data[str(index)] = np.array(states).T
+            states = states.T
+            self.data[str(index)] = states
         else:
             #print("Loading trajectory ", index)
             states = self.data[str(index)] # get trajectory from shelve
-        return {'states': np.array(states).T, 't': np.array(t_eval)}
+        return {'states': np.array(states), 't': np.array(t_eval)}
 
 
     
