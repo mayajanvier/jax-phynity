@@ -3,13 +3,14 @@ from torch.utils.data import DataLoader
 
 # Build our dataloaders
 
-def param_pendulum(buffer_filepath, batch_size=25):
+def param_pendulum(buffer_filepath, method, batch_size=25):
     dataset_train_params = {
         'num_seq': 25, 
         'time_horizon': 20,
         'dt': 0.5, 
         'group': 'train',
         'path': buffer_filepath+'_train',
+        'method': method,
     }
 
     dataset_val_params = dict()
@@ -61,10 +62,10 @@ def param_pendulum(buffer_filepath, batch_size=25):
     return dataloader_train, dataloader_val, dataloader_test         
 
 
-def init_dataloaders(dataset, buffer_filepath=None):
+def init_dataloaders(dataset, method, buffer_filepath=None):
     assert buffer_filepath is not None
     if dataset == 'pendulum':
-        return param_pendulum(buffer_filepath)
+        return param_pendulum(buffer_filepath, method)
 
 
 if __name__ == '__main__':

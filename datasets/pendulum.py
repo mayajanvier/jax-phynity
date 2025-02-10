@@ -62,12 +62,13 @@ MAX = np.iinfo(np.int32).max # maximum int value
 class DampedPendulum():
     parameters = OrderedDict(omega0_square=(2 * jnp.pi / 12) ** 2, alpha=0.2) # T0=12
 
-    def __init__(self, dt, time_horizon, path, group, num_seq, params=None):
+    def __init__(self, dt, time_horizon, path, group, num_seq, method='RK4', params=None):
         super().__init__()
         self.dt = dt # time step
         self.time_horizon = time_horizon # final time 
         self.len = num_seq # number of trajectories 
-        self.params = OrderedDict()     
+        self.params = OrderedDict()
+        self.method = method     
         if params is None:
             self.params.update(self.parameters)
         else:
@@ -112,16 +113,16 @@ class DampedPendulum():
                 fun=self.F,
                 t_span=(0, self.time_horizon),
                 y0=y0,
-                method='DOPRI8',
+                method=self.method,
                 t_eval=t_eval,
                 #rtol=1e-10
                 )
             # save data as numpy array for Dataloader
-            self.data[str(index)] = np.array(states)
+            self.data[str(index)] = np.array(states).T
         else:
             #print("Loading trajectory ", index)
             states = self.data[str(index)] # get trajectory from shelve
-        return {'states': np.array(states), 't': np.array(t_eval)}
+        return {'states': np.array(states).T, 't': np.array(t_eval)}
 
 
     
