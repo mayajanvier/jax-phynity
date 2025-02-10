@@ -53,7 +53,11 @@ class Forecaster(eqx.Module):
         return jnp.permute_dims(res, dims)   # batch_size x n_c x T (x h x w)
     
     def get_pde_params(self):
-        return self.model_phy.params
+        params = {
+            "omega0_square": self.model_phy.omega0_square,
+            "alpha": self.model_phy.alpha,
+        }
+        return params
     
 if __name__ == '__main__':
     from utils import init_linear_weight, orthogonal_init

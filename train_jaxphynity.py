@@ -3,6 +3,7 @@ import os
 import json
 import pandas as pd
 import wandb
+import statistics
 from experiments import APHYNITYExperiment
 from networks import *
 from forecasters import *
@@ -23,12 +24,13 @@ def log(train, epoch, iteration, metrics, nepoch):
             
         print(message)
 
-# def metric(net, states, states_pred, **kwargs):
-#     metrics = {}
-#     metrics['param_error'] = statistics.mean(abs(v1-float(v2))/v1 for v1, v2 in zip(train.dataset.params.values(), net.get_pde_params().values()))
-#     metrics.update(self.net.get_pde_params())
-#     metrics.update({f'{k}_real': v for k, v in train.dataset.params.items() if k in metrics})
-#     return metrics
+def compute_metric(net, train_data):
+    metrics = {}
+    metrics['param_error'] = statistics.mean(abs(v1-float(v2))/v1 for v1, v2 in zip(train_data.dataset.params.values(), net.get_pde_params().values()))
+    metrics.update(net.get_pde_params())
+    metrics.update({f'{k}_real': v for k, v in train_data.dataset.params.items() if k in metrics})
+    return metrics
+
 # Losses
 def MSEjax(y_pred, y_true):
     return optax.squared_error(y_pred, y_true).mean()
@@ -103,7 +105,7 @@ def training_routine(train, test, net, optimizer, min_op, _lambda,tau_1, tau_2, 
         for iteration, data in enumerate(train, 0):  
             for _ in range(niter): 
                 ### TRAIN STEP
-                states = jnp.permute_dims(jnp.array(data['states']), (0, 2, 1))
+                states = jnp.array(data['states'])
                 t = jnp.array(data['t'][0])
                 (loss_total, (loss_val, loss_op, pred)), grads = loss_fn(net, states, t, min_op, _lambda) 
                 updates, opt_state = optimizer.update(
@@ -115,7 +117,7 @@ def training_routine(train, test, net, optimizer, min_op, _lambda,tau_1, tau_2, 
                 }
                 output = {'states_pred': pred,}  
                 # TODO compute metrics : param error, params 
-                metric = ""
+                metric = compute_metric(net, train)
 
             total_iteration = epoch * (len(train)) + (iteration + 1)
             loss_train = loss['loss'].item()
@@ -123,17 +125,20 @@ def training_routine(train, test, net, optimizer, min_op, _lambda,tau_1, tau_2, 
             _lambda = _lambda + tau_2 * loss_train
             print(f'lambda: {_lambda}')
             if total_iteration % nlog == 0:
-                log(train, epoch, iteration, loss, nepoch) # | metric)
+                log(train, epoch, iteration, loss | metric, nepoch) 
 
             # log metrics to wandb
-            wandb.log({"Train loss": loss_train, "Lambda": _lambda, "Loss_Fa": loss_op}) #, "Metric": metric})
+            omega_error = abs(metric["omega0_square"] - metric["omega0_square_real"]) / metric["omega0_square_real"]
+            alpha_error = abs(metric["alpha_real"] - metric["alpha_real"]) / metric['alpha_real']
+            wandb.log({"Train loss": loss_train, "Lambda": _lambda, "Loss_Fa": loss_op,
+                        "Param error": metric["param_error"], "Omega error":omega_error, "Alpha error":alpha_error,})
             
             ### VALIDATION STEP
             if total_iteration % nupdate == 0:
                 loss_test = 0.
                 for j, data_test in enumerate(test, 0):
                     # no backpropagation
-                    states = jnp.permute_dims(jnp.array(data_test['states']), (0, 2, 1))
+                    states = jnp.array(data_test['states'])
                     t = jnp.array(data_test['t'][0])
                     (loss_total, (loss_val, loss_op, pred)), grads = loss_fn(net, states, t, min_op, _lambda) 
                     loss = {
@@ -143,11 +148,12 @@ def training_routine(train, test, net, optimizer, min_op, _lambda,tau_1, tau_2, 
 
                     output = {'states_pred': pred,}
                     loss_test += loss['loss'].item()
+                    metric = compute_metric(net, test)
                     
                 loss_test /= j + 1
 
                 # log metrics to wandb
-                wandb.log({"Test loss": loss_test}) #, "Lambda": _lambda, "Iteration": total_iteration, "Epoch": epoch})
+                wandb.log({"Test loss": loss_test, "Param error test": metric["param_error"]}) #, "Lambda": _lambda, "Iteration": total_iteration, "Epoch": epoch})
 
                 # save epoch losses to csv file
                 val_losses.append(loss_test)
@@ -177,14 +183,14 @@ def training_routine(train, test, net, optimizer, min_op, _lambda,tau_1, tau_2, 
                     'loss_test': loss_test,
                 }
                 print('#' * 80)
-                log(train, epoch, iteration, loss_test, nepoch) # | metric)
+                log(train, epoch, iteration, loss_test | metric, nepoch) # )
                 print(f'lambda: {_lambda}')
                 print('#' * 80)       
 
 
 # Main
-def train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device):
-    train, val, _ = init_dataloaders(dataset_name, os.path.join(path, dataset_name))
+def train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device, method):
+    train, val, _ = init_dataloaders(dataset_name, method, os.path.join(path, dataset_name))
 
     if dataset_name == 'pendulum':
         if model_phy_option == 'incomplete':
@@ -209,9 +215,9 @@ def train_aphynity(dataset_name, model_phy_option, model_aug_option, path, devic
             tau_2 = 100.0
         
         min_op = 'l2_normalized'
-        nepoch = 20
+        nepoch = 100
         nlog = 1
-        nupdate = 2
+        nupdate = 5
     
     optimizer = optax.adam(learning_rate=tau_1, b1=0.9, b2=0.999)
     training_routine(train, val, net, optimizer, min_op, lambda_0,tau_1, tau_2, niter, path, device, nlog, nupdate, nepoch)
@@ -224,9 +230,10 @@ def train_aphynity(dataset_name, model_phy_option, model_aug_option, path, devic
 
 if __name__ == '__main__':
     wandb.login()
+    method = 'RK4' # data generation method
     dataset_name = 'pendulum'
     model_phy_option = 'complete'
     model_aug_option = True
-    path = 'data/damped_pendulum_complete'
+    path = 'data/sanity_checks'
     device = 'cpu'
-    train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device)
+    train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device, method)
