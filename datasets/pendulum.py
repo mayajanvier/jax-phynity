@@ -6,7 +6,7 @@ from jax import random
 import jax.numpy as jnp
 from collections import OrderedDict
 
-from solvers.runge_kutta import RK_solver_fixed
+from solvers.runge_kutta import RK_solver_fixed, RK_tableaux
 
 # DT = 0.5
 # TF = 20
@@ -113,8 +113,8 @@ class DampedPendulum():
                 fun=self.F,
                 t_span=(0, self.time_horizon),
                 y0=y0,
-                method=self.method,
                 t_eval=t_eval,
+                tableau = RK_tableaux[self.method],
                 #rtol=1e-10
                 )
             # save data as numpy array for Dataloader
