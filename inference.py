@@ -11,9 +11,9 @@ from datasets import init_dataloaders
 from train_jaxphynity import loss_fn
 
 
-def inference(model_name,exp_name, data_path, model_phy_option, model_aug_option, dataset_name):
+def inference(model_name,exp_name, data_path, model_phy_option, model_aug_option, dataset_name, method):
     # load test data 
-    _, _, test = init_dataloaders(dataset_name, os.path.join(data_path, dataset_name))
+    _, _, test = init_dataloaders(dataset_name, method, os.path.join(data_path, dataset_name))
 
     # load model
     model_path = os.path.join(data_path, f"{exp_name}/{model_name}")
@@ -35,6 +35,8 @@ def inference(model_name,exp_name, data_path, model_phy_option, model_aug_option
     with open(os.path.join(data_path, f'{exp_name}/hyperparameters.json'), 'r') as f:
         min_op = json.load(f)['min_op']
     _lambda = hyperparams['lambda']
+
+    print(f"Final omega: {model.derivative_estimator.model_phy.omega0_square}, Final alpha: {model.derivative_estimator.model_phy.alpha}" )
 
     # inference
     results = {}
@@ -61,10 +63,10 @@ def inference(model_name,exp_name, data_path, model_phy_option, model_aug_option
 
 
 if __name__ == '__main__':
-    exp_name = 'complete_aug2'
-    model_name = 'model_7.662e+00.eqx'
+    exp_name = 'complete_aug3'
+    model_name = 'model_3.419e+00.eqx'
     data_path = 'data/damped_pendulum_complete'
     model_phy_option = 'complete'
     model_aug_option = True
     dataset_name = 'pendulum'
-    inference(model_name, exp_name, data_path, model_phy_option, model_aug_option, dataset_name)
+    inference(model_name, exp_name, data_path, model_phy_option, model_aug_option, dataset_name, 'DOPRI8')
