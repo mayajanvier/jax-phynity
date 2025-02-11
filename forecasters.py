@@ -1,5 +1,5 @@
 from networks import *
-from solvers.runge_kutta import RK_solver_fixed
+from solvers.runge_kutta import RK_solver_fixed, RK_tableaux, ButcherTableau
 import jax.numpy as jnp
 import equinox as eqx 
 from einops import rearrange
@@ -31,29 +31,31 @@ class Forecaster(eqx.Module):
     model_aug: eqx.Module
     derivative_estimator: eqx.Module
     method: str
-    int_: callable
+    int_: callable 
+    tableau: ButcherTableau
 
     def __init__(self, model_phy, model_aug, is_augmented, method='RK4'):
         super().__init__()
 
         self.model_phy = model_phy
         self.model_aug = model_aug
-
+        # our true trainable model
         self.derivative_estimator = DerivativeEstimator(self.model_phy, self.model_aug, is_augmented=is_augmented)
         self.method = method
         self.int_ = RK_solver_fixed #odeint 
+        self.tableau = RK_tableaux[self.method]
         
-    def __call__(self, y0, t):
-        # y0 = y[:,:,0]
+    def __call__(self, y, t):
+        y0 = y[:,:,0]
         t_span = t[-1] - t[0]
-        res, _, _ = self.int_(self.derivative_estimator, t_span=t_span, y0=y0, t_eval=t, method=self.method)
+        res, _, _ = self.int_(self.derivative_estimator, t_span=t_span, y0=y0, t_eval=t, tableau=self.tableau) 
         # res: T x batch_size x n_c (x h x w)
         return rearrange(res, 'T b nc -> b nc T') # batch_size x n_c x T (x h x w)
     
     def get_pde_params(self):
         params = {
-            "omega0_square": self.model_phy.omega0_square,
-            "alpha": self.model_phy.alpha,
+            "omega0_square": self.derivative_estimator.model_phy.omega0_square,
+            "alpha": self.derivative_estimator.model_phy.alpha,
         }
         return params
     
@@ -72,5 +74,4 @@ if __name__ == '__main__':
     print(t)
     y = net(y0, t)
     print(y.shape)
-    
     print(net.get_pde_params())

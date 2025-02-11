@@ -37,13 +37,15 @@ def MSEjax(y_pred, y_true):
 
 @eqx.filter_jit
 def loss_trajectory(model, y, t):
-    x = y[:,:,0] # y0
-    y_pred = model(x,t)
+    #x = y[:,:,0] # y0
+    y_pred = model(y,t)
     return MSEjax(y_pred, y), y_pred
 
 @eqx.filter_jit
 def loss_Fa(model, y, min_op):
-    aug_deriv = model.model_aug.get_derivatives(y)
+    # ou bien directement model_aug ? n'est pas le même objet, loss successives ou séparées ?
+    # Vrai modèle qu'on entraîne est wrapped dans derivative_estimator
+    aug_deriv = model.derivative_estimator.model_aug.get_derivatives(y) 
     if min_op == 'l2_normalized':
         loss_op = ((jnp.linalg.norm(aug_deriv, ord=2, axis=1) / (jnp.linalg.norm(y, ord=2, axis=1) + 1e-8)) ** 2).mean()
     elif min_op == 'l2':
@@ -116,7 +118,6 @@ def training_routine(train, test, net, optimizer, min_op, _lambda,tau_1, tau_2, 
                     'loss_op': loss_op,
                 }
                 output = {'states_pred': pred,}  
-                # TODO compute metrics : param error, params 
                 metric = compute_metric(net, train)
 
             total_iteration = epoch * (len(train)) + (iteration + 1)
@@ -129,7 +130,7 @@ def training_routine(train, test, net, optimizer, min_op, _lambda,tau_1, tau_2, 
 
             # log metrics to wandb
             omega_error = abs(metric["omega0_square"] - metric["omega0_square_real"]) / metric["omega0_square_real"]
-            alpha_error = abs(metric["alpha_real"] - metric["alpha_real"]) / metric['alpha_real']
+            alpha_error = abs(metric["alpha"] - metric["alpha_real"]) / metric['alpha_real']
             wandb.log({"Train loss": loss_train, "Lambda": _lambda, "Loss_Fa": loss_op,
                         "Param error": metric["param_error"], "Omega error":omega_error, "Alpha error":alpha_error,})
             
