@@ -5,28 +5,27 @@ from einops import rearrange
 
 
 ### Physical model Fp
+omega0_square_org = 0.2
+alpha_org = 0.1 
+
 class DampedPendulumParamPDE(eqx.Module):
-    # ParameterDict replaced, need to be jax object for array filtering (for gradient computation)
+    # ParameterDict replaced by jax.array, need to be jax object for array filtering (for gradient computation)
     is_complete: bool
-    omega0_square_org: jax.Array 
-    alpha_org: jax.Array
     omega0_square: jax.Array
     alpha: jax.Array
-
 
     def __init__(self, is_complete=False, real_params=None):
         super().__init__()
         self.is_complete = is_complete
-        self.omega0_square_org = jnp.array(0.2)
-        self.alpha_org = jnp.array(0.1)
 
         if real_params is not None:
-            self.omega0_square = real_params["omega0_square"] 
-            self.alpha = real_params["alpha"] 
+            # TODO: put in jnp.array or not since fixed in True ODE ? 
+            self.omega0_square = real_params["omega0_square"]
+            self.alpha = real_params["alpha"]
         else:
-            self.omega0_square = self.omega0_square_org
+            self.omega0_square = jnp.array(omega0_square_org)
             if is_complete:
-                self.alpha = self.alpha_org
+                self.alpha = jnp.array(alpha_org)
             else:
                 self.alpha = jnp.array(0.0)
 
@@ -82,6 +81,5 @@ if __name__ == '__main__':
     state = jax.random.normal(jax.random.PRNGKey(0), (1,2,3))
     out = model_phy(state)
     print(out.shape) # same shape as input
-    print("params", model_phy.alpha, model_phy.omega0_square)
-    print("params org", model_phy.alpha_org, model_phy.omega0_square_org)    
+    print("params", model_phy.alpha, model_phy.omega0_square)  
     
