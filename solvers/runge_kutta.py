@@ -2,7 +2,8 @@ import jax
 import jax.numpy as jnp
 import numpy as np 
 from dataclasses import dataclass, field # dataclass is a decorator that is used to create classes with attributes, __init__ method, __repr__ method, and __eq__ method all in one go.
-from typing import Optional
+from typing import Optional, Tuple
+import equinox as eqx
 
 # diffrax Butcher tableau class 
 @dataclass(frozen=True)
@@ -10,15 +11,10 @@ class ButcherTableau:
     """The Butcher tableau for an explicit or diagonal Runge--Kutta method."""
 
     # Explicit RK methods
-    c: np.ndarray
-    b_sol: np.ndarray
-    b_error: np.ndarray
-    a_lower: tuple[np.ndarray, ...]
-
-    # Implicit RK methods
-    a_diagonal: Optional[np.ndarray] = None
-    a_predictor: Optional[tuple[np.ndarray, ...]] = None 
-    c1: float = 0.0
+    c: jnp.ndarray
+    b_sol: jnp.ndarray
+    b_error: jnp.ndarray
+    a_lower: Tuple[jnp.ndarray, ...]
 
     # Properties implied by the above tableaus, e.g. used to define fast-paths.
     # field is used to define default values for the attributes of the class
@@ -26,6 +22,11 @@ class ButcherTableau:
     fsal: bool = field(init=False) # (First Same As Last): Indicates whether the first stage is equivalent to the last stage. 
     implicit: bool = field(init=False)
     num_stages: int = field(init=False) # number of "k_i" stages in the Runge-Kutta method
+
+     # Implicit RK methods
+    a_diagonal: Optional[jnp.ndarray] = None
+    a_predictor: Optional[Tuple[jnp.ndarray, ...]] = None 
+    c1: float = 0.0 # first stage coefficient
 
     def __post_init__(self):
         assert self.c.ndim == 1
@@ -39,9 +40,9 @@ class ButcherTableau:
         assert self.c.shape[0] + 1 == self.b_error.shape[0]
         for i, (a_i, c_i) in enumerate(zip(self.a_lower, self.c)):
             diagonal = 0 if self.a_diagonal is None else self.a_diagonal[i + 1]
-            assert np.allclose(sum(a_i) + diagonal, c_i)
-        assert np.allclose(sum(self.b_sol), 1.0)
-        assert np.allclose(sum(self.b_error), 0.0)
+            assert jnp.allclose(sum(a_i) + diagonal, c_i)
+        assert jnp.allclose(sum(self.b_sol), 1.0)
+        assert jnp.allclose(sum(self.b_error), 0.0, atol=1e-6) # nn.allclose returns True but no jnp.allclose 
 
         if self.a_diagonal is None:
             assert self.a_predictor is None
@@ -52,7 +53,7 @@ class ButcherTableau:
             assert len(self.a_lower) == len(self.a_predictor)
             for a_lower_i, a_predictor_i in zip(self.a_lower, self.a_predictor):
                 assert a_lower_i.shape == a_predictor_i.shape
-                assert np.allclose(sum(a_predictor_i), 1.0)
+                assert jnp.allclose(sum(a_predictor_i), 1.0)
 
         lower_b_sol_equal = (self.b_sol[:-1] == self.a_lower[-1]).all().item()
         last_diagonal = 0 if self.a_diagonal is None else self.a_diagonal[-1]
@@ -134,29 +135,29 @@ def runge_kutta_step(
 # 3/8 rule in odeint used in APHYNITY (torchdiffeq)
 RK4_tableau = ButcherTableau(
     a_lower=(
-        np.array([1 / 3]),
-        np.array([-1 / 3, 1]),
-        np.array([1, -1, 1]),
+        jnp.array([1 / 3]),
+        jnp.array([-1 / 3, 1]),
+        jnp.array([1, -1, 1]),
     ),
-    b_sol=np.array([1 / 8, 3 / 8, 3 / 8, 1 / 8]),
+    b_sol=jnp.array([1 / 8, 3 / 8, 3 / 8, 1 / 8]),
     # TODO comment calculer une erreur pour RK4 ? 
-    b_error=np.array([0, 0, 0, 0]),
-    c =np.array([1 / 3, 2 / 3, 1]),
+    b_error=jnp.array([0, 0, 0, 0]),
+    c =jnp.array([1 / 3, 2 / 3, 1]),
 )
 
 dopri5_tableau = ButcherTableau(
     a_lower=(
-        np.array([1 / 5]),
-        np.array([3 / 40, 9 / 40]),
-        np.array([44 / 45, -56 / 15, 32 / 9]),
-        np.array([19372 / 6561, -25360 / 2187, 64448 / 6561, -212 / 729]),
-        np.array([9017 / 3168, -355 / 33, 46732 / 5247, 49 / 176, -5103 / 18656]),
-        np.array([35 / 384, 0, 500 / 1113, 125 / 192, -2187 / 6784, 11 / 84]),
+        jnp.array([1 / 5]),
+        jnp.array([3 / 40, 9 / 40]),
+        jnp.array([44 / 45, -56 / 15, 32 / 9]),
+        jnp.array([19372 / 6561, -25360 / 2187, 64448 / 6561, -212 / 729]),
+        jnp.array([9017 / 3168, -355 / 33, 46732 / 5247, 49 / 176, -5103 / 18656]),
+        jnp.array([35 / 384, 0, 500 / 1113, 125 / 192, -2187 / 6784, 11 / 84]),
     ),
     # 5th order weights 
-    b_sol=np.array([35 / 384, 0, 500 / 1113, 125 / 192, -2187 / 6784, 11 / 84, 0]), 
+    b_sol=jnp.array([35 / 384, 0, 500 / 1113, 125 / 192, -2187 / 6784, 11 / 84, 0]), 
     # b_error embeds the 4th order error estimate: bi(5) - bi(4)
-    b_error=np.array(
+    b_error=jnp.array(
         [
             35 / 384 - 1951 / 21600,
             0,
@@ -167,17 +168,17 @@ dopri5_tableau = ButcherTableau(
             -1.0 / 60.0,
         ]
     ), 
-    c=np.array([1 / 5, 3 / 10, 4 / 5, 8 / 9, 1.0, 1.0]),
+    c=jnp.array([1 / 5, 3 / 10, 4 / 5, 8 / 9, 1.0, 1.0]),
 )
 
 dopri8_tableau = ButcherTableau(
     a_lower=(
-        np.array([1 / 18]),
-        np.array([1 / 48, 1 / 16]),
-        np.array([1 / 32, 0, 3 / 32]),
-        np.array([5 / 16, 0, -75 / 64, 75 / 64]),
-        np.array([3 / 80, 0, 0, 3 / 16, 3 / 20]),
-        np.array(
+        jnp.array([1 / 18]),
+        jnp.array([1 / 48, 1 / 16]),
+        jnp.array([1 / 32, 0, 3 / 32]),
+        jnp.array([5 / 16, 0, -75 / 64, 75 / 64]),
+        jnp.array([3 / 80, 0, 0, 3 / 16, 3 / 20]),
+        jnp.array(
             [
                 29443841 / 614563906,
                 0,
@@ -187,7 +188,7 @@ dopri8_tableau = ButcherTableau(
                 23124283 / 1800000000,
             ]
         ),
-        np.array(
+        jnp.array(
             [
                 16016141 / 946692911,
                 0,
@@ -198,7 +199,7 @@ dopri8_tableau = ButcherTableau(
                 -180193667 / 1043307555,
             ]
         ),
-        np.array(
+        jnp.array(
             [
                 39632708 / 573591083,
                 0,
@@ -210,7 +211,7 @@ dopri8_tableau = ButcherTableau(
                 800635310 / 3783071287,
             ]
         ),
-        np.array(
+        jnp.array(
             [
                 246121993 / 1340847787,
                 0,
@@ -223,7 +224,7 @@ dopri8_tableau = ButcherTableau(
                 123872331 / 1001029789,
             ]
         ),
-        np.array(
+        jnp.array(
             [
                 -1028468189 / 846180014,
                 0,
@@ -237,7 +238,7 @@ dopri8_tableau = ButcherTableau(
                 3065993473 / 597172653,
             ]
         ),
-        np.array(
+        jnp.array(
             [
                 185892177 / 718116043,
                 0,
@@ -252,7 +253,7 @@ dopri8_tableau = ButcherTableau(
                 65686358 / 487910083,
             ]
         ),
-        np.array(
+        jnp.array(
             [
                 403863854 / 491063109,
                 0,
@@ -268,7 +269,7 @@ dopri8_tableau = ButcherTableau(
                 0,
             ]
         ),
-        np.array(
+        jnp.array(
             [
                 14005451 / 335480064,
                 0,
@@ -286,7 +287,7 @@ dopri8_tableau = ButcherTableau(
             ]
         ),
     ),
-    b_sol=np.array(
+    b_sol=jnp.array(
         [
             14005451 / 335480064,
             0,
@@ -304,7 +305,7 @@ dopri8_tableau = ButcherTableau(
             0,
         ]
     ),
-    b_error=np.array(
+    b_error=jnp.array(
         [
             14005451 / 335480064 - 13451932 / 455176623,
             0,
@@ -322,7 +323,7 @@ dopri8_tableau = ButcherTableau(
             0,
         ]
     ),
-    c=np.array(
+    c=jnp.array(
         [
             1 / 18,
             1 / 12,
@@ -341,7 +342,6 @@ dopri8_tableau = ButcherTableau(
     ),
 )
 
-
 RK_tableaux = {
     "RK4": RK4_tableau,
     "DOPRI5": dopri5_tableau,
@@ -352,10 +352,9 @@ RK_tableaux = {
 
 # fixed step size
 # TODO: add adaptive step size
-def RK_solver_fixed(fun, t_span, y0, t_eval, method, rtol=1e-10, n_step_max=1000):
+def RK_solver_fixed(fun, t_span, y0, t_eval, tableau, rtol=1e-10, n_step_max=1000):
     """Solve an initial value problem using the Dormand--Prince 5 method."""
     # initialize
-    tableau = RK_tableaux[method]
     y = jnp.zeros((len(t_eval),) + y0.shape, dtype=y0.dtype)
     y = y.at[0].set(y0)
     #t, tf = t_span # needed when adaptive step size is used
@@ -376,3 +375,87 @@ def RK_solver_fixed(fun, t_span, y0, t_eval, method, rtol=1e-10, n_step_max=1000
         errors.append(error)
     return y, global_error, errors
 
+### equinox Integrator class
+# TODO: voir si c'est mieux pour jiter mais pour l'instant ne fonctionne pas 
+class IntegratorRK(eqx.Module):
+    tableau: ButcherTableau
+
+    def __init__(self, method):
+        self.tableau = RK_tableaux[method]
+
+    def __call__(self, f, t_span, y0, t_eval):
+        return self.RK_solver_fixed(f, t_span, y0, t_eval, self.tableau)
+    
+    def RK_solver_fixed(self, fun, t_span, y0, t_eval, tableau, rtol=1e-10, n_step_max=1000):
+        """Solve an initial value problem using the Dormand--Prince 5 method."""
+        # initialize
+        #tableau = RK_tableaux[method]
+        y = jnp.zeros((len(t_eval),) + y0.shape, dtype=y0.dtype)
+        y = y.at[0].set(y0)
+        #t, tf = t_span # needed when adaptive step size is used
+        dt = t_eval[1] - t_eval[0]
+        global_error = 0.
+        errors = []
+        n_step = 0
+        k_first = None
+
+        for tc in t_eval:
+            if tableau.fsal:
+                y_next, error, k_first = self.runge_kutta_step(fun, y[n_step], tc, dt, tableau, k_first)
+            else:
+                y_next, error = self.runge_kutta_step(fun, y[n_step], tc, dt, tableau)
+            n_step += 1 
+            y = y.at[n_step].set(y_next)
+            global_error += error
+            errors.append(error)
+        return y, global_error, errors
+
+    def runge_kutta_step(self,
+        f,
+        y: jnp.ndarray,
+        t: jnp.ndarray,
+        dt: jnp.ndarray,
+        tableau: ButcherTableau,
+        k_first: Optional[jnp.ndarray] = None,
+    ):
+        """Perform a single step of a Runge--Kutta method.
+
+        Args:
+            f: The vector field function.
+            y: The current state.
+            t: The current time.
+            dt: The step size.
+            tableau: The Butcher tableau of the Runge--Kutta method.
+            k_first: First stage derivative (optional, used in FSAL).
+
+        Returns:
+            - Next state after the step.
+            - Error estimate for adaptive methods (optional).
+            - Last stage derivative (for FSAL-enabled methods).
+        """
+        num_stages = tableau.num_stages
+        k = jnp.zeros((num_stages,) + y.shape, dtype=y.dtype) # shape (num_stages, y.shape)
+        
+        # explicit Runge-Kutta methods
+        if not tableau.implicit: # a_diagonal is None
+            if tableau.fsal and k_first is not None: # FSAL (First Same As Last) optimization
+                k = k.at[0].set(k_first) # k1 = k_first(n_step) = k_last(n_step-1)
+            else: 
+                k = k.at[0].set(f(y, t+ dt * tableau.c1)) # k1 = f(y, t + c1 * dt)
+
+            for i in range(tableau.num_stages-1):
+                ti = t + tableau.c[i] * dt
+                yi = y + dt * jnp.tensordot(tableau.a_lower[i], k[:i+1], axes=1)
+                #yi = y + dt * jnp.dot(tableau.a_lower[i], k[:i+1])
+                k = k.at[i+1].set(f(yi, ti))    
+            y_next =  y + dt * jnp.tensordot(tableau.b_sol, k, axes=1)
+            error = jnp.tensordot(tableau.b_error, k, axes=1)
+
+            if tableau.fsal:
+                return y_next, error, k[-1] # return the last stage for FSAL
+            else:
+                return y_next, error 
+            
+        # implicit Runge-Kutta methods
+        else:
+            raise NotImplementedError("Implicit Runge-Kutta methods are not supported yet.") 
