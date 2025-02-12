@@ -38,7 +38,7 @@ def param_pendulum(buffer_filepath, method, batch_size=25):
         'shuffle'    : True,
     }
 
-    dataloader_test_params = {
+    dataloader_val_params = {
         'dataset'    : dataset_val,
         'batch_size' : batch_size,
         'num_workers': 0,
@@ -56,7 +56,7 @@ def param_pendulum(buffer_filepath, method, batch_size=25):
         'shuffle'    : False,
     }
     dataloader_train = DataLoader(**dataloader_train_params)
-    dataloader_val   = DataLoader(**dataloader_test_params)
+    dataloader_val   = DataLoader(**dataloader_val_params)
     dataloader_test  = DataLoader(**dataloader_test_params)
 
     return dataloader_train, dataloader_val, dataloader_test         

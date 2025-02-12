@@ -34,7 +34,10 @@ class DampedPendulumParamPDE(eqx.Module):
         p = state[:,1:2]
 
         dqdt = p
-        dpdt = - self.omega0_square * jnp.sin(q) - self.alpha * p
+        if self.is_complete:
+            dpdt = - self.omega0_square * jnp.sin(q) - self.alpha * p
+        else: # separated otherwise alpha is updated
+            dpdt = - self.omega0_square * jnp.sin(q)
 
         return jnp.concat([dqdt, dpdt], axis=1)
     

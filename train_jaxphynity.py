@@ -33,7 +33,7 @@ def compute_metric(net, train_data):
 
 # Losses
 def MSEjax(y_pred, y_true):
-    return optax.squared_error(y_pred, y_true).mean()
+    return optax.squared_error(y_pred, y_true).mean() # (y_pred - y_true).pow(2).mean()
 
 @eqx.filter_jit
 def loss_trajectory(model, y, t):
@@ -51,15 +51,18 @@ def loss_Fa(model, y, min_op):
     elif min_op == 'l2':
         loss_op = (jnp.linalg.norm(aug_deriv, ord=2, axis=1) ** 2).mean()
     else:
-        loss_op = 0.0  # Default to zero if min_op is not recognized
+        loss_op = jnp.array(0.0)  # Default to zero if min_op is not recognized
     return loss_op
 
 @eqx.filter_value_and_grad(has_aux=True)
 @eqx.filter_jit
 def loss_fn(model, y, t, min_op, lambda_):
     lossT, y_pred = loss_trajectory(model, y, t)
-    loss_op = loss_Fa(model, y, min_op)
-    return lossT + lambda_ * loss_op, (lossT,loss_op, y_pred)
+    if model_aug_option:
+        loss_op = loss_Fa(model, y, min_op)
+        return lossT + lambda_ * loss_op, (lossT,loss_op, y_pred)
+    else:
+        return lossT, (lossT, jnp.array(0.0), y_pred)
 
 # Routine
 def training_routine(train, test, net, optimizer, min_op, _lambda,tau_1, tau_2, niter, path, device, nlog=1, nupdate=1, nepoch=10):   
@@ -119,12 +122,13 @@ def training_routine(train, test, net, optimizer, min_op, _lambda,tau_1, tau_2, 
                 }
                 output = {'states_pred': pred,}  
                 metric = compute_metric(net, train)
+                print(metric)
 
             total_iteration = epoch * (len(train)) + (iteration + 1)
             loss_train = loss['loss'].item()
             loss_op = loss['loss_op'].item()
             _lambda = _lambda + tau_2 * loss_train
-            print(f'lambda: {_lambda}')
+            #print(f'lambda: {_lambda}')
             if total_iteration % nlog == 0:
                 log(train, epoch, iteration, loss | metric, nepoch) 
 
@@ -200,24 +204,32 @@ def train_aphynity(dataset_name, model_phy_option, model_aug_option, path, devic
             model_phy = DampedPendulumParamPDE(is_complete=True, real_params=None)
         elif model_phy_option == 'true':
             model_phy = DampedPendulumParamPDE(is_complete=True, real_params=train.dataset.params)
+        # SC3
+        elif model_phy_option == 'none':
+            model_phy = DampedPendulumParamPDE(is_complete=False, real_params=None) # mock model not trained 
         
         mkey, ikey = jax.random.split(jax.random.PRNGKey(0))
         model_aug = MLP(key=mkey, state_c=2, hidden=200)
         init_linear_weight(model_aug, orthogonal_init, key=ikey, init_gain=0.2) 
-        net = Forecaster(model_phy=model_phy, model_aug=model_aug, is_augmented=model_aug_option)
+        net = Forecaster(model_phy=model_phy, model_aug=model_aug, is_augmented=model_aug_option, is_phy=model_phy_option)
         
         tau_1 = 1e-3
         niter = 5
+        min_op = 'l2_normalized'
         if model_phy_option == 'incomplete':
             lambda_0 = 1.0
             tau_2 = 10.0
         elif model_phy_option == 'complete':
             lambda_0 = 1000.0
             tau_2 = 100.0
+        elif model_phy_option == 'none': # loss_traj only
+            lambda_0 = 0.0 
+            tau_2 = 0.0 
+            min_op = 'none' # loss_op=0, quicker evaluation
         
-        min_op = 'l2_normalized'
-        nepoch = 100
-        nlog = 1
+        
+        nepoch = 150
+        nlog = 5
         nupdate = 5
     
     optimizer = optax.adam(learning_rate=tau_1, b1=0.9, b2=0.999)
@@ -231,9 +243,29 @@ def train_aphynity(dataset_name, model_phy_option, model_aug_option, path, devic
 
 if __name__ == '__main__':
     wandb.login()
+
+    ### SC1 - Train a model with complete physics
+    # method = 'RK4' # data generation method
+    # dataset_name = 'pendulum'
+    # model_phy_option = 'complete'
+    # model_aug_option = False 
+    # path = 'data/sanity_checks'
+    # device = 'cpu'
+    # train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device, method)
+
+    ### SC2 - Train a model with incomplete physics and augmentation
+    # method = 'RK4' # data generation method
+    # dataset_name = 'pendulum'
+    # model_phy_option = 'incomplete'
+    # model_aug_option = True
+    # path = 'data/sanity_checks'
+    # device = 'cpu'
+    # train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device, method)
+
+    ### SC3 - Neural ODE 
     method = 'RK4' # data generation method
     dataset_name = 'pendulum'
-    model_phy_option = 'complete'
+    model_phy_option = 'none'
     model_aug_option = True
     path = 'data/sanity_checks'
     device = 'cpu'

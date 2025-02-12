@@ -10,20 +10,26 @@ class DerivativeEstimator(eqx.Module):
     model_phy: eqx.Module
     model_aug: eqx.Module
     is_augmented: bool
+    is_phy: str
 
-    def __init__(self, model_phy, model_aug, is_augmented):
+    def __init__(self, model_phy, model_aug, is_augmented, is_phy):
         super().__init__()
         self.model_phy = model_phy
         self.model_aug = model_aug
         self.is_augmented = is_augmented
+        self.is_phy = is_phy
 
     def __call__(self, state, t):
-        res_phy = self.model_phy(state)
-        if self.is_augmented:
+        if self.is_phy == "none":
             res_aug = jax.vmap(self.model_aug)(state)
-            return res_phy + res_aug
+            return res_aug
         else:
-            return res_phy
+            res_phy = self.model_phy(state)
+            if self.is_augmented:
+                res_aug = jax.vmap(self.model_aug)(state)
+                return res_phy + res_aug
+            else:
+                return res_phy
 
 class Forecaster(eqx.Module):
     """ Integrates a trajectory using int_ method """
@@ -32,23 +38,24 @@ class Forecaster(eqx.Module):
     derivative_estimator: eqx.Module
     method: str
     int_: callable 
-    tableau: ButcherTableau
+    # TODO le fait de déclarer ButcherTableau en argument dans la classe crée une erreur avec eqx.filter_jit
+    #tableau: ButcherTableau
 
-    def __init__(self, model_phy, model_aug, is_augmented, method='RK4'):
+    def __init__(self, model_phy, model_aug, is_augmented, is_phy, method='RK4'):
         super().__init__()
 
         self.model_phy = model_phy
         self.model_aug = model_aug
         # our true trainable model
-        self.derivative_estimator = DerivativeEstimator(self.model_phy, self.model_aug, is_augmented=is_augmented)
+        self.derivative_estimator = DerivativeEstimator(self.model_phy, self.model_aug, is_augmented=is_augmented, is_phy=is_phy)
         self.method = method
         self.int_ = RK_solver_fixed #odeint 
-        self.tableau = RK_tableaux[self.method]
+        #self.tableau = RK_tableaux[self.method]
         
     def __call__(self, y, t):
         y0 = y[:,:,0]
         t_span = t[-1] - t[0]
-        res, _, _ = self.int_(self.derivative_estimator, t_span=t_span, y0=y0, t_eval=t, tableau=self.tableau) 
+        res, _, _ = self.int_(self.derivative_estimator, t_span=t_span, y0=y0, t_eval=t, tableau=RK_tableaux[self.method]) 
         # res: T x batch_size x n_c (x h x w)
         return rearrange(res, 'T b nc -> b nc T') # batch_size x n_c x T (x h x w)
     

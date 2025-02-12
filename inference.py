@@ -8,7 +8,17 @@ import numpy as np
 from networks import *
 from forecasters import *
 from datasets import init_dataloaders
-from train_jaxphynity import loss_fn
+from train_jaxphynity import loss_trajectory, loss_Fa #loss_fn
+
+@eqx.filter_value_and_grad(has_aux=True)
+@eqx.filter_jit
+def loss_fn(model, y, t, min_op, lambda_):
+    lossT, y_pred = loss_trajectory(model, y, t)
+    if model_aug_option:
+        loss_op = loss_Fa(model, y, min_op)
+        return lossT + lambda_ * loss_op, (lossT,loss_op, y_pred)
+    else:
+        return lossT, (lossT, jnp.array(0.0), y_pred)
 
 
 def inference(model_name,exp_name, data_path, model_phy_option, model_aug_option, dataset_name, method):
@@ -24,17 +34,20 @@ def inference(model_name,exp_name, data_path, model_phy_option, model_aug_option
             model_phy = DampedPendulumParamPDE(is_complete=True, real_params=None)
         elif model_phy_option == 'true':
             model_phy = DampedPendulumParamPDE(is_complete=True, real_params=test.dataset.params)
+        elif model_phy_option == 'none':
+            model_phy = DampedPendulumParamPDE(is_complete=False, real_params=None) # mock model for eqx compatibility
     
         with open(model_path, "rb") as f:
             hyperparams = json.loads(f.readline().decode())
             mkey = jax.random.PRNGKey(0)
             model_aug = MLP(key=mkey, state_c=2, hidden=200)
-            net = Forecaster(model_phy=model_phy, model_aug=model_aug, is_augmented=model_aug_option)
+            net = Forecaster(model_phy=model_phy, model_aug=model_aug, is_augmented=model_aug_option, is_phy=model_phy_option)
             model = eqx.tree_deserialise_leaves(f, net)
 
     with open(os.path.join(data_path, f'{exp_name}/hyperparameters.json'), 'r') as f:
         min_op = json.load(f)['min_op']
     _lambda = hyperparams['lambda']
+    print(min_op)
 
     print(f"Final omega: {model.derivative_estimator.model_phy.omega0_square}, Final alpha: {model.derivative_estimator.model_phy.alpha}" )
 
@@ -42,7 +55,7 @@ def inference(model_name,exp_name, data_path, model_phy_option, model_aug_option
     results = {}
     tot_states = []
     for i, data in enumerate(test):
-        states = jnp.permute_dims(jnp.array(data['states']), (0, 2, 1))
+        states = jnp.array(data['states'])
         t = jnp.array(data['t'][0]) 
         (loss_total, (loss_val, loss_op, pred)), _ = loss_fn(model, states, t, min_op, _lambda) 
         pred_i = {
@@ -63,10 +76,10 @@ def inference(model_name,exp_name, data_path, model_phy_option, model_aug_option
 
 
 if __name__ == '__main__':
-    exp_name = 'complete_aug3'
-    model_name = 'model_3.419e+00.eqx'
-    data_path = 'data/damped_pendulum_complete'
-    model_phy_option = 'complete'
+    exp_name = 'none_aug6'
+    model_name = 'model_1.784e+00.eqx'
+    data_path = 'data/sanity_checks'
+    model_phy_option = 'none'
     model_aug_option = True
     dataset_name = 'pendulum'
-    inference(model_name, exp_name, data_path, model_phy_option, model_aug_option, dataset_name, 'DOPRI8')
+    inference(model_name, exp_name, data_path, model_phy_option, model_aug_option, dataset_name, 'RK4')
