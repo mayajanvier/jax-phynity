@@ -38,8 +38,14 @@ class Forecaster(eqx.Module):
     model_aug: eqx.Module
     dt: float
     num_steps: int
-    derivative_estimator: eqx.Module
     integration_method: str
+
+    ### if we use external class
+    #derivative_estimator: eqx.Module
+
+    ### if we use internal function
+    is_phy: str
+    is_augmented: bool
 
     int_: callable 
     # TODO le fait de déclarer ButcherTableau en argument dans la classe crée une erreur avec eqx.filter_jit
@@ -51,11 +57,14 @@ class Forecaster(eqx.Module):
         self.model_phy = model_phy
         self.model_aug = model_aug
         # our true trainable model
-        self.derivative_estimator = DerivativeEstimator(self.model_phy, self.model_aug, is_augmented=is_augmented, is_phy=is_phy) 
-        self.integration_method = integration_method 
+        #self.derivative_estimator = DerivativeEstimator(self.model_phy, self.model_aug, is_augmented=is_augmented, is_phy=is_phy) 
+        # or 
+        self.is_augmented = is_augmented
+        self.is_phy = is_phy  
         # solver
         self.dt = dt
         self.num_steps = num_steps
+        self.integration_method = integration_method
         self.int_ = RK_solver_fixed # on definit dt et le tableau là #odeint 
         #self.tableau = RK_tableaux[self.method]
         
@@ -67,10 +76,23 @@ class Forecaster(eqx.Module):
     
     def get_pde_params(self):
         params = {
-            "omega0_square": self.derivative_estimator.model_phy.omega0_square,
-            "alpha": self.derivative_estimator.model_phy.alpha,
+            "omega0_square": self.model_phy.omega0_square,
+            "alpha": self.model_phy.alpha,
         }
         return params
+    
+    def derivative_estimator(self, state, t):
+        if self.is_phy == "none":
+            res_aug = self.model_aug(state)
+            return res_aug
+        else:
+            res_phy = self.model_phy(state)
+            if self.is_augmented:
+                res_aug = self.model_aug(state)
+                return res_phy + res_aug
+            else:
+                return res_phy
+
     
 if __name__ == '__main__':
     from utils import init_linear_weight, orthogonal_init

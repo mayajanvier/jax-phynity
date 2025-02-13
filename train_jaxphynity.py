@@ -50,7 +50,8 @@ def loss_Fa(model, y, min_op):
     # TODO Vrai modèle qu'on entraîne est wrapped dans derivative_estimator -> forecaster inutile 
     # TODO find better idea to deal, maybe with jax 
     y_in = rearrange(y, 'b nc T -> (b T) nc')
-    aug_deriv = jax.vmap(model.derivative_estimator.model_aug)(y_in) 
+    #aug_deriv = jax.vmap(model.derivative_estimator.model_aug)(y_in)
+    aug_deriv = jax.vmap(model.model_aug)(y_in) 
     aug_deriv = rearrange(aug_deriv, '(b T) nc -> b nc T', b=y.shape[0])
     if min_op == 'l2_normalized':
         loss_op = ((jnp.linalg.norm(aug_deriv, ord=2, axis=1) / (jnp.linalg.norm(y, ord=2, axis=1) + 1e-8)) ** 2).mean()
