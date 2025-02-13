@@ -99,9 +99,9 @@ def runge_kutta_step(
         k_first: First stage derivative (optional, used in FSAL).
 
     Returns:
-        - Next state after the step.
-        - Error estimate for adaptive methods (optional).
-        - Last stage derivative (for FSAL-enabled methods).
+        y_next: Next state after the step.
+        error: Error estimate for adaptive methods (optional).
+        k_last: Last stage derivative (for FSAL-enabled methods).
     """
     num_stages = tableau.num_stages
     k = jnp.zeros((num_stages,) + y.shape, dtype=y.dtype) # shape (num_stages, y.shape)
@@ -116,7 +116,6 @@ def runge_kutta_step(
         for i in range(tableau.num_stages-1):
             ti = t + tableau.c[i] * dt
             yi = y + dt * jnp.tensordot(tableau.a_lower[i], k[:i+1], axes=1)
-            #yi = y + dt * jnp.dot(tableau.a_lower[i], k[:i+1])
             k = k.at[i+1].set(f(yi, ti))    
         y_next =  y + dt * jnp.tensordot(tableau.b_sol, k, axes=1)
         error = jnp.tensordot(tableau.b_error, k, axes=1)
@@ -351,29 +350,41 @@ RK_tableaux = {
 ### Runge-Kutta methods
 
 # fixed step size
-# TODO: add adaptive step size
-def RK_solver_fixed(fun, t_span, y0, t_eval, tableau, rtol=1e-10, n_step_max=1000):
-    """Solve an initial value problem using the Dormand--Prince 5 method."""
+def RK_solver_fixed(fun, y0, dt, num_steps, tableau):
+    """Solve an initial value problem using the Dormand--Prince 5 method.
+    
+    Args:
+        fun: The vector field function.
+        y0: The initial state.
+        dt: The step size.
+        num_steps: The number of steps to take.
+        tableau: The Butcher tableau of the Runge--Kutta method.
+    
+    Returns:
+        t_eval: time points of evaluation, (num_steps+1,)
+        y: solution evaluated on t_eval points, (num_steps+1, y0.shape)
+        global_error: global error of the method, float
+        errors: list of errors at each time step, (num_steps,)
+    """
     # initialize
-    y = jnp.zeros((len(t_eval),) + y0.shape, dtype=y0.dtype)
-    y = y.at[0].set(y0)
-    #t, tf = t_span # needed when adaptive step size is used
-    dt = t_eval[1] - t_eval[0]
+    t_eval = jnp.arange(0, (num_steps+1) * dt, dt) # array of time points to evaluate
+    y = jnp.zeros(y0.shape + (len(t_eval),), dtype=y0.dtype) 
+    y = y.at[:,0].set(y0)
     global_error = 0.
     errors = []
     n_step = 0
     k_first = None
 
-    for tc in t_eval:
+    for t_current in t_eval:
         if tableau.fsal:
-            y_next, error, k_first = runge_kutta_step(fun, y[n_step], tc, dt, tableau, k_first)
+            y_next, error, k_first = runge_kutta_step(fun, y[:,n_step], t_current, dt, tableau, k_first)
         else:
-            y_next, error = runge_kutta_step(fun, y[n_step], tc, dt, tableau)
+            y_next, error = runge_kutta_step(fun, y[:,n_step], t_current, dt, tableau)
         n_step += 1 
-        y = y.at[n_step].set(y_next)
+        y = y.at[:,n_step].set(y_next)
         global_error += error
         errors.append(error)
-    return y, global_error, errors
+    return y, t_eval, global_error, errors
 
 ### equinox Integrator class
 # TODO: voir si c'est mieux pour jiter mais pour l'instant ne fonctionne pas 
