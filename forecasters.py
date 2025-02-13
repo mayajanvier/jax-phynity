@@ -21,43 +21,49 @@ class DerivativeEstimator(eqx.Module):
 
     def __call__(self, state, t):
         if self.is_phy == "none":
-            res_aug = jax.vmap(self.model_aug)(state)
+            res_aug = self.model_aug(state)
             return res_aug
         else:
             res_phy = self.model_phy(state)
             if self.is_augmented:
-                res_aug = jax.vmap(self.model_aug)(state)
+                res_aug = self.model_aug(state)
                 return res_phy + res_aug
             else:
                 return res_phy
 
+# TODO join avec derivative estimator
 class Forecaster(eqx.Module):
     """ Integrates a trajectory using int_ method """
     model_phy: eqx.Module
     model_aug: eqx.Module
+    dt: float
+    num_steps: int
     derivative_estimator: eqx.Module
-    method: str
+    integration_method: str
+
     int_: callable 
     # TODO le fait de déclarer ButcherTableau en argument dans la classe crée une erreur avec eqx.filter_jit
     #tableau: ButcherTableau
 
-    def __init__(self, model_phy, model_aug, is_augmented, is_phy, method='RK4'):
+    def __init__(self, model_phy, model_aug, is_augmented, is_phy, dt, num_steps, integration_method='RK4'):
         super().__init__()
 
         self.model_phy = model_phy
         self.model_aug = model_aug
         # our true trainable model
-        self.derivative_estimator = DerivativeEstimator(self.model_phy, self.model_aug, is_augmented=is_augmented, is_phy=is_phy)
-        self.method = method
-        self.int_ = RK_solver_fixed #odeint 
+        self.derivative_estimator = DerivativeEstimator(self.model_phy, self.model_aug, is_augmented=is_augmented, is_phy=is_phy) 
+        self.integration_method = integration_method 
+        # solver
+        self.dt = dt
+        self.num_steps = num_steps
+        self.int_ = RK_solver_fixed # on definit dt et le tableau là #odeint 
         #self.tableau = RK_tableaux[self.method]
         
-    def __call__(self, y, t):
-        y0 = y[:,:,0]
-        t_span = t[-1] - t[0]
-        res, _, _ = self.int_(self.derivative_estimator, t_span=t_span, y0=y0, t_eval=t, tableau=RK_tableaux[self.method]) 
-        # res: T x batch_size x n_c (x h x w)
-        return rearrange(res, 'T b nc -> b nc T') # batch_size x n_c x T (x h x w)
+    def __call__(self, y0):
+        # y0:   (n_c,)
+        # res:  (n_c, T) 
+        res, _, _, _ = self.int_(self.derivative_estimator, y0=y0, dt=self.dt, num_steps=self.num_steps, tableau=RK_tableaux[self.integration_method]) 
+        return res 
     
     def get_pde_params(self):
         params = {

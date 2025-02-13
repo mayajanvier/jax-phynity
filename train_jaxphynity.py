@@ -10,6 +10,10 @@ from forecasters import *
 from utils import init_linear_weight, orthogonal_init
 from datasets import init_dataloaders
 from utils import Logger, save, make_basedir
+import torch
+
+# Pytorch seed
+torch.manual_seed(1)
 
 def log(train, epoch, iteration, metrics, nepoch):
         message = '[{step}][{epoch}/{max_epoch}][{i}/{max_i}]'.format(
@@ -33,19 +37,21 @@ def compute_metric(net, train_data):
 
 # Losses
 def MSEjax(y_pred, y_true):
-    return optax.squared_error(y_pred, y_true).mean() # (y_pred - y_true).pow(2).mean()
+    return ((y_pred - y_true)**2).mean()
 
 @eqx.filter_jit
-def loss_trajectory(model, y, t):
-    #x = y[:,:,0] # y0
-    y_pred = model(y,t)
+def loss_trajectory(model, y):
+    x = y[:,:,0] # y0
+    y_pred = jax.vmap(model)(x)
     return MSEjax(y_pred, y), y_pred
 
 @eqx.filter_jit
 def loss_Fa(model, y, min_op):
-    # ou bien directement model_aug ? n'est pas le même objet, loss successives ou séparées ?
-    # Vrai modèle qu'on entraîne est wrapped dans derivative_estimator
-    aug_deriv = model.derivative_estimator.model_aug.get_derivatives(y) 
+    # TODO Vrai modèle qu'on entraîne est wrapped dans derivative_estimator -> forecaster inutile 
+    # TODO find better idea to deal, maybe with jax 
+    y_in = rearrange(y, 'b nc T -> (b T) nc')
+    aug_deriv = jax.vmap(model.derivative_estimator.model_aug)(y_in) 
+    aug_deriv = rearrange(aug_deriv, '(b T) nc -> b nc T', b=y.shape[0])
     if min_op == 'l2_normalized':
         loss_op = ((jnp.linalg.norm(aug_deriv, ord=2, axis=1) / (jnp.linalg.norm(y, ord=2, axis=1) + 1e-8)) ** 2).mean()
     elif min_op == 'l2':
@@ -57,7 +63,7 @@ def loss_Fa(model, y, min_op):
 @eqx.filter_value_and_grad(has_aux=True)
 @eqx.filter_jit
 def loss_fn(model, y, t, min_op, lambda_):
-    lossT, y_pred = loss_trajectory(model, y, t)
+    lossT, y_pred = loss_trajectory(model, y)
     if model_aug_option:
         loss_op = loss_Fa(model, y, min_op)
         return lossT + lambda_ * loss_op, (lossT,loss_op, y_pred)
@@ -194,24 +200,32 @@ def training_routine(train, test, net, optimizer, min_op, _lambda,tau_1, tau_2, 
 
 
 # Main
-def train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device, method):
+def train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device, integration_method):
     train, val, _ = init_dataloaders(dataset_name, method, os.path.join(path, dataset_name))
 
     if dataset_name == 'pendulum':
         if model_phy_option == 'incomplete':
-            model_phy = DampedPendulumParamPDE(is_complete=False, real_params=None)
+            model_phy = PendulumParamPDE(is_damped=False)
         elif model_phy_option == 'complete':
-            model_phy = DampedPendulumParamPDE(is_complete=True, real_params=None)
+            model_phy = PendulumParamPDE(is_damped=True)
         elif model_phy_option == 'true':
-            model_phy = DampedPendulumParamPDE(is_complete=True, real_params=train.dataset.params)
+            model_phy = PendulumParamPDE(is_damped=True, params=train.dataset.params)
         # SC3
         elif model_phy_option == 'none':
-            model_phy = DampedPendulumParamPDE(is_complete=False, real_params=None) # mock model not trained 
+            model_phy = PendulumParamPDE(is_damped=False) # mock model not trained 
         
         mkey, ikey = jax.random.split(jax.random.PRNGKey(0))
         model_aug = MLP(key=mkey, state_c=2, hidden=200)
         init_linear_weight(model_aug, orthogonal_init, key=ikey, init_gain=0.2) 
-        net = Forecaster(model_phy=model_phy, model_aug=model_aug, is_augmented=model_aug_option, is_phy=model_phy_option)
+        net = Forecaster(
+            model_phy=model_phy,
+            model_aug=model_aug,
+            is_augmented=model_aug_option,
+            is_phy=model_phy_option,
+            dt=train.dataset.dt,
+            num_steps=train.dataset.num_steps,
+            integration_method=integration_method,
+        )
         
         tau_1 = 1e-3
         niter = 5
@@ -263,10 +277,19 @@ if __name__ == '__main__':
     # train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device, method)
 
     ### SC3 - Neural ODE 
+    # method = 'RK4' # data generation method
+    # dataset_name = 'pendulum'
+    # model_phy_option = 'none'
+    # model_aug_option = True
+    # path = 'data/sanity_checks'
+    # device = 'cpu'
+    # train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device, method)
+
+    ### debug
     method = 'RK4' # data generation method
     dataset_name = 'pendulum'
-    model_phy_option = 'none'
+    model_phy_option = 'complete'
     model_aug_option = True
-    path = 'data/sanity_checks'
+    path = 'data/tests'
     device = 'cpu'
     train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device, method)

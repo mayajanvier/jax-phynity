@@ -8,6 +8,7 @@ from einops import rearrange
 omega0_square_org = 0.2
 alpha_org = 0.1 
 
+# TODO: pas opti si on veut freeze alpha, on voudrait eviter l'utilisation d'une condition if 
 class DampedPendulumParamPDE(eqx.Module):
     # ParameterDict replaced by jax.array, need to be jax object for array filtering (for gradient computation)
     is_complete: bool
@@ -29,7 +30,8 @@ class DampedPendulumParamPDE(eqx.Module):
             else:
                 self.alpha = jnp.array(0.0)
 
-    def __call__(self, state):
+    def __call__(self, state): # mettre tailles 
+        # revoir taille, doit prendre q'un seul etat pour le jaxer
         q = state[:,0:1]
         p = state[:,1:2]
 
@@ -39,7 +41,34 @@ class DampedPendulumParamPDE(eqx.Module):
         else: # separated otherwise alpha is updated
             dpdt = - self.omega0_square * jnp.sin(q)
 
-        return jnp.concat([dqdt, dpdt], axis=1)
+        return jnp.concat([dqdt, dpdt], axis=1) # stack axis =-1 
+    
+class PendulumParamPDE(eqx.Module):
+    is_damped: bool
+    omega0_square: jax.Array # type makes it trainable
+    alpha: jax.Array 
+    """ Unified pendulum for generation and inference """
+
+    def __init__(self, is_damped=False, params={"alpha": 0.1, "omega0_square": 0.2}):
+        super().__init__()
+        self.is_damped = is_damped
+        self.omega0_square = jnp.array(params["omega0_square"]) # default unless precised
+        if self.is_damped:
+            self.alpha = jnp.array(params["alpha"]) # default unless precised
+        else:
+            self.alpha = jnp.array(0.0)
+
+    def __call__(self, state): # state should be (nc,)
+        # revoir taille, doit prendre q'un seul etat pour le jaxer
+        q = state[0]
+        p = state[1]
+        dqdt = p
+        if self.is_damped:
+            dpdt = - self.omega0_square * jnp.sin(q) - self.alpha * p
+        else: # separated otherwise alpha is updated
+            dpdt = - self.omega0_square * jnp.sin(q)
+
+        return jnp.stack([dqdt, dpdt], axis=-1) 
     
 ### Data driven model Fa    
 class MLP(eqx.Module):
@@ -58,14 +87,6 @@ class MLP(eqx.Module):
     def __call__(self, x):
         for layer in self.layers:
             x = layer(x)
-        return x
-
-    def get_derivatives(self, x):
-        # batch management
-        batch_size, nc, T = x.shape 
-        x = rearrange(x, 'b nc T -> (b T) nc')
-        x = jax.vmap(self.__call__)(x)
-        x = rearrange(x, '(b T) nc -> b nc T', b=batch_size)
         return x
     
 
