@@ -9,24 +9,11 @@ from networks import *
 from forecasters import *
 from utils import init_linear_weight, orthogonal_init
 from datasets import init_dataloaders
-from utils import Logger, save, make_basedir
+from utils import Logger, save, make_basedir, log
 import torch
 
 # Pytorch seed
-torch.manual_seed(1)
-
-def log(train, epoch, iteration, metrics, nepoch):
-        message = '[{step}][{epoch}/{max_epoch}][{i}/{max_i}]'.format(
-            step=epoch *len(train)+ iteration+1,
-            epoch=epoch+1,
-            max_epoch=nepoch,
-            i=iteration+1,
-            max_i=len(train)
-        )
-        for name, value in metrics.items():
-            message += ' | {name}: {value:.2e}'.format(name=name, value=float(value))
-            
-        print(message)
+#torch.manual_seed(1)
 
 def compute_metric(net, train_data):
     metrics = {}
@@ -75,22 +62,6 @@ def loss_fn(model, y, t, min_op, lambda_):
 def training_routine(train, test, net, optimizer, min_op, _lambda,tau_1, tau_2, niter, path, device, nlog=1, nupdate=1, nepoch=10):   
     # Setup to save logs 
     name_experiment = model_phy_option+"_"+("aug" if model_aug_option else "physics")
-    path = make_basedir(path, name_experiment)
-    logger = Logger(filename=os.path.join(path, 'log.txt'))
-
-    # save hyperparameters and settings (in case wandb crash)
-    hyperparameters = {
-        'lambda0': _lambda,
-        'tau_1': tau_1,
-        'tau_2': tau_2,
-        'niter': niter,
-        'min_op': min_op,
-        'nepoch': nepoch,
-        'nlog': nlog,
-        'nupdate': nupdate,
-    }
-    with open(os.path.join(path, 'hyperparameters.json'), 'w') as f:
-        json.dump(hyperparameters, f)
     
     # Weights and Biases
     wandb.init(
@@ -106,6 +77,30 @@ def training_routine(train, test, net, optimizer, min_op, _lambda,tau_1, tau_2, 
         "lambda0": _lambda,    
         }
         )
+
+    # get w&b id
+    wandb_id = wandb.run.id
+    exp_path = make_basedir(path, name_experiment+f"_{str(wandb_id)}")
+    print(exp_path)
+    logger = Logger(filename=os.path.join(exp_path, 'log.txt'))
+    # save code in w&b
+    wandb.run.log_code("./")
+
+
+    # save hyperparameters and settings (in case wandb crash)
+    hyperparameters = {
+        'lambda0': _lambda,
+        'tau_1': tau_1,
+        'tau_2': tau_2,
+        'niter': niter,
+        'min_op': min_op,
+        'nepoch': nepoch,
+        'nlog': nlog,
+        'nupdate': nupdate,
+        'id': wandb_id,
+    }
+    with open(os.path.join(exp_path, 'hyperparameters.json'), 'w') as f:
+        json.dump(hyperparameters, f)
 
     # optimizer initialization
     opt_state = optimizer.init(eqx.filter(net, eqx.is_array))
@@ -171,7 +166,7 @@ def training_routine(train, test, net, optimizer, min_op, _lambda,tau_1, tau_2, 
                 val_losses.append(loss_test)
                 train_losses.append(loss_train)
                 L = pd.DataFrame({'train_loss': train_losses, 'val_loss': val_losses})
-                L.to_csv(path+'/loss.csv', index=False)
+                L.to_csv(exp_path+'/loss.csv', index=False)
 
                 if loss_test_min == None or loss_test_min > loss_test:
                     loss_test_min = loss_test
@@ -182,14 +177,14 @@ def training_routine(train, test, net, optimizer, min_op, _lambda,tau_1, tau_2, 
                         "loss": loss_test_min,
                         "lambda": _lambda,
                         }
-                    save(path + f'/model_{loss_test_min:.3e}.eqx', hyperparameters, net)
+                    save(exp_path + f'/model_{loss_test_min:.3e}.eqx', hyperparameters, net)
 
                     # torch.save({
                     #     'epoch': epoch,
                     #     'model_state_dict': self.net.state_dict(),
                     #     'optimizer_state_dict': self.optimizer.state_dict(),
                     #     'loss': loss_test_min, 
-                    # }, self.path + f'/model_{loss_test_min:.3e}.pt')
+                    # }, self.exp_path + f'/model_{loss_test_min:.3e}.pt')
 
                 loss_test = {
                     'loss_test': loss_test,
@@ -243,30 +238,25 @@ def train_aphynity(dataset_name, model_phy_option, model_aug_option, path, devic
             min_op = 'none' # loss_op=0, quicker evaluation
         
         
-        nepoch = 150
+        nepoch = 10
         nlog = 5
         nupdate = 5
     
+    # don't think we need a seed for optimizer initialization
     optimizer = optax.adam(learning_rate=tau_1, b1=0.9, b2=0.999)
     training_routine(train, val, net, optimizer, min_op, lambda_0,tau_1, tau_2, niter, path, device, nlog, nupdate, nepoch)
-    # experiment = APHYNITYExperiment(
-    #         train=train, test=test, net=net, optimizer=optimizer, 
-    #         min_op=min_op, lambda_0=lambda_0, tau_2=tau_2, niter=niter, nlog=10,
-    #         nupdate=100, nepoch=50000, path=path, device=device
-    #     )
-    # experiment.run()
 
 if __name__ == '__main__':
     wandb.login()
 
     ### SC1 - Train a model with complete physics
-    # method = 'RK4' # data generation method
-    # dataset_name = 'pendulum'
-    # model_phy_option = 'complete'
-    # model_aug_option = False 
-    # path = 'data/sanity_checks'
-    # device = 'cpu'
-    # train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device, method)
+    method = 'RK4' # data generation method
+    dataset_name = 'pendulum'
+    model_phy_option = 'complete'
+    model_aug_option = False 
+    path = 'data/tests'
+    device = 'cpu'
+    train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device, method)
 
     ### SC2 - Train a model with incomplete physics and augmentation
     # method = 'RK4' # data generation method
@@ -287,10 +277,10 @@ if __name__ == '__main__':
     # train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device, method)
 
     ### debug
-    method = 'RK4' # data generation method
-    dataset_name = 'pendulum'
-    model_phy_option = 'complete'
-    model_aug_option = True
-    path = 'data/tests'
-    device = 'cpu'
-    train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device, method)
+    # method = 'RK4' # data generation method
+    # dataset_name = 'pendulum'
+    # model_phy_option = 'complete'
+    # model_aug_option = True
+    # path = 'data/tests'
+    # device = 'cpu'
+    # train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device, method)

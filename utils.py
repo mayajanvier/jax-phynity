@@ -42,6 +42,19 @@ class Logger(object):
             self.file.close()
             self.file = None
 
+def log(train, epoch, iteration, metrics, nepoch):
+        message = '[{step}][{epoch}/{max_epoch}][{i}/{max_i}]'.format(
+            step=epoch *len(train)+ iteration+1,
+            epoch=epoch+1,
+            max_epoch=nepoch,
+            i=iteration+1,
+            max_i=len(train)
+        )
+        for name, value in metrics.items():
+            message += ' | {name}: {value:.2e}'.format(name=name, value=float(value))
+            
+        print(message)
+
 def make_basedir(root, name_exp, timestamp=None, attempts=5):
     """Takes 5 shots at creating a folder from root,
     adding timestamp if desired.
@@ -50,7 +63,7 @@ def make_basedir(root, name_exp, timestamp=None, attempts=5):
         basedir = root
         if timestamp is None:
             timestamp = datetime.now().strftime("%Y-%m-%d")
-            basedir = os.path.join(basedir, name_exp+ str(len(os.listdir(basedir)) + 1 -3)) # 3 data files 
+            basedir = os.path.join(basedir, name_exp[:-8]+str(len(os.listdir(basedir)) + 1 -3)+"_"+name_exp[-8:]) # 3 data files 
         try:
             os.makedirs(basedir)
             return basedir
