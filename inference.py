@@ -13,7 +13,7 @@ from train_jaxphynity import loss_trajectory, loss_Fa #loss_fn
 @eqx.filter_value_and_grad(has_aux=True)
 @eqx.filter_jit
 def loss_fn(model, y, t, min_op, lambda_):
-    lossT, y_pred = loss_trajectory(model, y, t)
+    lossT, y_pred = loss_trajectory(model, y)
     if model_aug_option:
         loss_op = loss_Fa(model, y, min_op)
         return lossT + lambda_ * loss_op, (lossT,loss_op, y_pred)
@@ -21,27 +21,36 @@ def loss_fn(model, y, t, min_op, lambda_):
         return lossT, (lossT, jnp.array(0.0), y_pred)
 
 
-def inference(model_name,exp_name, data_path, model_phy_option, model_aug_option, dataset_name, method):
+def inference(model_name,exp_name, data_path, model_phy_option, model_aug_option, dataset_name, integration_method):
     # load test data 
-    _, _, test = init_dataloaders(dataset_name, method, os.path.join(data_path, dataset_name))
+    _, _, test = init_dataloaders(dataset_name, integration_method, os.path.join(data_path, dataset_name))
 
     # load model
     model_path = os.path.join(data_path, f"{exp_name}/{model_name}")
+    print(model_path)
     if dataset_name == 'pendulum':
         if model_phy_option == 'incomplete':
-            model_phy = DampedPendulumParamPDE(is_complete=False, real_params=None)
+            model_phy = PendulumParamPDE(is_damped=False)
         elif model_phy_option == 'complete':
-            model_phy = DampedPendulumParamPDE(is_complete=True, real_params=None)
+            model_phy = PendulumParamPDE(is_damped=True)
         elif model_phy_option == 'true':
-            model_phy = DampedPendulumParamPDE(is_complete=True, real_params=test.dataset.params)
+            model_phy = PendulumParamPDE(is_damped=True, params=test.dataset.params)
         elif model_phy_option == 'none':
-            model_phy = DampedPendulumParamPDE(is_complete=False, real_params=None) # mock model for eqx compatibility
+            model_phy = PendulumParamPDE(is_damped=False) # mock model for eqx compatibility
     
         with open(model_path, "rb") as f:
             hyperparams = json.loads(f.readline().decode())
             mkey = jax.random.PRNGKey(0)
             model_aug = MLP(key=mkey, state_c=2, hidden=200)
-            net = Forecaster(model_phy=model_phy, model_aug=model_aug, is_augmented=model_aug_option, is_phy=model_phy_option)
+            net = Forecaster(
+                model_phy=model_phy,
+                model_aug=model_aug,
+                is_augmented=model_aug_option,
+                is_phy=model_phy_option,
+                dt=test.dataset.dt,
+                num_steps=test.dataset.num_steps,
+                integration_method=integration_method,
+            )
             model = eqx.tree_deserialise_leaves(f, net)
 
     with open(os.path.join(data_path, f'{exp_name}/hyperparameters.json'), 'r') as f:
@@ -49,7 +58,7 @@ def inference(model_name,exp_name, data_path, model_phy_option, model_aug_option
     _lambda = hyperparams['lambda']
     print(min_op)
 
-    print(f"Final omega: {model.derivative_estimator.model_phy.omega0_square}, Final alpha: {model.derivative_estimator.model_phy.alpha}" )
+    print(f"Final omega: {model.model_phy.omega0_square}, Final alpha: {model.model_phy.alpha}" )
 
     # inference
     results = {}
@@ -76,9 +85,9 @@ def inference(model_name,exp_name, data_path, model_phy_option, model_aug_option
 
 
 if __name__ == '__main__':
-    exp_name = 'none_aug6'
-    model_name = 'model_1.784e+00.eqx'
-    data_path = 'data/sanity_checks'
+    exp_name = 'none_aug_7_guc4yik5'
+    model_name = 'model_1.154e+00.eqx'
+    data_path = 'data/tests'
     model_phy_option = 'none'
     model_aug_option = True
     dataset_name = 'pendulum'
