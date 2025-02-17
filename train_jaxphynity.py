@@ -34,7 +34,6 @@ def loss_trajectory(model, y):
 
 @eqx.filter_jit
 def loss_Fa(model, y, min_op):
-    # TODO Vrai modèle qu'on entraîne est wrapped dans derivative_estimator -> forecaster inutile 
     # TODO find better idea to deal, maybe with jax 
     y_in = rearrange(y, 'b nc T -> (b T) nc')
     #aug_deriv = jax.vmap(model.derivative_estimator.model_aug)(y_in)
@@ -52,11 +51,14 @@ def loss_Fa(model, y, min_op):
 @eqx.filter_jit
 def loss_fn(model, y, t, min_op, lambda_):
     lossT, y_pred = loss_trajectory(model, y)
-    if model_aug_option:
-        loss_op = loss_Fa(model, y, min_op)
-        return lossT + lambda_ * loss_op, (lossT,loss_op, y_pred)
-    else:
+    if model_phy_option == "none":
         return lossT, (lossT, jnp.array(0.0), y_pred)
+    else:
+        if model_aug_option:
+            loss_op = loss_Fa(model, y, min_op)
+            return lossT + lambda_ * loss_op, (lossT,loss_op, y_pred)
+        else:
+            return lossT, (lossT, jnp.array(0.0), y_pred)
 
 # Routine
 def training_routine(train, test, net, optimizer, min_op, _lambda,tau_1, tau_2, niter, path, device, nlog=1, nupdate=1, nepoch=10):   
@@ -109,8 +111,8 @@ def training_routine(train, test, net, optimizer, min_op, _lambda,tau_1, tau_2, 
     train_losses = []
     val_losses = []
     for epoch in range(nepoch): 
-        for iteration, data in enumerate(train, 0):  
-            for _ in range(niter): 
+        for _ in range(niter): 
+            for iteration, data in enumerate(train, 0):  
                 ### TRAIN STEP
                 states = jnp.array(data['states'])
                 t = jnp.array(data['t'][0])
@@ -197,7 +199,7 @@ def training_routine(train, test, net, optimizer, min_op, _lambda,tau_1, tau_2, 
 
 # Main
 def train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device, integration_method):
-    train, val, _ = init_dataloaders(dataset_name, method, os.path.join(path, dataset_name))
+    train, val, _ = init_dataloaders(dataset_name, integration_method, os.path.join(path, dataset_name))
 
     if dataset_name == 'pendulum':
         if model_phy_option == 'incomplete':
@@ -238,7 +240,7 @@ def train_aphynity(dataset_name, model_phy_option, model_aug_option, path, devic
             min_op = 'none' # loss_op=0, quicker evaluation
         
         
-        nepoch = 10
+        nepoch = 150
         nlog = 5
         nupdate = 5
     
@@ -250,13 +252,13 @@ if __name__ == '__main__':
     wandb.login()
 
     ### SC1 - Train a model with complete physics
-    method = 'RK4' # data generation method
-    dataset_name = 'pendulum'
-    model_phy_option = 'complete'
-    model_aug_option = False 
-    path = 'data/tests'
-    device = 'cpu'
-    train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device, method)
+    # method = 'RK4' # data generation method
+    # dataset_name = 'pendulum'
+    # model_phy_option = 'complete'
+    # model_aug_option = False 
+    # path = 'data/tests'
+    # device = 'cpu'
+    # train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device, method)
 
     ### SC2 - Train a model with incomplete physics and augmentation
     # method = 'RK4' # data generation method
@@ -268,13 +270,13 @@ if __name__ == '__main__':
     # train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device, method)
 
     ### SC3 - Neural ODE 
-    # method = 'RK4' # data generation method
-    # dataset_name = 'pendulum'
-    # model_phy_option = 'none'
-    # model_aug_option = True
-    # path = 'data/sanity_checks'
-    # device = 'cpu'
-    # train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device, method)
+    method = 'RK4' # data generation method
+    dataset_name = 'pendulum'
+    model_phy_option = 'none'
+    model_aug_option = True
+    path = 'data/tests'
+    device = 'cpu'
+    train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device, method)
 
     ### debug
     # method = 'RK4' # data generation method
