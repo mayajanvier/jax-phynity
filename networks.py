@@ -44,31 +44,30 @@ class DampedPendulumParamPDE(eqx.Module):
         return jnp.concat([dqdt, dpdt], axis=1) # stack axis =-1 
     
 class PendulumParamPDE(eqx.Module):
-    is_damped: bool
     omega0_square: jax.Array # type makes it trainable
     alpha: jax.Array 
+    is_damped: bool = eqx.static_field()  # Static field (not JAX-traceable)
     """ Unified pendulum for generation and inference """
 
     def __init__(self, is_damped=False, params={"alpha": 0.1, "omega0_square": 0.2}):
         super().__init__()
         self.is_damped = is_damped
-        self.omega0_square = jnp.array(params["omega0_square"]) # default unless precised
+        self.omega0_square = jnp.array(params["omega0_square"], dtype=jnp.float32) # default unless precised
         if self.is_damped:
-            self.alpha = jnp.array(params["alpha"]) # default unless precised
+            self.alpha = jnp.array(params["alpha"], dtype=jnp.float32) # default unless precised
         else:
-            self.alpha = jnp.array(0.0)
+            self.alpha = jnp.array(0.0, dtype=jnp.float32)
 
     def __call__(self, state): # state should be (nc,)
-        # revoir taille, doit prendre q'un seul etat pour le jaxer
-        q = state[0]
-        p = state[1]
+        q, p = state
         dqdt = p
         if self.is_damped:
             dpdt = - self.omega0_square * jnp.sin(q) - self.alpha * p
         else: # separated otherwise alpha is updated
             dpdt = - self.omega0_square * jnp.sin(q)
 
-        return jnp.stack([dqdt, dpdt], axis=-1) 
+        return jnp.array([dqdt, dpdt]) 
+
     
 ### Data driven model Fa    
 class MLP(eqx.Module):

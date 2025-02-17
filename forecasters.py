@@ -31,21 +31,20 @@ class DerivativeEstimator(eqx.Module):
             else:
                 return res_phy
 
-# TODO join avec derivative estimator
 class Forecaster(eqx.Module):
     """ Integrates a trajectory using int_ method """
     model_phy: eqx.Module
     model_aug: eqx.Module
-    dt: float
-    num_steps: int
-    integration_method: str
+    dt: float = eqx.static_field()
+    num_steps: int = eqx.static_field()
+    integration_method: str = eqx.static_field()
 
     ### if we use external class
     #derivative_estimator: eqx.Module
 
     ### if we use internal function
-    is_phy: str
-    is_augmented: bool
+    is_phy: str = eqx.static_field()
+    is_augmented: bool = eqx.static_field()
 
     int_: callable 
     # TODO le fait de déclarer ButcherTableau en argument dans la classe crée une erreur avec eqx.filter_jit
@@ -67,6 +66,16 @@ class Forecaster(eqx.Module):
         self.integration_method = integration_method
         self.int_ = RK_solver_fixed # on definit dt et le tableau là #odeint 
         #self.tableau = RK_tableaux[self.method]
+
+        # derivative_estimator: si on le définit ici ca va vite mais 
+        # ne s'entraine pas 
+        # if self.is_phy == "none":
+        #     self.derivative_estimator = lambda state, t: self.model_aug(state)
+        # else:
+        #     if self.is_augmented:
+        #         self.derivative_estimator = lambda state, t: self.model_phy(state) + self.model_aug(state)
+        #     else:
+        #         self.derivative_estimator = lambda state, t: self.model_phy(state)
         
     def __call__(self, y0):
         # y0:   (n_c,)
@@ -82,6 +91,7 @@ class Forecaster(eqx.Module):
         return params
     
     def derivative_estimator(self, state, t):
+        # state of shape (nc,)
         if self.is_phy == "none":
             res_aug = self.model_aug(state)
             return res_aug
@@ -92,6 +102,18 @@ class Forecaster(eqx.Module):
                 return res_phy + res_aug
             else:
                 return res_phy
+
+        # use lax.cond to switch between models
+        # conditions lax imbriquées trop lourd avec vmap
+        # return jax.lax.cond(
+        #     self.is_phy == "none",
+        #     lambda s: self.model_aug(s), # true branch
+        #     lambda s: jax.lax.cond(
+        #         self.is_augmented, 
+        #         lambda s: self.model_phy(s) + self.model_aug(s), # true branch
+        #         lambda s: self.model_phy(s), # false branch
+        #         s),
+        #     state)
 
     
 if __name__ == '__main__':
