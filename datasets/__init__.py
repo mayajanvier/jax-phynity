@@ -1,13 +1,23 @@
 from .pendulum import DampedPendulum
 from torch.utils.data import DataLoader 
 import torch
+import numpy as np
+import random
 
 # fix torch seed for reproducibility
-torch.manual_seed(1)
+#torch.manual_seed(1)
+
+def seed_worker(worker_id):
+    worker_seed = torch.initial_seed() % 2**32
+    np.random.seed(worker_seed)
+    random.seed(worker_seed)
 
 # Build our dataloaders
 
 def param_pendulum(buffer_filepath, integration_method, batch_size=25):
+    g = torch.Generator()
+    g.manual_seed(0)
+
     dataset_train_params = {
         'nb_traj': 25, 
         'num_steps': 40,
@@ -40,6 +50,8 @@ def param_pendulum(buffer_filepath, integration_method, batch_size=25):
         'pin_memory' : True,
         'drop_last'  : False,
         'shuffle'    : True,
+        'worker_init_fn': seed_worker,
+        'generator':g,
     }
 
     dataloader_val_params = {
@@ -49,6 +61,8 @@ def param_pendulum(buffer_filepath, integration_method, batch_size=25):
         'pin_memory' : True,
         'drop_last'  : False,
         'shuffle'    : False,
+        'worker_init_fn': seed_worker,
+        'generator':g,
     }
 
     dataloader_test_params = {
@@ -58,6 +72,8 @@ def param_pendulum(buffer_filepath, integration_method, batch_size=25):
         'pin_memory' : True,
         'drop_last'  : False,
         'shuffle'    : False,
+        'worker_init_fn': seed_worker,
+        'generator':g,
     }
     dataloader_train = DataLoader(**dataloader_train_params)
     dataloader_val   = DataLoader(**dataloader_val_params)
