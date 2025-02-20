@@ -22,6 +22,22 @@ def compute_metric(net, train_data):
     metrics.update({f'{k}_real': v for k, v in train_data.dataset.params.items() if k in metrics})
     return metrics
 
+def log_wandb(net, dataloader, _lambda, loss_dict, split):
+    metric = compute_metric(net, dataloader)
+    omega_error = abs(metric["omega0_square"] - metric["omega0_square_real"]) / metric["omega0_square_real"]
+    alpha_error = abs(metric["alpha"] - metric["alpha_real"]) / metric['alpha_real']
+    if split == 'train':
+        wandb.log({"Train loss": loss_dict["loss_traj"], "Lambda": _lambda, "Loss_Fa": loss_dict["loss_op"],
+                    "Param error": metric["param_error"], "Omega error":omega_error, "Alpha error":alpha_error,})
+    elif split == 'val':
+        wandb.log({"Test loss": loss_dict["loss_traj"], "Param error test": metric["param_error"]})
+
+def save_loss_local(val_losses, train_losses, l_test, l_train, exp_path):
+    val_losses.append(l_test['loss_traj'].item())
+    train_losses.append(l_train['loss_traj'].item())
+    L = pd.DataFrame({'train_loss': train_losses, 'val_loss': val_losses})
+    L.to_csv(exp_path+'/loss.csv', index=False)
+
 # Losses
 def MSEjax(y_pred, y_true):
     return ((y_pred - y_true)**2).mean()
@@ -50,14 +66,15 @@ def loss_Fa(model, y, min_op):
 @eqx.filter_value_and_grad(has_aux=True)
 @eqx.filter_jit
 def loss_fn(model, y, t, min_op, lambda_):
+    print('loss_fn')
     lossT, y_pred = loss_trajectory(model, y)
-    if model_phy_option == "none":
+    if model_phy_option == "none": # none_aug
         return lossT, (lossT, jnp.array(0.0), y_pred)
     else:
-        if model_aug_option:
+        if model_aug_option: # complete_aug or incomplete_aug
             loss_op = loss_Fa(model, y, min_op)
-            return lossT + lambda_ * loss_op, (lossT,loss_op, y_pred)
-        else:
+            return lossT * lambda_ + loss_op, (lossT,loss_op, y_pred)
+        else: # complete_physics or incomplete_physics
             return lossT, (lossT, jnp.array(0.0), y_pred)
 
 # Routine
@@ -111,8 +128,9 @@ def training_routine(train, test, net, optimizer, min_op, _lambda,tau_1, tau_2, 
     train_losses = []
     val_losses = []
     for epoch in range(nepoch): 
-        for _ in range(niter): 
-            for iteration, data in enumerate(train, 0):  
+        loss_train = {'loss_traj': 0.0, 'loss_op': 0.0}
+        for _ in range(niter): # APHYNITY
+            for iteration, data in enumerate(train, 0):
                 ### TRAIN STEP
                 states = jnp.array(data['states'])
                 t = jnp.array(data['t'][0])
@@ -120,81 +138,72 @@ def training_routine(train, test, net, optimizer, min_op, _lambda,tau_1, tau_2, 
                 updates, opt_state = optimizer.update(
                     grads, opt_state, eqx.filter(net, eqx.is_array))
                 net = eqx.apply_updates(net, updates)
-                loss = {
-                    'loss': loss_val,
-                    'loss_op': loss_op,
-                }
-                output = {'states_pred': pred,}  
+                # accumulate loss
+                loss_train['loss_traj'] += loss_val
+                loss_train['loss_op'] += loss_op
+                # pour voir si on train bien
                 metric = compute_metric(net, train)
                 print(metric)
 
-            total_iteration = epoch * (len(train)) + (iteration + 1)
-            loss_train = loss['loss'].item()
-            loss_op = loss['loss_op'].item()
-            _lambda = _lambda + tau_2 * loss_train
-            #print(f'lambda: {_lambda}')
-            if total_iteration % nlog == 0:
-                log(train, epoch, iteration, loss | metric, nepoch) 
+        # average loss over train set
+        loss_train['loss_traj'] /= (iteration + 1) * niter
+        loss_train['loss_op'] /= (iteration + 1) * niter
+        
+        # update lambda
+        _lambda = _lambda + tau_2 * loss_train['loss_traj'].item()
 
+        ### LOGS 
+        total_iteration = epoch * (len(train)) + (iteration + 1)
+        if total_iteration % nlog == 0:
+            log(train, epoch, iteration, loss_train | metric, nepoch)
+        # log metrics to wandb 
+        log_wandb(net, train, _lambda, loss_train, 'train')
+        
+        ### VALIDATION STEP
+        if total_iteration % nupdate == 0:
+            loss_test = {"loss_traj": 0.0, "loss_op": 0.0}
+            for j, data_test in enumerate(test, 0):
+                # no backpropagation
+                states = jnp.array(data_test['states'])
+                t = jnp.array(data_test['t'][0])
+                (loss_total, (loss_val, loss_op, pred)), grads = loss_fn(net, states, t, min_op, _lambda) 
+                # accumulate loss
+                loss_test['loss_traj'] += loss_val
+                loss_test['loss_op'] += loss_op
+                
+            # average loss over test set
+            loss_test['loss_traj'] /= j + 1
+            loss_test['loss_op'] /= j + 1
+
+            ### LOGS
+            print('#' * 80)
+            log(train, epoch, iteration, loss_test | metric, nepoch)
+            print('#' * 80)
             # log metrics to wandb
-            omega_error = abs(metric["omega0_square"] - metric["omega0_square_real"]) / metric["omega0_square_real"]
-            alpha_error = abs(metric["alpha"] - metric["alpha_real"]) / metric['alpha_real']
-            wandb.log({"Train loss": loss_train, "Lambda": _lambda, "Loss_Fa": loss_op,
-                        "Param error": metric["param_error"], "Omega error":omega_error, "Alpha error":alpha_error,})
+            log_wandb(net, test, _lambda, loss_test, 'val')
+            # save epoch losses to csv file
+            save_loss_local(val_losses, train_losses, loss_test, loss_train, exp_path)
             
-            ### VALIDATION STEP
-            if total_iteration % nupdate == 0:
-                loss_test = 0.
-                for j, data_test in enumerate(test, 0):
-                    # no backpropagation
-                    states = jnp.array(data_test['states'])
-                    t = jnp.array(data_test['t'][0])
-                    (loss_total, (loss_val, loss_op, pred)), grads = loss_fn(net, states, t, min_op, _lambda) 
-                    loss = {
-                        'loss': loss_val,
-                        'loss_op': loss_op,
+            # save model
+            if loss_test_min == None or loss_test_min > loss_test["loss_traj"].item():
+                loss_test_min = loss_test['loss_traj'].item()
+                # save model using equinox
+                # TODO how to also save optimizer state?
+                hyperparameters = {
+                    "epoch": epoch,
+                    "loss": loss_test_min,
+                    "lambda": _lambda,
                     }
+                save(exp_path + f'/model_{loss_test_min:.3e}.eqx', hyperparameters, net)
 
-                    output = {'states_pred': pred,}
-                    loss_test += loss['loss'].item()
-                    metric = compute_metric(net, test)
-                    
-                loss_test /= j + 1
+                # torch.save({
+                #     'epoch': epoch,
+                #     'model_state_dict': self.net.state_dict(),
+                #     'optimizer_state_dict': self.optimizer.state_dict(),
+                #     'loss': loss_test_min, 
+                # }, self.exp_path + f'/model_{loss_test_min:.3e}.pt')
 
-                # log metrics to wandb
-                wandb.log({"Test loss": loss_test, "Param error test": metric["param_error"]}) #, "Lambda": _lambda, "Iteration": total_iteration, "Epoch": epoch})
-
-                # save epoch losses to csv file
-                val_losses.append(loss_test)
-                train_losses.append(loss_train)
-                L = pd.DataFrame({'train_loss': train_losses, 'val_loss': val_losses})
-                L.to_csv(exp_path+'/loss.csv', index=False)
-
-                if loss_test_min == None or loss_test_min > loss_test:
-                    loss_test_min = loss_test
-                    # save model using equinox
-                    # TODO how to also save optimizer state?
-                    hyperparameters = {
-                        "epoch": epoch,
-                        "loss": loss_test_min,
-                        "lambda": _lambda,
-                        }
-                    save(exp_path + f'/model_{loss_test_min:.3e}.eqx', hyperparameters, net)
-
-                    # torch.save({
-                    #     'epoch': epoch,
-                    #     'model_state_dict': self.net.state_dict(),
-                    #     'optimizer_state_dict': self.optimizer.state_dict(),
-                    #     'loss': loss_test_min, 
-                    # }, self.exp_path + f'/model_{loss_test_min:.3e}.pt')
-
-                loss_test = {
-                    'loss_test': loss_test,
-                }
-                print('#' * 80)
-                log(train, epoch, iteration, loss_test | metric, nepoch) # )
-                print(f'lambda: {_lambda}')
-                print('#' * 80)       
+      
 
 
 # Main
@@ -225,7 +234,7 @@ def train_aphynity(dataset_name, model_phy_option, model_aug_option, path, devic
             integration_method=integration_method,
         )
         
-        tau_1 = 1e-3
+        tau_1 = 1e-3 # 1e-3 dans le git APHYNITY, 1 dans le papier
         niter = 5
         min_op = 'l2_normalized'
         if model_phy_option == 'incomplete':
@@ -256,27 +265,27 @@ if __name__ == '__main__':
     # dataset_name = 'pendulum'
     # model_phy_option = 'complete'
     # model_aug_option = False 
-    # path = 'data/tests'
+    # path = 'data/sanity_checks2'
     # device = 'cpu'
     # train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device, method)
 
     ### SC2 - Train a model with incomplete physics and augmentation
-    # method = 'RK4' # data generation method
-    # dataset_name = 'pendulum'
-    # model_phy_option = 'incomplete'
-    # model_aug_option = True
-    # path = 'data/sanity_checks'
-    # device = 'cpu'
-    # train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device, method)
-
-    ### SC3 - Neural ODE 
     method = 'RK4' # data generation method
     dataset_name = 'pendulum'
-    model_phy_option = 'none'
+    model_phy_option = 'incomplete'
     model_aug_option = True
-    path = 'data/tests'
+    path = 'data/sanity_checks2'
     device = 'cpu'
     train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device, method)
+
+    ### SC3 - Neural ODE 
+    # method = 'RK4' # data generation method
+    # dataset_name = 'pendulum'
+    # model_phy_option = 'none'
+    # model_aug_option = True
+    # path = 'data/sanity_checks2'
+    # device = 'cpu'
+    # train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device, method)
 
     ### debug
     # method = 'RK4' # data generation method
