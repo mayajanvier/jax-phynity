@@ -70,14 +70,14 @@ def inference(model_name,exp_name, data_path, model_phy_option, model_aug_option
         pred_i = {
             'states': np.array(states[0]).tolist(),
             'pred': np.array(pred[0]).tolist(),
-            'loss_val': loss_val.item(),
+            'loss_traj': loss_val.item(),
             'loss_op': loss_op.item(),
         }
         results[i] = pred_i
         print(f'Trajectory: {i}, loss_val: {loss_val}, loss_op: {loss_op}')
         tot_states.append(states[0])
         # write json file line after line
-    with open(os.path.join(data_path, f'{exp_name}/{model_name[:-3]}.json'), 'a') as f:
+    with open(os.path.join(data_path, f'{exp_name}/{model_name[:-4]}.json'), 'a') as f:
         f.write(json.dumps(results) + '\n')
     
     (loss_total, (loss_val, loss_op, pred)), _ = loss_fn(model, jnp.array(tot_states), t, min_op, _lambda) 
@@ -85,10 +85,29 @@ def inference(model_name,exp_name, data_path, model_phy_option, model_aug_option
 
 
 if __name__ == '__main__':
-    exp_name = 'none_aug_7_guc4yik5'
-    model_name = 'model_1.154e+00.eqx'
-    data_path = 'data/tests'
-    model_phy_option = 'none'
+    # SC1
+    # exp_name = 'complete_aug_17_m9bz4n8c'
+    # model_name = 'model_2.790e+00.eqx'
+    # data_path = 'data/sanity_checks2'
+    # model_phy_option = 'complete'
+    # model_aug_option = False
+    # dataset_name = 'pendulum'
+    # inference(model_name, exp_name, data_path, model_phy_option, model_aug_option, dataset_name, 'RK4')
+
+    # SC2
+    exp_name = 'incomplete_aug_19_korcnphf'
+    model_name = 'model_2.400e+00.eqx'
+    data_path = 'data/sanity_checks2'
+    model_phy_option = 'incomplete'
     model_aug_option = True
     dataset_name = 'pendulum'
     inference(model_name, exp_name, data_path, model_phy_option, model_aug_option, dataset_name, 'RK4')
+
+    # SC3
+    # exp_name = 'none_aug_17_m9bz4n8c'
+    # model_name = 'model_2.790e+00.eqx'
+    # data_path = 'data/sanity_checks2'
+    # model_phy_option = 'none'
+    # model_aug_option = True
+    # dataset_name = 'pendulum'
+    # inference(model_name, exp_name, data_path, model_phy_option, model_aug_option, dataset_name, 'RK4')
