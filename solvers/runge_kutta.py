@@ -5,7 +5,7 @@ from dataclasses import dataclass, field # dataclass is a decorator that is used
 from typing import Optional, Tuple
 import equinox as eqx
 
-# diffrax Butcher tableau class 
+### diffrax Butcher tableau class 
 @dataclass(frozen=True)
 class ButcherTableau:
     """The Butcher tableau for an explicit or diagonal Runge--Kutta method."""
@@ -79,58 +79,7 @@ class ButcherTableau:
         object.__setattr__(self, "implicit", self.a_diagonal is not None)
         object.__setattr__(self, "num_stages", len(self.b_sol))
 
-# Runge-Kutta step
-def runge_kutta_step(
-    f,
-    y: jnp.ndarray,
-    t: jnp.ndarray,
-    dt: jnp.ndarray,
-    tableau: ButcherTableau,
-    k_first: Optional[jnp.ndarray] = None,
-):
-    """Perform a single step of a Runge--Kutta method.
-
-    Args:
-        f: The vector field function.
-        y: The current state.
-        t: The current time.
-        dt: The step size.
-        tableau: The Butcher tableau of the Runge--Kutta method.
-        k_first: First stage derivative (optional, used in FSAL).
-
-    Returns:
-        y_next: Next state after the step.
-        error: Error estimate for adaptive methods (optional).
-        k_last: Last stage derivative (for FSAL-enabled methods).
-    """
-    num_stages = tableau.num_stages
-    k = jnp.zeros((num_stages,) + y.shape, dtype=y.dtype) # shape (num_stages, y.shape)
-     
-    # explicit Runge-Kutta methods
-    if not tableau.implicit: # a_diagonal is None
-        if tableau.fsal and k_first is not None: # FSAL (First Same As Last) optimization
-            k = k.at[0].set(k_first) # k1 = k_first(n_step) = k_last(n_step-1)
-        else: 
-            k = k.at[0].set(f(y, t+ dt * tableau.c1)) # k1 = f(y, t + c1 * dt)
-
-        for i in range(tableau.num_stages-1):
-            ti = t + tableau.c[i] * dt
-            yi = y + dt * jnp.tensordot(tableau.a_lower[i], k[:i+1], axes=1)
-            k = k.at[i+1].set(f(yi, ti))    
-        y_next =  y + dt * jnp.tensordot(tableau.b_sol, k, axes=1)
-        error = jnp.tensordot(tableau.b_error, k, axes=1)
-
-        if tableau.fsal:
-            return y_next, error, k[-1] # return the last stage for FSAL
-        else:
-            return y_next, error 
-        
-    # implicit Runge-Kutta methods
-    else:
-        raise NotImplementedError("Implicit Runge-Kutta methods are not supported yet.")  
-
 ### Butcher tableaux for Runge-Kutta methods
-    
 # 3/8 rule in odeint used in APHYNITY (torchdiffeq)
 RK4_tableau = ButcherTableau(
     a_lower=(
@@ -347,44 +296,147 @@ RK_tableaux = {
     "DOPRI8": dopri8_tableau,
 }
 
-### Runge-Kutta methods
+# Runge-Kutta step
+def runge_kutta_step(
+    f,
+    y: jnp.ndarray,
+    t: jnp.ndarray,
+    dt: jnp.ndarray,
+    tableau: ButcherTableau,
+    k_first: Optional[jnp.ndarray] = None,
+):
+    """Perform a single step of a Runge--Kutta method.
 
-# fixed step size
-def RK_solver_fixed(fun, y0, dt, num_steps, tableau):
-    """Solve an initial value problem using the Dormand--Prince 5 method.
+    Args:
+        f: The vector field function.
+        y: The current state, (nc,)
+        t: The current time, Array[floay]
+        dt: The step size, float
+        tableau: The Butcher tableau of the Runge--Kutta method.
+        k_first: First stage derivative (optional, used in FSAL).
+
+    Returns:
+        y_next: Next state after the step.
+        error: Error estimate for adaptive methods (optional).
+        k_last: Last stage derivative (for FSAL-enabled methods).
+    """
+    num_stages = tableau.num_stages
+
+    # jax.lax.scan function for building k 
+    # def step(carry, i):
+    #     k, y = carry
+    #     ti = t + tableau.c[i] * dt
+    #     yi = y + dt * jnp.tensordot(tableau.a_lower[i], k[:i+1], axes=1)
+    #     k_next = f(yi, ti)
+    #     k = k.at[i+1].set(k_next)
+    #     return (k,y), k_next
     
+    k = jnp.zeros((num_stages,) + y.shape, dtype=y.dtype) # shape (num_stages, y.shape)
+    # explicit Runge-Kutta methods
+    if not tableau.implicit: # a_diagonal is None
+        if tableau.fsal and k_first is not None: # FSAL (First Same As Last) optimization
+            k = k.at[0].set(k_first) # k1 = k_first(n_step) = k_last(n_step-1)
+        else: 
+            k = k.at[0].set(f(y, t+ dt * tableau.c1)) # k1 = f(y, t + c1 * dt)
+
+        # loop over stages
+        # (final_k, _),_ = jax.lax.scan(step, (k,y), jnp.arange(num_stages-1))
+        # y_next = y + dt * jnp.tensordot(tableau.b_sol, final_k, axes=1)
+        # error = jnp.tensordot(tableau.b_error, final_k, axes=1)
+
+        # avoid loop
+        #tiVec = t + tableau.c * dt
+        
+        for i in range(tableau.num_stages-1):
+            ti = t + tableau.c[i] * dt
+            yi = y + dt * jnp.tensordot(tableau.a_lower[i], k[:i+1], axes=1)
+            k = k.at[i+1].set(f(yi, ti))    
+        y_next =  y + dt * jnp.tensordot(tableau.b_sol, k, axes=1)
+        error = jnp.tensordot(tableau.b_error, k, axes=1)
+
+        if tableau.fsal:
+            return y_next, error, k[-1] # return the last stage for FSAL
+        else:
+            return y_next, error 
+        
+    # implicit Runge-Kutta methods
+    else:
+        raise NotImplementedError("Implicit Runge-Kutta methods are not supported yet.")  
+
+### Runge-Kutta methods
+def RK_solver_fixed(fun, y0, dt, num_steps, tableau):
+    """Solve an initial value problem using the Dormand--Prince 5 method with JAX scan.
     Args:
         fun: The vector field function.
-        y0: The initial state.
-        dt: The step size.
-        num_steps: The number of steps to take.
-        tableau: The Butcher tableau of the Runge--Kutta method.
+        y0: The initial state, (nc,)
+        dt: The step size, float
+        num_steps: The number of steps to take, int
+        tableau: The Butcher tableau of the Runge--Kutta method, ButcherTableau
     
     Returns:
         t_eval: time points of evaluation, (num_steps+1,)
         y: solution evaluated on t_eval points, (num_steps+1, y0.shape)
         global_error: global error of the method, float
-        errors: list of errors at each time step, (num_steps,)
-    """
-    # initialize
-    t_eval = jnp.arange(0, (num_steps+1) * dt, dt) # array of time points to evaluate
-    y = jnp.zeros(y0.shape + (len(t_eval),), dtype=y0.dtype) 
-    y = y.at[:,0].set(y0)
-    global_error = 0.
-    errors = []
-    n_step = 0
-    k_first = None
-
-    for t_current in t_eval:
-        if tableau.fsal:
-            y_next, error, k_first = runge_kutta_step(fun, y[:,n_step], t_current, dt, tableau, k_first)
+        errors: list of errors at each time step, (num_steps,)"""
+    
+    def step(carry, t):
+        y, k_first = carry
+        if tableau.fsal and k_first is not None:
+            y_next, error, k_first = runge_kutta_step(fun, y, t, dt, tableau, k_first)
         else:
-            y_next, error = runge_kutta_step(fun, y[:,n_step], t_current, dt, tableau)
-        n_step += 1 
-        y = y.at[:,n_step].set(y_next)
-        global_error += error
-        errors.append(error)
-    return y, t_eval, global_error, errors
+            y_next, error = runge_kutta_step(fun, y, t, dt, tableau)
+            k_first = None  # Not needed if FSAL is disabled
+        return (y_next, k_first), (y_next, error)
+    
+    t_eval = jnp.arange(0, (num_steps+1) * dt, dt) # array of time points to evaluate
+    y_init = (y0, None)  # Initial carry (state, k_first)
+    
+    (final_state, _), (y_sol, errors) = jax.lax.scan(step, y_init, t_eval[:-1])
+    
+    # Prepend initial condition
+    y_sol = jnp.vstack([y0[None, :], y_sol])
+    global_error = jnp.sum(errors)
+    
+    return y_sol.T, t_eval, global_error, errors
+
+
+# fixed step size
+# def RK_solver_fixed(fun, y0, dt, num_steps, tableau):
+#     """Solve an initial value problem using the Dormand--Prince 5 method.
+    
+#     Args:
+#         fun: The vector field function.
+#         y0: The initial state.
+#         dt: The step size.
+#         num_steps: The number of steps to take.
+#         tableau: The Butcher tableau of the Runge--Kutta method.
+    
+#     Returns:
+#         t_eval: time points of evaluation, (num_steps+1,)
+#         y: solution evaluated on t_eval points, (num_steps+1, y0.shape)
+#         global_error: global error of the method, float
+#         errors: list of errors at each time step, (num_steps,)
+#     """
+#     # initialize
+#     t_eval = jnp.arange(0, (num_steps+1) * dt, dt) # array of time points to evaluate
+#     y = jnp.zeros(y0.shape + (len(t_eval),), dtype=y0.dtype) 
+#     y = y.at[:,0].set(y0)
+#     global_error = 0.
+#     errors = []
+#     n_step = 0
+#     k_first = None
+
+#     for t_current in t_eval:
+#         if tableau.fsal:
+#             y_next, error, k_first = runge_kutta_step(fun, y[:,n_step], t_current, dt, tableau, k_first)
+#         else:
+#             y_next, error = runge_kutta_step(fun, y[:,n_step], t_current, dt, tableau)
+#         n_step += 1 
+#         y = y.at[:,n_step].set(y_next)
+#         global_error += error
+#         errors.append(error)
+#     return y, t_eval, global_error, errors
+
 
 ### equinox Integrator class
 # TODO: voir si c'est mieux pour jiter mais pour l'instant ne fonctionne pas 
