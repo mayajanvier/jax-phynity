@@ -11,6 +11,7 @@ from utils import init_linear_weight, orthogonal_init
 from datasets import init_dataloaders
 from utils import Logger, save, make_basedir, log
 import torch
+import numpy as np
 
 # Pytorch seed
 #torch.manual_seed(1)
@@ -44,12 +45,14 @@ def MSEjax(y_pred, y_true):
 
 @eqx.filter_jit
 def loss_trajectory(model, y):
+    print('loss_trajectory')
     x = y[:,:,0] # y0
     y_pred = jax.vmap(model)(x)
     return MSEjax(y_pred, y), y_pred
 
 @eqx.filter_jit
 def loss_Fa(model, y, min_op):
+    print('loss_Fa')
     # TODO find better idea to deal, maybe with jax 
     y_in = rearrange(y, 'b nc T -> (b T) nc')
     #aug_deriv = jax.vmap(model.derivative_estimator.model_aug)(y_in)
@@ -64,9 +67,8 @@ def loss_Fa(model, y, min_op):
     return loss_op
 
 @eqx.filter_value_and_grad(has_aux=True)
-@eqx.filter_jit
-def loss_fn(model, y, t, min_op, lambda_):
-    print('loss_fn')
+def loss_fn(model, y, min_op, lambda_:float, model_phy_option: str, model_aug_option: bool):
+    #print('loss_fn')
     lossT, y_pred = loss_trajectory(model, y)
     if model_phy_option == "none": # none_aug
         return lossT, (lossT, jnp.array(0.0), y_pred)
@@ -76,7 +78,7 @@ def loss_fn(model, y, t, min_op, lambda_):
             return lossT * lambda_ + loss_op, (lossT,loss_op, y_pred)
         else: # complete_physics or incomplete_physics
             return lossT, (lossT, jnp.array(0.0), y_pred)
-
+          
 # Routine
 def training_routine(train, test, net, optimizer, min_op, _lambda,tau_1, tau_2, niter, path, device, nlog=1, nupdate=1, nepoch=10):   
     # Setup to save logs 
@@ -127,6 +129,7 @@ def training_routine(train, test, net, optimizer, min_op, _lambda,tau_1, tau_2, 
     # in case of wandb crash 
     train_losses = []
     val_losses = []
+    loss_fn_grad = eqx.Partial(loss_fn, min_op=min_op, model_phy_option=model_phy_option, model_aug_option=model_aug_option)
     for epoch in range(nepoch): 
         loss_train = {'loss_traj': 0.0, 'loss_op': 0.0}
         for _ in range(niter): # APHYNITY
@@ -134,7 +137,7 @@ def training_routine(train, test, net, optimizer, min_op, _lambda,tau_1, tau_2, 
                 ### TRAIN STEP
                 states = jnp.array(data['states'])
                 t = jnp.array(data['t'][0])
-                (loss_total, (loss_val, loss_op, pred)), grads = loss_fn(net, states, t, min_op, _lambda) 
+                (loss_total, (loss_val, loss_op, pred)), grads = loss_fn_grad(net, states, lambda_ = _lambda) 
                 updates, opt_state = optimizer.update(
                     grads, opt_state, eqx.filter(net, eqx.is_array))
                 net = eqx.apply_updates(net, updates)
@@ -166,7 +169,7 @@ def training_routine(train, test, net, optimizer, min_op, _lambda,tau_1, tau_2, 
                 # no backpropagation
                 states = jnp.array(data_test['states'])
                 t = jnp.array(data_test['t'][0])
-                (loss_total, (loss_val, loss_op, pred)), grads = loss_fn(net, states, t, min_op, _lambda) 
+                (loss_total, (loss_val, loss_op, pred)), grads = loss_fn_grad(net, states, lambda_ = _lambda) 
                 # accumulate loss
                 loss_test['loss_traj'] += loss_val
                 loss_test['loss_op'] += loss_op
@@ -270,22 +273,22 @@ if __name__ == '__main__':
     # train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device, method)
 
     ### SC2 - Train a model with incomplete physics and augmentation
-    method = 'RK4' # data generation method
-    dataset_name = 'pendulum'
-    model_phy_option = 'incomplete'
-    model_aug_option = True
-    path = 'data/sanity_checks2'
-    device = 'cpu'
-    train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device, method)
-
-    ### SC3 - Neural ODE 
     # method = 'RK4' # data generation method
     # dataset_name = 'pendulum'
-    # model_phy_option = 'none'
+    # model_phy_option = 'incomplete'
     # model_aug_option = True
     # path = 'data/sanity_checks2'
     # device = 'cpu'
     # train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device, method)
+
+    ## SC3 - Neural ODE 
+    method = 'RK4' # data generation method
+    dataset_name = 'pendulum'
+    model_phy_option = 'none'
+    model_aug_option = True
+    path = 'data/sanity_checks2'
+    device = 'cpu'
+    train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device, method)
 
     ### debug
     # method = 'RK4' # data generation method
