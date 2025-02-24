@@ -46,6 +46,7 @@ class DampedPendulumParamPDE(eqx.Module):
 class PendulumParamPDE(eqx.Module):
     omega0_square: jax.Array # type makes it trainable
     alpha: jax.Array 
+    #matrix: jax.Array 
     is_damped: bool = eqx.static_field()  # Static field (not JAX-traceable)
     """ Unified pendulum for generation and inference """
 
@@ -58,15 +59,15 @@ class PendulumParamPDE(eqx.Module):
         else:
             self.alpha = jnp.array(0.0, dtype=jnp.float32)
 
-    def __call__(self, state): # state should be (nc,)
+    def __call__(self, state): 
+        # state should be (nc,)
         q, p = state
-        dqdt = p
         if self.is_damped:
             dpdt = - self.omega0_square * jnp.sin(q) - self.alpha * p
         else: # separated otherwise alpha is updated
             dpdt = - self.omega0_square * jnp.sin(q)
 
-        return jnp.array([dqdt, dpdt]) 
+        return jnp.array([p, dpdt]) 
 
     
 ### Data driven model Fa    
@@ -84,6 +85,7 @@ class MLP(eqx.Module):
             eqx.nn.Linear(hidden, state_c, key=key3)]
     
     def __call__(self, x):
+        # shape (nc,)
         for layer in self.layers:
             x = layer(x)
         return x
