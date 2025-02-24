@@ -16,6 +16,25 @@ rmq: le fait de déclarer ButcherTableau en argument dans la classe crée une er
 
 CCL: en fait les vrais modèles entraînés sont ceux dans derivative_estimator. On doit donc regarder les paramètres de derivative_estimator.model_phy, et pour la loss Fa derivative_estimator.model_aug ! 
 
+## loss_fn is rejitted each epoch
+- loss_Fa and loss_traj are not so not here
+- not the fault of y_pred (if loss_fn=loss_traj no problem)
+- if lambda is argument: problem ! but when not here, it's okay 
+--> lambda is traced somehow and forces recompilation of jit 
+Pas réussi à forcer lambda en statique, mais on a peut être pas besoin de jiter loss_fn si on met en partial les autres arguments (min_op etc) et si loss_Fa et loss_traj sont déjà jitées.
+- incomplete_aug_21_xteapxnx: 150 epochs, sans loss_fn jit, duration=2min, mais instabilités différentes d'avant...
+
+- est ce que c'est les nouveaux arguments dans la fonction (model_aug etc): non
+- origine: 
+    - decorateurs jit sur PDE et forecaster pour incomplete_aug -> si je les remets je retrouve mes courbes d'avant
+    - none_aug instable: jit sur PDE et forecaster
+    - none_aug sans ces décorateurs: instable mais pas au même endroit 
+    - stable avec mauvaise boucle (n_iter en 2e)
+-> pas mettre de filter jit dans une classe, pas comme ça dans les exemples equinox
+- none aug sans décorateurs sans jit de loss_fn: toujours pareil, plus rapide
+-> on jit Loss_Fa et Loss_traj uniquement, loss_fn n'est qu'un encapsulement des 2. eqx.partial pour min_op, model_aug_option et model_phy_option accélère aussi la compilation
+
+
 # Sanity checks
 ## SC1: Can we recover true $\alpha$ and $\omega_0$ ? 
 - GT: Complete | RK4
@@ -123,12 +142,13 @@ Avec ces modèles $\Delta t, \Delta t/2$... entrainés, on peut les combiner et 
 
 Criteria:
 - voir si entrainer en RK2(dt) puis réduire dt/2 permet de meilleurs resultats que inference avec dt ?  d'aussi bon résultats qu'entraîner en RK4(dt) ?  
+- m'inspirer des setups (train et test) de DINo et space and time continuous pde (Wolf) ? pour généralisation en fait 
 
 
 # Deprecated
 ## SC surprise: o4jfm4i8 (03/02)
 - GT: Complete | RK4
-- Train: ParamODE($\omega_0$,$\alpha$) + aug | RK4 et $alpha_0=0$
+- Train: ParamODE($\omega_0$,$\alpha$) + aug | RK4 et $\alpha_0=0$
 
 Entrainement en mode APH mais avec mauvais départ: alpha=0_complete_aug2
 
