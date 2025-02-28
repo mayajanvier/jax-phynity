@@ -56,6 +56,11 @@ Trials 17/02 (`data/sanity_checks2`)
 JUSQUE LÀ ERREUR $\tau_1$=1e-3. Recommence avec $\tau_1$=1 (papier)
 - complete_physics_18_1d0dmkyn: lr too high, unstable -> $\tau_1$=1e-3 better
 
+Trials 24/02
+-  complete_physics_26_f6dwvliv: run for 400 epochs with good jit compilation, 1min30 ! error relative 7e-5
+
+### SC1: VALID -> CLOSED
+
 ## SC2.1: Can we correctly complete the frictionless pendulum (ParamODE($\omega_0$)) like APHYNITY?
 - GT: Complete | RK4
 - Train: ParamODE($\omega_0$)+ aug | RK4 | loss = $\lambda$ loss_traj + lossFa | $\tau_1$=1e-3, $\tau_2$=10, $\lambda_0$=1, $N_{iter}$=5
@@ -74,7 +79,15 @@ Trials 17/02-19/02 (`data/sanity_checks2`) (loss_traj only)
 
 Trials 20/02 (`data/sanity_checks2`) (loss_traj and Fa(p) vs p)
 - incomplete_aug_19_korcnphf: quel Fa(p) ? 
+- incomplete_aug_25_wixz2qcg: jit corrigé, 4min30s
+- incomplete_aug_30_q5w7dej1: jit remis avec lambda en array + float 0 fort networks, duration= 4min47s
 
+Trial 24/02
+- incomplete_aug_32_346dtoyv: test avec eps=1e-5 dans l2_normalized, on atteint  1.506 de test loss
+- incomplete_aug_33_2gh57448: min_op=l2, on atteint 7.6e-01 de test loss et on se rapproche beaucoup plus d'oméga 0, 16% d'erreur. Mais entrainement toujours très instable 
+- incomplete_aug_34_lx8y2wmb: min_op=l2, lambda0 =10, tau2=100, loss test = 4.318e-03 !!!, oméga0=0.256 (vs 0.27 truth) -> suffit de tuner un peu pour s'en sortir. On récupère bien les dynamiques en -alpha pour Fa (en réalité très dépendant de notre approximation de omega0)
+
+### SC2 VALID -> CLOSED
 
 ## SC2.2: Can we correctly complete the frictionless pendulum (ParamODE($\omega_0$)) without Fa constrain ?
 - GT: Complete | RK4
@@ -82,7 +95,12 @@ Trials 20/02 (`data/sanity_checks2`) (loss_traj and Fa(p) vs p)
 
 Criteria:
 - Loss_traj = 0
-- Fa devrait représenter les frottements ie ne varier que selon $p$ et en pente $-\alpha$ 
+- Fa devrait représenter les frottements ie ne varier que selon $p$ et en pente $-\alpha$
+
+Trials 24/04
+- incomplete_no_Fa_aug_28_riymbky6:  loss_traj va bien vers 0 ! loss_Fa reste autour de 1e-3. Mais on a une séparation sous optimale des modèles (on ne retrouve pas oméga 0 (0.2 au lieu de 0.27) et donc Fa ne retrouve pas exactement alpha). test loss un peu moins meilleure que incomplete_aug, peut être avec un lr plus petit on pourrait mieux approximer le omega 
+
+### SC2.2 VALID -> CLOSED
 
 ## SC3: Neural ODE
 - GT: Complete | RK4
@@ -108,7 +126,8 @@ Goal: visualize 1. $\frac{\partial Fa}{\partial \theta}$, and  2. $\frac{\partia
 - If 1. is big just big step of Adam. 
 - If 2. is small, our system is chaotic and small perturbations can induce large changes. 
 
-Trials 20/02 (`data/sanity_checks2`)
+Trials 24/02 (`data/sanity_checks2`)
+- none_aug_24_of0iieil: 400 epochs run with good jit, 4min15s
 
 
 # Error scheme experiments

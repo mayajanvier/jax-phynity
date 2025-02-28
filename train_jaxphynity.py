@@ -59,7 +59,7 @@ def loss_Fa(model, y, min_op):
     aug_deriv = jax.vmap(model.model_aug)(y_in) 
     aug_deriv = rearrange(aug_deriv, '(b T) nc -> b nc T', b=y.shape[0])
     if min_op == 'l2_normalized':
-        loss_op = ((jnp.linalg.norm(aug_deriv, ord=2, axis=1) / (jnp.linalg.norm(y, ord=2, axis=1) + 1e-8)) ** 2).mean()
+        loss_op = ((jnp.linalg.norm(aug_deriv, ord=2, axis=1) / (jnp.linalg.norm(y, ord=2, axis=1) + 1e-5)) ** 2).mean()
     elif min_op == 'l2':
         loss_op = (jnp.linalg.norm(aug_deriv, ord=2, axis=1) ** 2).mean()
     else:
@@ -67,11 +67,15 @@ def loss_Fa(model, y, min_op):
     return loss_op
 
 @eqx.filter_value_and_grad(has_aux=True)
-def loss_fn(model, y, min_op, lambda_:float, model_phy_option: str, model_aug_option: bool):
-    #print('loss_fn')
+@eqx.filter_jit
+def loss_fn(model, y, min_op, lambda_, model_phy_option: str, model_aug_option: bool):
+    print('loss_fn')
     lossT, y_pred = loss_trajectory(model, y)
     if model_phy_option == "none": # none_aug
         return lossT, (lossT, jnp.array(0.0), y_pred)
+    elif model_phy_option == 'incomplete_no_Fa':
+        loss_op = loss_Fa(model, y, min_op)
+        return lossT, (lossT, loss_op, y_pred)
     else:
         if model_aug_option: # complete_aug or incomplete_aug
             loss_op = loss_Fa(model, y, min_op)
@@ -137,7 +141,7 @@ def training_routine(train, test, net, optimizer, min_op, _lambda,tau_1, tau_2, 
                 ### TRAIN STEP
                 states = jnp.array(data['states'])
                 t = jnp.array(data['t'][0])
-                (loss_total, (loss_val, loss_op, pred)), grads = loss_fn_grad(net, states, lambda_ = _lambda) 
+                (loss_total, (loss_val, loss_op, pred)), grads = loss_fn_grad(net, states, lambda_ = jnp.array(_lambda))
                 updates, opt_state = optimizer.update(
                     grads, opt_state, eqx.filter(net, eqx.is_array))
                 net = eqx.apply_updates(net, updates)
@@ -169,7 +173,8 @@ def training_routine(train, test, net, optimizer, min_op, _lambda,tau_1, tau_2, 
                 # no backpropagation
                 states = jnp.array(data_test['states'])
                 t = jnp.array(data_test['t'][0])
-                (loss_total, (loss_val, loss_op, pred)), grads = loss_fn_grad(net, states, lambda_ = _lambda) 
+                # _lambda should be an array for jit to not recompile when its value changes
+                (loss_total, (loss_val, loss_op, pred)), grads = loss_fn_grad(net, states, lambda_ = jnp.array(_lambda)) 
                 # accumulate loss
                 loss_test['loss_traj'] += loss_val
                 loss_test['loss_op'] += loss_op
@@ -223,6 +228,9 @@ def train_aphynity(dataset_name, model_phy_option, model_aug_option, path, devic
         # SC3
         elif model_phy_option == 'none':
             model_phy = PendulumParamPDE(is_damped=False) # mock model not trained 
+        # SC2.2
+        elif model_phy_option == 'incomplete_no_Fa':
+            model_phy = PendulumParamPDE(is_damped=False)
         
         mkey, ikey = jax.random.split(jax.random.PRNGKey(0))
         model_aug = MLP(key=mkey, state_c=2, hidden=200)
@@ -239,10 +247,10 @@ def train_aphynity(dataset_name, model_phy_option, model_aug_option, path, devic
         
         tau_1 = 1e-3 # 1e-3 dans le git APHYNITY, 1 dans le papier
         niter = 5
-        min_op = 'l2_normalized'
+        min_op = 'l2'
         if model_phy_option == 'incomplete':
-            lambda_0 = 1.0
-            tau_2 = 10.0
+            lambda_0 = 10.0
+            tau_2 = 100.0
         elif model_phy_option == 'complete':
             lambda_0 = 1000.0
             tau_2 = 100.0
@@ -250,9 +258,12 @@ def train_aphynity(dataset_name, model_phy_option, model_aug_option, path, devic
             lambda_0 = 0.0 
             tau_2 = 0.0 
             min_op = 'none' # loss_op=0, quicker evaluation
+        elif model_phy_option == 'incomplete_no_Fa': # loss_traj only
+            lambda_0 = 1.0
+            tau_2 = 10.0
         
         
-        nepoch = 150
+        nepoch = 400
         nlog = 5
         nupdate = 5
     
@@ -281,14 +292,23 @@ if __name__ == '__main__':
     # device = 'cpu'
     # train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device, method)
 
-    ## SC3 - Neural ODE 
+    ### SC2.2 - Train a model with incomplete physics and augmentation, only loss_traj
     method = 'RK4' # data generation method
     dataset_name = 'pendulum'
-    model_phy_option = 'none'
+    model_phy_option = 'incomplete_no_Fa'
     model_aug_option = True
     path = 'data/sanity_checks2'
     device = 'cpu'
     train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device, method)
+
+    ## SC3 - Neural ODE 
+    # method = 'RK4' # data generation method
+    # dataset_name = 'pendulum'
+    # model_phy_option = 'none'
+    # model_aug_option = True
+    # path = 'data/sanity_checks2'
+    # device = 'cpu'
+    # train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device, method)
 
     ### debug
     # method = 'RK4' # data generation method
