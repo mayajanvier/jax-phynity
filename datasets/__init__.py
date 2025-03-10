@@ -14,14 +14,14 @@ def seed_worker(worker_id):
 
 # Build our dataloaders
 
-def param_pendulum(buffer_filepath, integration_method, batch_size=25):
+def param_pendulum(buffer_filepath, integration_method, batch_size=25, dt_num=0.5):
     g = torch.Generator()
     g.manual_seed(0)
 
     dataset_train_params = {
         'nb_traj': 25, 
-        'num_steps': 40,
-        'dt': 0.5, 
+        'num_steps': int(20/dt_num), 
+        'dt': dt_num, # 0.05 for error scheme experiments
         'split': 'train',
         'path': buffer_filepath+'_train',
         'integration_method': integration_method,
@@ -82,10 +82,10 @@ def param_pendulum(buffer_filepath, integration_method, batch_size=25):
     return dataloader_train, dataloader_val, dataloader_test         
 
 
-def init_dataloaders(dataset, integration_method, buffer_filepath=None):
+def init_dataloaders(dataset, integration_method, buffer_filepath=None, dt_num=0.5):
     assert buffer_filepath is not None
     if dataset == 'pendulum':
-        return param_pendulum(buffer_filepath, integration_method)
+        return param_pendulum(buffer_filepath, integration_method, dt_num=dt_num)
 
 
 if __name__ == '__main__':

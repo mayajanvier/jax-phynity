@@ -80,6 +80,13 @@ class ButcherTableau:
         object.__setattr__(self, "num_stages", len(self.b_sol))
 
 ### Butcher tableaux for Runge-Kutta methods
+RK2_tableau = ButcherTableau(
+    a_lower=(jnp.array([0.5]),),
+    b_sol=jnp.array([0.0, 1.0]),
+    b_error=jnp.array([0, 0]),
+    c=jnp.array([0.5]),
+    )   
+
 # 3/8 rule in odeint used in APHYNITY (torchdiffeq)
 RK4_tableau = ButcherTableau(
     a_lower=(
@@ -291,6 +298,7 @@ dopri8_tableau = ButcherTableau(
 )
 
 RK_tableaux = {
+    "RK2": RK2_tableau,
     "RK4": RK4_tableau,
     "DOPRI5": dopri5_tableau,
     "DOPRI8": dopri8_tableau,
@@ -374,8 +382,8 @@ def RK_solver_fixed(fun, y0, dt, num_steps, tableau):
         tableau: The Butcher tableau of the Runge--Kutta method, ButcherTableau
     
     Returns:
-        t_eval: time points of evaluation, (num_steps+1,)
         y: solution evaluated on t_eval points, (num_steps+1, y0.shape)
+        t_eval: time points of evaluation, (num_steps+1,)
         global_error: global error of the method, float
         errors: list of errors at each time step, (num_steps,)"""
     

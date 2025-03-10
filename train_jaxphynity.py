@@ -84,7 +84,7 @@ def loss_fn(model, y, min_op, lambda_, model_phy_option: str, model_aug_option: 
             return lossT, (lossT, jnp.array(0.0), y_pred)
           
 # Routine
-def training_routine(train, test, net, optimizer, min_op, _lambda,tau_1, tau_2, niter, path, device, nlog=1, nupdate=1, nepoch=10):   
+def training_routine(train, test, net, optimizer, min_op, _lambda,tau_1, tau_2, niter, path, device, dt_factor=1, nlog=1, nupdate=1, nepoch=10):   
     # Setup to save logs 
     name_experiment = model_phy_option+"_"+("aug" if model_aug_option else "physics")
     
@@ -100,6 +100,8 @@ def training_routine(train, test, net, optimizer, min_op, _lambda,tau_1, tau_2, 
         "batch_size": train.batch_size,
         "Fa_norm": min_op,
         "lambda0": _lambda,    
+        "dt_data": train.dataset.dt,
+        "dt_train": dt_factor * train.dataset.dt,
         }
         )
 
@@ -123,6 +125,7 @@ def training_routine(train, test, net, optimizer, min_op, _lambda,tau_1, tau_2, 
         'nlog': nlog,
         'nupdate': nupdate,
         'id': wandb_id,
+        'dt': dt_factor * train.dataset.dt,
     }
     with open(os.path.join(exp_path, 'hyperparameters.json'), 'w') as f:
         json.dump(hyperparameters, f)
@@ -133,14 +136,14 @@ def training_routine(train, test, net, optimizer, min_op, _lambda,tau_1, tau_2, 
     # in case of wandb crash 
     train_losses = []
     val_losses = []
-    loss_fn_grad = eqx.Partial(loss_fn, min_op=min_op, model_phy_option=model_phy_option, model_aug_option=model_aug_option)
+    loss_fn_grad = eqx.Partial(loss_fn, min_op=min_op, model_phy_option=model_phy_option, model_aug_option=model_aug_option, dt_factor=dt_factor)
     for epoch in range(nepoch): 
         loss_train = {'loss_traj': 0.0, 'loss_op': 0.0}
         for _ in range(niter): # APHYNITY
             for iteration, data in enumerate(train, 0):
                 ### TRAIN STEP
-                states = jnp.array(data['states'])
-                t = jnp.array(data['t'][0])
+                states = jnp.array(data['states'])[:,:,::dt_factor]
+                t = jnp.array(data['t'][0])[::dt_factor]
                 (loss_total, (loss_val, loss_op, pred)), grads = loss_fn_grad(net, states, lambda_ = jnp.array(_lambda))
                 updates, opt_state = optimizer.update(
                     grads, opt_state, eqx.filter(net, eqx.is_array))
@@ -171,8 +174,8 @@ def training_routine(train, test, net, optimizer, min_op, _lambda,tau_1, tau_2, 
             loss_test = {"loss_traj": 0.0, "loss_op": 0.0}
             for j, data_test in enumerate(test, 0):
                 # no backpropagation
-                states = jnp.array(data_test['states'])
-                t = jnp.array(data_test['t'][0])
+                states = jnp.array(data_test['states'])[:,:,::dt_factor]
+                t = jnp.array(data_test['t'][0])[::dt_factor]
                 # _lambda should be an array for jit to not recompile when its value changes
                 (loss_total, (loss_val, loss_op, pred)), grads = loss_fn_grad(net, states, lambda_ = jnp.array(_lambda)) 
                 # accumulate loss
@@ -215,8 +218,8 @@ def training_routine(train, test, net, optimizer, min_op, _lambda,tau_1, tau_2, 
 
 
 # Main
-def train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device, integration_method):
-    train, val, _ = init_dataloaders(dataset_name, integration_method, os.path.join(path, dataset_name))
+def train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device, integration_method, data_integration_method="RK4", dt_factor=1, dt_num=0.5):
+    train, val, _ = init_dataloaders(dataset_name, data_integration_method, os.path.join(path, dataset_name), dt_num=dt_num)
 
     if dataset_name == 'pendulum':
         if model_phy_option == 'incomplete':
@@ -240,9 +243,9 @@ def train_aphynity(dataset_name, model_phy_option, model_aug_option, path, devic
             model_aug=model_aug,
             is_augmented=model_aug_option,
             is_phy=model_phy_option,
-            dt=train.dataset.dt,
-            num_steps=train.dataset.num_steps,
-            integration_method=integration_method,
+            dt=dt_factor * train.dataset.dt, # enabling comparison with GT for error scheme experiment 
+            num_steps=int(train.dataset.num_steps / dt_factor), 
+            integration_method=integration_method, # RK2 for error scheme experiment
         )
         
         tau_1 = 1e-3 # 1e-3 dans le git APHYNITY, 1 dans le papier
@@ -269,13 +272,13 @@ def train_aphynity(dataset_name, model_phy_option, model_aug_option, path, devic
     
     # don't think we need a seed for optimizer initialization
     optimizer = optax.adam(learning_rate=tau_1, b1=0.9, b2=0.999)
-    training_routine(train, val, net, optimizer, min_op, lambda_0,tau_1, tau_2, niter, path, device, nlog, nupdate, nepoch)
+    training_routine(train, val, net, optimizer, min_op, lambda_0,tau_1, tau_2, niter, path, device, dt_factor, nlog, nupdate, nepoch)
 
 if __name__ == '__main__':
     wandb.login()
 
     ### SC1 - Train a model with complete physics
-    # method = 'RK4' # data generation method
+    # method = 'RK4' 
     # dataset_name = 'pendulum'
     # model_phy_option = 'complete'
     # model_aug_option = False 
@@ -284,7 +287,7 @@ if __name__ == '__main__':
     # train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device, method)
 
     ### SC2 - Train a model with incomplete physics and augmentation
-    # method = 'RK4' # data generation method
+    # method = 'RK4' 
     # dataset_name = 'pendulum'
     # model_phy_option = 'incomplete'
     # model_aug_option = True
@@ -293,16 +296,16 @@ if __name__ == '__main__':
     # train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device, method)
 
     ### SC2.2 - Train a model with incomplete physics and augmentation, only loss_traj
-    method = 'RK4' # data generation method
-    dataset_name = 'pendulum'
-    model_phy_option = 'incomplete_no_Fa'
-    model_aug_option = True
-    path = 'data/sanity_checks2'
-    device = 'cpu'
-    train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device, method)
+    # method = 'RK4' 
+    # dataset_name = 'pendulum'
+    # model_phy_option = 'incomplete_no_Fa'
+    # model_aug_option = True
+    # path = 'data/sanity_checks2'
+    # device = 'cpu'
+    # train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device, method)
 
     ## SC3 - Neural ODE 
-    # method = 'RK4' # data generation method
+    # method = 'RK4' 
     # dataset_name = 'pendulum'
     # model_phy_option = 'none'
     # model_aug_option = True
@@ -311,10 +314,29 @@ if __name__ == '__main__':
     # train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device, method)
 
     ### debug
-    # method = 'RK4' # data generation method
+    # method = 'RK4' 
     # dataset_name = 'pendulum'
     # model_phy_option = 'complete'
     # model_aug_option = True
     # path = 'data/tests'
     # device = 'cpu'
     # train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device, method)
+
+    ### Error scheme 1
+    # for dt_factor in [2,5,8,10,16,20,25]:
+    #     method = 'RK2' 
+    #     dataset_name = 'pendulum'
+    #     model_phy_option = 'complete'
+    #     model_aug_option = False 
+    #     path = 'data/error_scheme'
+    #     device = 'cpu'
+    #     train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device, method, data_integration_method="RK4", dt_factor=dt_factor, dt_num=0.05)
+
+    for dt_factor in [2,8,16]:
+        method = 'RK2' 
+        dataset_name = 'pendulum'
+        model_phy_option = 'complete'
+        model_aug_option = False 
+        path = 'data/error_scheme2'
+        device = 'cpu'
+        train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device, method, data_integration_method="RK4", dt_factor=dt_factor, dt_num=0.05)

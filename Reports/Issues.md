@@ -132,13 +132,28 @@ Trials 24/02 (`data/sanity_checks2`)
 
 # Error scheme experiments
 
-## ES1: SC1 + change of scheme (// Norbert)
+## ES1: SC1 + change of scheme (// Norbert) (`error_scheme`, `error_scheme2`)
 - GT: ParamODE($\omega_0$,$\alpha$)| RK4 | **$\Delta t_{num}=0$**
 - Train: ParamODE($\omega_0$,$\alpha$) | **RK2** | loss=loss_traj | $\tau_1$=1e-3, $\tau_2$=100, $\lambda_0$=1000, $N_{iter}$=5 **with different $\Delta t$**
 
 Criteria:
 - error_param tend vers 0 ?
-- Loss_traj_test($\Delta t$) vs $\Delta t$ : should see order $\Delta t^{2}$ (RK4 - RK2)
+- Loss_traj_test($\Delta t$) vs $\Delta t$ : should see order $\Delta t^{2}$ (RK2)
+- |theta - theta_pred| ordre 2 aussi
+
+`error_scheme`
+- dt_factors = [2,5,8,10,16], dt_num=0.05
+- on évalue tous les points disponibles pour le facteur (::dt_factor)
+- loss est MSE donc on observe ordre $2^2=4$ (!!)
+- ordre 2 pour l'erreur sur les paramètres
+
+`error_scheme2`
+- dt_factors = [2,8,16], dt_num=0.05
+- on évalue aux mêmes points (::16)
+- loss MSE ordre $2^2=4$ + verif: model fait bien RK2
+- ordre 2 pour l'erreur sur les paramètres
+
+### ES1: VALID -> CLOSED
 
 
 ## ES2: ES1 augmented, balance $\Delta t$ and NN quality
