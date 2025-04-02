@@ -95,6 +95,9 @@ class Forecaster(eqx.Module):
         if self.is_phy == "none":
             res_aug = self.model_aug(state)
             return res_aug
+        elif self.is_phy == "none_Fa":
+            res_aug = self.model_aug(state)
+            return res_aug
         else:
             res_phy = self.model_phy(state)
             if self.is_augmented:

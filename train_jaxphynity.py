@@ -136,7 +136,7 @@ def training_routine(train, test, net, optimizer, min_op, _lambda,tau_1, tau_2, 
     # in case of wandb crash 
     train_losses = []
     val_losses = []
-    loss_fn_grad = eqx.Partial(loss_fn, min_op=min_op, model_phy_option=model_phy_option, model_aug_option=model_aug_option, dt_factor=dt_factor)
+    loss_fn_grad = eqx.Partial(loss_fn, min_op=min_op, model_phy_option=model_phy_option, model_aug_option=model_aug_option) #, dt_factor=dt_factor)
     for epoch in range(nepoch): 
         loss_train = {'loss_traj': 0.0, 'loss_op': 0.0}
         for _ in range(niter): # APHYNITY
@@ -218,8 +218,8 @@ def training_routine(train, test, net, optimizer, min_op, _lambda,tau_1, tau_2, 
 
 
 # Main
-def train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device, integration_method, data_integration_method="RK4", dt_factor=1, dt_num=0.5):
-    train, val, _ = init_dataloaders(dataset_name, data_integration_method, os.path.join(path, dataset_name), dt_num=dt_num)
+def train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device, integration_method, data_integration_method="RK4", dt_factor=1, dt_num=0.5, duration=20):
+    train, val, _ = init_dataloaders(dataset_name, data_integration_method, os.path.join(path, dataset_name+str(duration)), dt_num=dt_num, duration=duration)
 
     if dataset_name == 'pendulum':
         if model_phy_option == 'incomplete':
@@ -234,6 +234,9 @@ def train_aphynity(dataset_name, model_phy_option, model_aug_option, path, devic
         # SC2.2
         elif model_phy_option == 'incomplete_no_Fa':
             model_phy = PendulumParamPDE(is_damped=False)
+        # SC4
+        elif model_phy_option == 'none_Fa':
+            model_phy = PendulumParamPDE(is_damped=False) # mock model not trained
         
         mkey, ikey = jax.random.split(jax.random.PRNGKey(0))
         model_aug = MLP(key=mkey, state_c=2, hidden=200)
@@ -262,6 +265,9 @@ def train_aphynity(dataset_name, model_phy_option, model_aug_option, path, devic
             tau_2 = 0.0 
             min_op = 'none' # loss_op=0, quicker evaluation
         elif model_phy_option == 'incomplete_no_Fa': # loss_traj only
+            lambda_0 = 1.0
+            tau_2 = 10.0
+        elif model_phy_option == 'none_Fa':
             lambda_0 = 1.0
             tau_2 = 10.0
         
@@ -313,6 +319,15 @@ if __name__ == '__main__':
     # device = 'cpu'
     # train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device, method)
 
+    ## SC4 - Neural ODE + penalisation Fa
+    # method = 'RK4' 
+    # dataset_name = 'pendulum'
+    # model_phy_option = 'none_Fa'
+    # model_aug_option = True
+    # path = 'data/lipschitz'
+    # device = 'cpu'
+    # train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device, method, dt_factor = 1) #, duration=duration)
+
     ### debug
     # method = 'RK4' 
     # dataset_name = 'pendulum'
@@ -332,11 +347,22 @@ if __name__ == '__main__':
     #     device = 'cpu'
     #     train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device, method, data_integration_method="RK4", dt_factor=dt_factor, dt_num=0.05)
 
-    for dt_factor in [2,8,16]:
-        method = 'RK2' 
-        dataset_name = 'pendulum'
-        model_phy_option = 'complete'
-        model_aug_option = False 
-        path = 'data/error_scheme2'
-        device = 'cpu'
-        train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device, method, data_integration_method="RK4", dt_factor=dt_factor, dt_num=0.05)
+    # for dt_factor in [2,8,16]:
+    #     method = 'RK2' 
+    #     dataset_name = 'pendulum'
+    #     model_phy_option = 'complete'
+    #     model_aug_option = False 
+    #     path = 'data/error_scheme2'
+    #     device = 'cpu'
+    #     train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device, method, data_integration_method="RK4", dt_factor=dt_factor, dt_num=0.05)
+
+    ### Lipschitz
+    method = 'RK4' 
+    dataset_name = 'pendulum'
+    model_phy_option = 'incomplete'
+    model_aug_option = True
+    path = 'data/lipschitz'
+    device = 'cpu'
+    duration = 20
+    train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device, method, dt_factor = 1, duration=duration)
+

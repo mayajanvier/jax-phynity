@@ -43,6 +43,8 @@ def inference(model_name,exp_name, data_path, model_phy_option, model_aug_option
             model_phy = PendulumParamPDE(is_damped=True, params=test.dataset.params)
         elif model_phy_option == 'none':
             model_phy = PendulumParamPDE(is_damped=False) # mock model for eqx compatibility
+        elif model_phy_option == 'none_Fa':
+            model_phy = PendulumParamPDE(is_damped=False) # mock model for eqx compatibility
         elif model_phy_option == 'incomplete_no_Fa':
             model_phy = PendulumParamPDE(is_damped=False)
     
@@ -66,9 +68,12 @@ def inference(model_name,exp_name, data_path, model_phy_option, model_aug_option
     print(min_op, dt_factor)
 
     print(f"Final omega: {model.model_phy.omega0_square}, Final alpha: {model.model_phy.alpha}" )
+    alpha = model.model_phy.alpha
+    if type(alpha) == jnp.ndarray:
+        alpha = alpha.item()
     # save omega and alpha in folder
     with open(os.path.join(data_path, f'{exp_name}/omega_alpha.json'), 'w') as f:
-        json.dump({"omega": model.model_phy.omega0_square.item(), "alpha": model.model_phy.alpha.item()}, f)
+        json.dump({"omega": model.model_phy.omega0_square.item(), "alpha": alpha}, f)
 
     # inference
     results = {}
@@ -176,33 +181,56 @@ if __name__ == '__main__':
 
     # SC2.2   
     # print("SC2.2") 
-    # exp_name = 'incomplete_no_Fa_aug_28_riymbky6'
-    # model_name = 'model_5.693e-03.eqx'
-    # data_path = 'data/sanity_checks2'
+    # exp_name = 'incomplete_no_Fa_aug_20_ps3fe9eb'
+    # model_name = 'model_4.466e-03.eqx'
+    # data_path = 'data/lipschitz'
     # model_phy_option = 'incomplete_no_Fa'
     # model_aug_option = True
     # dataset_name = 'pendulum'
-    #inference(model_name, exp_name, data_path, model_phy_option, model_aug_option, dataset_name, 'RK4')
-    #Fa_behaviour(model_name, exp_name, data_path, model_phy_option, model_aug_option, dataset_name, 'RK4')
+    # inference(model_name, exp_name, data_path, model_phy_option, model_aug_option, dataset_name, 'RK4')
+    # Fa_behaviour(model_name, exp_name, data_path, model_phy_option, model_aug_option, dataset_name, 'RK4')
 
     # SC3
     # print("SC3")
-    # exp_name = 'none_aug_24_of0iieil'
-    # model_name = 'model_3.309e-02.eqx'
-    # data_path = 'data/sanity_checks2'
+    # exp_name = 'none_aug_19_yt8wqw57'
+    # model_name = 'model_3.270e-02.eqx'
+    # data_path = 'data/lipschitz'
     # model_phy_option = 'none'
     # model_aug_option = True
     # dataset_name = 'pendulum'
     # inference(model_name, exp_name, data_path, model_phy_option, model_aug_option, dataset_name, 'RK4')
 
+    # SC4
+    print("SC4")
+    exp_name = 'none_Fa_aug_33_e6ynty14'
+    model_name = 'model_1.030e-01.eqx'
+    data_path = 'data/lipschitz'
+    model_phy_option = 'none_Fa'
+    model_aug_option = True
+    dataset_name = 'pendulum'
+    inference(model_name, exp_name, data_path, model_phy_option, model_aug_option, dataset_name, 'RK4')
+
     # Error scheme
-    print("ES1")
-    model_list = ['model_1.425e-07.eqx','model_5.492e-06.eqx', 'model_3.518e-05.eqx', 'model_8.506e-05.eqx',  'model_5.444e-04.eqx']
-    for k in range(2,7):
-        exp_name = f'complete_physics_{k}_3tfct1zi' 
-        model_name = model_list[k-2]
-        data_path = 'data/error_scheme'
-        model_phy_option = 'complete'
-        model_aug_option = False
-        dataset_name = 'pendulum'
-        inference(model_name, exp_name, data_path, model_phy_option, model_aug_option, dataset_name, 'RK2', dt_num=0.05)
+    # print("ES1")
+    # model_list = ['model_1.425e-07.eqx','model_5.492e-06.eqx', 'model_3.518e-05.eqx', 'model_8.506e-05.eqx',  'model_5.444e-04.eqx']
+    # for k in range(2,7):
+    #     exp_name = f'complete_physics_{k}_3tfct1zi' 
+    #     model_name = model_list[k-2]
+    #     data_path = 'data/error_scheme'
+    #     model_phy_option = 'complete'
+    #     model_aug_option = False
+    #     dataset_name = 'pendulum'
+    #     inference(model_name, exp_name, data_path, model_phy_option, model_aug_option, dataset_name, 'RK2', dt_num=0.05)
+
+    # Lipschitz
+    # model_list = [["model_6.485e-05.eqx", "model_1.202e-03.eqx", "model_4.321e-04.eqx", "model_6.669e+00.eqx"][2]]
+    # id_list = [["eiuqzzae", "3eqegq6e","srefavep","aawyc6as"][2]]
+    # for k, duration in enumerate([[5,10,20,40][2]]):
+    #     exp_name = f'incomplete_aug_{duration}_{id_list[k]}'
+    #     model_name = model_list[k]
+    #     data_path = 'data/lipschitz'
+    #     model_phy_option = 'incomplete'
+    #     model_aug_option = True
+    #     dataset_name = 'pendulum'
+    #     inference(model_name, exp_name, data_path, model_phy_option, model_aug_option, dataset_name, 'RK4')
+    #     Fa_behaviour(model_name, exp_name, data_path, model_phy_option, model_aug_option, dataset_name, 'RK4')
