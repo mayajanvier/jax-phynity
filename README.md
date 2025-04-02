@@ -2,6 +2,8 @@
 
 Implementation of _Augmenting Physical Models with Deep Networks for Complex Dynamics Forecasting_ (Yin et al., 2021) (APHYNITY) damped pendulum in JAX.
 
+![Alt text](Reports/image.png)
+
 ## Organisation of repository
 - `Reports`: reports of implementation and tests (`Issues.ipynb`), slides of presentation to ANGE team (01/04/2025)
 - `datasets`: pendulum class for generating data (derived in jax from APHYNITY)
