@@ -1,3 +1,6 @@
+# Records for jax-phynity project
+Maya Janvier, 01/25-03/25
+
 # Issues and how I solved them
 
 ## $\alpha$ and $\omega_0$ are not updated during training
@@ -128,6 +131,50 @@ Goal: visualize 1. $\frac{\partial Fa}{\partial \theta}$, and  2. $\frac{\partia
 
 Trials 24/02 (`data/sanity_checks2`)
 - none_aug_24_of0iieil: 400 epochs run with good jit, 4min15s
+
+## SC4: Neural ODE + loss Fa
+
+Trials 28/03 (`data/lipschitz`)
+- none_Fa_aug_31_92x54p4c: $\tau_1=1e-3, \tau_2=10, \lambda_0=100$ (params that works for my SC2): logMSE = -3.573 +- 0.86
+- none_Fa_aug_32_583z1zwy: params paper (explodes)
+- none_Fa_aug_33 : $\tau_1=1e-3, \tau_2=1, \lambda_0=10$ (mix): logMSE= -3.129 +- 0.84
+
+In the paper: -2.84 +- 0.7
+
+
+# Complete dynamics experiments (03/25)
+The final experiments that I used for my plots. 
+
+**Setup APHYNITY ($N_{iter}$=5, T=20s):**
+- GT: Complete | RK4
+- NeuralODE-traj: $NN_\theta$ | RK4 | loss=loss_traj | $\tau_1$=1e-3 
+- NeuralODE-aph: $NN_\theta$ | RK4 | loss=loss_traj + Fa | $\tau_1$=1e-3, $\tau_2$=1, $\lambda_0$=10 and $\tau_2$=10, $\lambda_0$=100
+- ParamODE($\omega_0$)+$NN_\theta$-traj: incomplete+aug | RK4 | loss =loss_traj  | $\tau_1$=1e-3 
+- ParamODE($\omega_0$)+$NN_\theta$-aph: incomplete+aug | RK4 | loss =loss_traj + Fa | $\tau_1$=1e-3, $\tau_2$=10, $\lambda_0$=1
+
+
+**Results in `data/lipschitz`:**  logMSE ($\downarrow$)
+- NeuralODE-traj: none_aug_19_yt8wqw57 $\rightarrow$ -4.2633 +-0.792
+- NeuralODE-aph: 
+    - none_Fa_aug_33_e6ynty14, $\tau_2$=1, $\lambda_0$=10 $\rightarrow$ logMSE= -3.129 +- 0.84
+    - none_Fa_aug_31_92x54p4c, $\tau_2$=10, $\lambda_0$=100 $\rightarrow$ logMSE = -3.573 +- 0.86
+    - paper: -2.84 +- 0.7
+
+- ParamODE($\omega_0$)+$NN_\theta$-traj: incomplete_no_Fa_aug_20_ps3fe9eb $\rightarrow$ -7.055 +- 0.6767
+
+- ParamODE($\omega_0$)+$NN_\theta$-aph: 
+    - incomplete_aug_20_srefavep $\rightarrow$ -7.80 +-0.7098
+    - paper: -7.86 +- 0.6
+
+# Lipschitz constant investigation (03/25)
+Same setups than before, with different training durations T=[5,10,20,40]s, one 60s for none_aug: explosion of loss to NaN  
+
+Data in `data/lipschitz`: `{name_exp}_{duration}_{id_wb}`
+
+Figures in `lipschitz.ipynb`
+
+
+
 
 
 # Error scheme experiments
