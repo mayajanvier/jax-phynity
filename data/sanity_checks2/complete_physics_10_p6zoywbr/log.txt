@@ -1,0 +1,900 @@
+{'param_error': 0.3809199854619572, 'omega0_square': Array(0.20099999, dtype=float32), 'alpha': Array(0.101, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.3765948848182153, 'omega0_square': Array(0.20200059, dtype=float32), 'alpha': Array(0.10200009, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.372277192633299, 'omega0_square': Array(0.20299964, dtype=float32), 'alpha': Array(0.10299835, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.3679665879776144, 'omega0_square': Array(0.2039976, dtype=float32), 'alpha': Array(0.10399456, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.36368870151599986, 'omega0_square': Array(0.20498921, dtype=float32), 'alpha': Array(0.10498232, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.35949361624281956, 'omega0_square': Array(0.2059624, dtype=float32), 'alpha': Array(0.1059504, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.3553935667231495, 'omega0_square': Array(0.20691349, dtype=float32), 'alpha': Array(0.10689659, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.3513735964955616, 'omega0_square': Array(0.20784537, dtype=float32), 'alpha': Array(0.10782476, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.347406396978318, 'omega0_square': Array(0.20876421, dtype=float32), 'alpha': Array(0.10874134, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.3434576248771018, 'omega0_square': Array(0.20967807, dtype=float32), 'alpha': Array(0.10965417, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.3394877837658373, 'omega0_square': Array(0.2105966, dtype=float32), 'alpha': Array(0.11057203, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.33545994706014615, 'omega0_square': Array(0.21152928, dtype=float32), 'alpha': Array(0.11150276, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.3313867670189481, 'omega0_square': Array(0.21247493, dtype=float32), 'alpha': Array(0.11244217, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.32739303199367764, 'omega0_square': Array(0.213407, dtype=float32), 'alpha': Array(0.11335971, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.32355818399653746, 'omega0_square': Array(0.21430731, dtype=float32), 'alpha': Array(0.11423686, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.3198984106802383, 'omega0_square': Array(0.21517171, dtype=float32), 'alpha': Array(0.11507018, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.3164103962271955, 'omega0_square': Array(0.21600056, dtype=float32), 'alpha': Array(0.11586073, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.3130846985332799, 'omega0_square': Array(0.2167957, dtype=float32), 'alpha': Array(0.11661094, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.3099099914692788, 'omega0_square': Array(0.21755947, dtype=float32), 'alpha': Array(0.11732364, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.306874509503324, 'omega0_square': Array(0.21829437, dtype=float32), 'alpha': Array(0.11800172, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.30396678360033524, 'omega0_square': Array(0.21900284, dtype=float32), 'alpha': Array(0.11864797, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.3011757615307367, 'omega0_square': Array(0.21968731, dtype=float32), 'alpha': Array(0.11926505, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.2984909895556638, 'omega0_square': Array(0.22035006, dtype=float32), 'alpha': Array(0.11985548, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.29590260540339164, 'omega0_square': Array(0.22099327, dtype=float32), 'alpha': Array(0.1204216, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.29340129093998824, 'omega0_square': Array(0.22161902, dtype=float32), 'alpha': Array(0.12096563, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+[5][5/150][1/1] | loss: 2.66e+00 | loss_op: 0.00e+00 | param_error: 2.93e-01 | omega0_square: 2.22e-01 | alpha: 1.21e-01 | omega0_square_real: 2.74e-01 | alpha_real: 2.00e-01
+################################################################################
+[5][5/150][1/1] | loss_test: 3.91e+00 | param_error: 2.93e-01 | omega0_square: 2.22e-01 | alpha: 1.21e-01 | omega0_square_real: 2.74e-01 | alpha_real: 2.00e-01
+lambda: 2604.058861732483
+################################################################################
+{'param_error': 0.29097832652223277, 'omega0_square': Array(0.22222929, dtype=float32), 'alpha': Array(0.12148962, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.28862550091823047, 'omega0_square': Array(0.22282593, dtype=float32), 'alpha': Array(0.12199549, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.2863350639780658, 'omega0_square': Array(0.22341074, dtype=float32), 'alpha': Array(0.12248504, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.2840996808308915, 'omega0_square': Array(0.22398543, dtype=float32), 'alpha': Array(0.12295995, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.2819124132584774, 'omega0_square': Array(0.22455165, dtype=float32), 'alpha': Array(0.1234218, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.2797666925187511, 'omega0_square': Array(0.22511096, dtype=float32), 'alpha': Array(0.12387206, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.27765619048707346, 'omega0_square': Array(0.22566493, dtype=float32), 'alpha': Array(0.12431213, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.27557486545914955, 'omega0_square': Array(0.22621505, dtype=float32), 'alpha': Array(0.12474334, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.27351689772166626, 'omega0_square': Array(0.2267628, dtype=float32), 'alpha': Array(0.12516694, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.2714765893964631, 'omega0_square': Array(0.22730967, dtype=float32), 'alpha': Array(0.12558411, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.26944831711118555, 'omega0_square': Array(0.22785716, dtype=float32), 'alpha': Array(0.12599602, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.267426616581535, 'omega0_square': Array(0.22840676, dtype=float32), 'alpha': Array(0.12640376, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.2654058876409166, 'omega0_square': Array(0.22896005, dtype=float32), 'alpha': Array(0.12680842, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.2633805230991638, 'omega0_square': Array(0.22951867, dtype=float32), 'alpha': Array(0.12721105, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.2613446882779926, 'omega0_square': Array(0.23008433, dtype=float32), 'alpha': Array(0.12761272, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.2592923240638736, 'omega0_square': Array(0.23065893, dtype=float32), 'alpha': Array(0.12801449, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.2572169505670733, 'omega0_square': Array(0.23124452, dtype=float32), 'alpha': Array(0.12841745, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.2551115413158016, 'omega0_square': Array(0.23184337, dtype=float32), 'alpha': Array(0.12882274, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.25296832294455407, 'omega0_square': Array(0.23245808, dtype=float32), 'alpha': Array(0.12923159, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.25077855472956545, 'omega0_square': Array(0.23309167, dtype=float32), 'alpha': Array(0.12964529, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.24853205345968754, 'omega0_square': Array(0.23374768, dtype=float32), 'alpha': Array(0.13006532, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.24621677266018493, 'omega0_square': Array(0.23443039, dtype=float32), 'alpha': Array(0.13049339, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.24381811005193882, 'omega0_square': Array(0.23514509, dtype=float32), 'alpha': Array(0.13093147, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.24131765224640633, 'omega0_square': Array(0.2358985, dtype=float32), 'alpha': Array(0.13138203, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.2386916134759568, 'omega0_square': Array(0.23669933, dtype=float32), 'alpha': Array(0.13184823, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+[10][10/150][1/1] | loss: 2.20e+00 | loss_op: 0.00e+00 | param_error: 2.39e-01 | omega0_square: 2.37e-01 | alpha: 1.32e-01 | omega0_square_real: 2.74e-01 | alpha_real: 2.00e-01
+################################################################################
+[10][10/150][1/1] | loss_test: 2.88e+00 | param_error: 2.39e-01 | omega0_square: 2.37e-01 | alpha: 1.32e-01 | omega0_square_real: 2.74e-01 | alpha_real: 2.00e-01
+lambda: 3806.839156150818
+################################################################################
+{'param_error': 0.23590787000755567, 'omega0_square': Array(0.23755936, dtype=float32), 'alpha': Array(0.13233432, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.23292107480489777, 'omega0_square': Array(0.23849495, dtype=float32), 'alpha': Array(0.13284652, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.22966373115856545, 'omega0_square': Array(0.23952928, dtype=float32), 'alpha': Array(0.1333949, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.22603266561215576, 'omega0_square': Array(0.24069197, dtype=float32), 'alpha': Array(0.13399912, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.22192651137758043, 'omega0_square': Array(0.24196517, dtype=float32), 'alpha': Array(0.13471277, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.21771733788162295, 'omega0_square': Array(0.24324045, dtype=float32), 'alpha': Array(0.13546611, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.213266366830489, 'omega0_square': Array(0.24453975, dtype=float32), 'alpha': Array(0.13629864, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.20881691456437368, 'omega0_square': Array(0.24581398, dtype=float32), 'alpha': Array(0.13714886, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.20456608393095568, 'omega0_square': Array(0.24701817, dtype=float32), 'alpha': Array(0.13797072, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.2005074209997436, 'omega0_square': Array(0.24815397, dtype=float32), 'alpha': Array(0.1387656, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.19662126687386694, 'omega0_square': Array(0.24922612, dtype=float32), 'alpha': Array(0.13953792, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.1928832361072548, 'omega0_square': Array(0.2502404, dtype=float32), 'alpha': Array(0.14029321, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.1892645055692437, 'omega0_square': Array(0.25120333, dtype=float32), 'alpha': Array(0.14103822, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.18573057715737978, 'omega0_square': Array(0.25212255, dtype=float32), 'alpha': Array(0.14178121, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.1822384236704218, 'omega0_square': Array(0.25300714, dtype=float32), 'alpha': Array(0.14253275, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.1787300910664235, 'omega0_square': Array(0.25386897, dtype=float32), 'alpha': Array(0.14330737, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.17512060467830995, 'omega0_square': Array(0.2547251, dtype=float32), 'alpha': Array(0.14412661, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.1713025586439061, 'omega0_square': Array(0.25559834, dtype=float32), 'alpha': Array(0.14501679, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.16748270571141752, 'omega0_square': Array(0.25645557, dtype=float32), 'alpha': Array(0.14591937, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.16374226712401643, 'omega0_square': Array(0.25728354, dtype=float32), 'alpha': Array(0.14681153, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.16004511969866098, 'omega0_square': Array(0.25808975, dtype=float32), 'alpha': Array(0.14770225, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.15630029653820193, 'omega0_square': Array(0.25889212, dtype=float32), 'alpha': Array(0.14861484, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.1523920581048082, 'omega0_square': Array(0.2597151, dtype=float32), 'alpha': Array(0.14957775, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.14864168014898554, 'omega0_square': Array(0.2605025, dtype=float32), 'alpha': Array(0.1505035, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.14511957811794762, 'omega0_square': Array(0.26124203, dtype=float32), 'alpha': Array(0.15137284, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+[15][15/150][1/1] | loss: 2.47e-01 | loss_op: 0.00e+00 | param_error: 1.45e-01 | omega0_square: 2.61e-01 | alpha: 1.51e-01 | omega0_square_real: 2.74e-01 | alpha_real: 2.00e-01
+################################################################################
+[15][15/150][1/1] | loss_test: 1.12e+00 | param_error: 1.45e-01 | omega0_square: 2.61e-01 | alpha: 1.51e-01 | omega0_square_real: 2.74e-01 | alpha_real: 2.00e-01
+lambda: 4299.35257434845
+################################################################################
+{'param_error': 0.14182978021374393, 'omega0_square': Array(0.26193348, dtype=float32), 'alpha': Array(0.15218434, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.13876401932512514, 'omega0_square': Array(0.2625787, dtype=float32), 'alpha': Array(0.15293995, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.13591006181467222, 'omega0_square': Array(0.26318032, dtype=float32), 'alpha': Array(0.15364264, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.13325456256362078, 'omega0_square': Array(0.26374108, dtype=float32), 'alpha': Array(0.15429576, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.13078391873575765, 'omega0_square': Array(0.26426378, dtype=float32), 'alpha': Array(0.1549027, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.12848474795941542, 'omega0_square': Array(0.26475117, dtype=float32), 'alpha': Array(0.15546681, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.12634418329782435, 'omega0_square': Array(0.26520586, dtype=float32), 'alpha': Array(0.15599133, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.12435003936073966, 'omega0_square': Array(0.26563033, dtype=float32), 'alpha': Array(0.15647933, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.12249079520442611, 'omega0_square': Array(0.26602694, dtype=float32), 'alpha': Array(0.1569337, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.1207557402903979, 'omega0_square': Array(0.26639786, dtype=float32), 'alpha': Array(0.15735713, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.11913488287959716, 'omega0_square': Array(0.26674512, dtype=float32), 'alpha': Array(0.15775214, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.1176188956794756, 'omega0_square': Array(0.26707062, dtype=float32), 'alpha': Array(0.15812108, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.11619917019691292, 'omega0_square': Array(0.26737612, dtype=float32), 'alpha': Array(0.1584661, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.1148677422324108, 'omega0_square': Array(0.26766324, dtype=float32), 'alpha': Array(0.15878922, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.11361725768006203, 'omega0_square': Array(0.2679335, dtype=float32), 'alpha': Array(0.15909226, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.11244091512176004, 'omega0_square': Array(0.26818827, dtype=float32), 'alpha': Array(0.15937693, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.11133252018011724, 'omega0_square': Array(0.26842883, dtype=float32), 'alpha': Array(0.1596448, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.1102863224597098, 'omega0_square': Array(0.26865637, dtype=float32), 'alpha': Array(0.15989728, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.1092970497471085, 'omega0_square': Array(0.26887196, dtype=float32), 'alpha': Array(0.16013572, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.10835992816376626, 'omega0_square': Array(0.2690766, dtype=float32), 'alpha': Array(0.16036129, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.10747047880148783, 'omega0_square': Array(0.26927117, dtype=float32), 'alpha': Array(0.16057512, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.10662464658115414, 'omega0_square': Array(0.26945654, dtype=float32), 'alpha': Array(0.16077822, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.10581870864690086, 'omega0_square': Array(0.26963347, dtype=float32), 'alpha': Array(0.16097152, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.10504923711321548, 'omega0_square': Array(0.2698027, dtype=float32), 'alpha': Array(0.16115586, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.10431315341785573, 'omega0_square': Array(0.2699648, dtype=float32), 'alpha': Array(0.16133203, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+[20][20/150][1/1] | loss: 1.10e-01 | loss_op: 0.00e+00 | param_error: 1.04e-01 | omega0_square: 2.70e-01 | alpha: 1.61e-01 | omega0_square_real: 2.74e-01 | alpha_real: 2.00e-01
+################################################################################
+[20][20/150][1/1] | loss_test: 6.14e-01 | param_error: 1.04e-01 | omega0_square: 2.70e-01 | alpha: 1.61e-01 | omega0_square_real: 2.74e-01 | alpha_real: 2.00e-01
+lambda: 4367.328614741564
+################################################################################
+{'param_error': 0.10360758236310966, 'omega0_square': Array(0.27012044, dtype=float32), 'alpha': Array(0.16150072, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.10292990646871417, 'omega0_square': Array(0.2702701, dtype=float32), 'alpha': Array(0.16166261, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.10227774887183949, 'omega0_square': Array(0.27041432, dtype=float32), 'alpha': Array(0.16181827, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.10164895317420168, 'omega0_square': Array(0.27055353, dtype=float32), 'alpha': Array(0.16196823, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.1010414918362412, 'omega0_square': Array(0.27068815, dtype=float32), 'alpha': Array(0.16211301, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.10045354068292889, 'omega0_square': Array(0.27081856, dtype=float32), 'alpha': Array(0.16225305, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.09988349600378138, 'omega0_square': Array(0.2709451, dtype=float32), 'alpha': Array(0.16238876, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.09932979134121833, 'omega0_square': Array(0.2710681, dtype=float32), 'alpha': Array(0.16252051, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.09879102634928677, 'omega0_square': Array(0.27118784, dtype=float32), 'alpha': Array(0.16264866, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.09826592954075809, 'omega0_square': Array(0.2713046, dtype=float32), 'alpha': Array(0.16277352, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.09775339554003114, 'omega0_square': Array(0.27141863, dtype=float32), 'alpha': Array(0.16289535, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.09725233607152016, 'omega0_square': Array(0.27153012, dtype=float32), 'alpha': Array(0.16301444, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.09676181187125137, 'omega0_square': Array(0.2716393, dtype=float32), 'alpha': Array(0.16313101, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.09628093802816937, 'omega0_square': Array(0.2717463, dtype=float32), 'alpha': Array(0.16324529, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.09580890413702478, 'omega0_square': Array(0.27185136, dtype=float32), 'alpha': Array(0.16335747, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.09534499139838963, 'omega0_square': Array(0.2719546, dtype=float32), 'alpha': Array(0.16346772, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.09488851826573891, 'omega0_square': Array(0.27205616, dtype=float32), 'alpha': Array(0.16357622, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.09443889479836905, 'omega0_square': Array(0.27215618, dtype=float32), 'alpha': Array(0.1636831, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.09399556830847944, 'omega0_square': Array(0.27225477, dtype=float32), 'alpha': Array(0.16378851, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.0935580233611725, 'omega0_square': Array(0.27235204, dtype=float32), 'alpha': Array(0.16389257, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.09312579887446902, 'omega0_square': Array(0.2724481, dtype=float32), 'alpha': Array(0.16399539, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.09269852537221127, 'omega0_square': Array(0.27254298, dtype=float32), 'alpha': Array(0.16409707, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.09227576192530759, 'omega0_square': Array(0.27263683, dtype=float32), 'alpha': Array(0.16419771, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.09185717631050322, 'omega0_square': Array(0.2727297, dtype=float32), 'alpha': Array(0.1642974, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.09144247355744636, 'omega0_square': Array(0.27282164, dtype=float32), 'alpha': Array(0.16439621, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+[25][25/150][1/1] | loss: 8.85e-02 | loss_op: 0.00e+00 | param_error: 9.14e-02 | omega0_square: 2.73e-01 | alpha: 1.64e-01 | omega0_square_real: 2.74e-01 | alpha_real: 2.00e-01
+################################################################################
+[25][25/150][1/1] | loss_test: 5.79e-01 | param_error: 9.14e-02 | omega0_square: 2.73e-01 | alpha: 1.64e-01 | omega0_square_real: 2.74e-01 | alpha_real: 2.00e-01
+lambda: 4415.162771195173
+################################################################################
+{'param_error': 0.09103130434286681, 'omega0_square': Array(0.27291274, dtype=float32), 'alpha': Array(0.16449422, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.09062346530223417, 'omega0_square': Array(0.27300304, dtype=float32), 'alpha': Array(0.16459148, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.09021869871809965, 'omega0_square': Array(0.2730926, dtype=float32), 'alpha': Array(0.16468805, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.08981674687301444, 'omega0_square': Array(0.27318147, dtype=float32), 'alpha': Array(0.164784, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.08941744365535116, 'omega0_square': Array(0.27326968, dtype=float32), 'alpha': Array(0.16487937, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.08902062295348241, 'omega0_square': Array(0.27335727, dtype=float32), 'alpha': Array(0.1649742, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.0886261559086838, 'omega0_square': Array(0.27344427, dtype=float32), 'alpha': Array(0.16506852, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.08823382205640952, 'omega0_square': Array(0.27353072, dtype=float32), 'alpha': Array(0.16516238, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.08784349253793515, 'omega0_square': Array(0.27361667, dtype=float32), 'alpha': Array(0.16525581, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.08745505559455174, 'omega0_square': Array(0.2737021, dtype=float32), 'alpha': Array(0.16534886, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.08706841962043788, 'omega0_square': Array(0.27378708, dtype=float32), 'alpha': Array(0.16544153, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.08668345575686916, 'omega0_square': Array(0.2738716, dtype=float32), 'alpha': Array(0.16553386, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.08630007239802415, 'omega0_square': Array(0.2739557, dtype=float32), 'alpha': Array(0.16562586, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.08591814068517847, 'omega0_square': Array(0.27403942, dtype=float32), 'alpha': Array(0.16571756, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.08553767771834757, 'omega0_square': Array(0.27412271, dtype=float32), 'alpha': Array(0.16580898, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.08534079471037306, 'omega0_square': Array(0.27420565, dtype=float32), 'alpha': Array(0.16590014, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.08526412668624178, 'omega0_square': Array(0.27428824, dtype=float32), 'alpha': Array(0.16599105, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.08518736522063407, 'omega0_square': Array(0.27437046, dtype=float32), 'alpha': Array(0.16608174, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.08511056466646837, 'omega0_square': Array(0.27445236, dtype=float32), 'alpha': Array(0.1661722, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.08503368777084169, 'omega0_square': Array(0.27453393, dtype=float32), 'alpha': Array(0.16626246, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.08495675163376948, 'omega0_square': Array(0.2746152, dtype=float32), 'alpha': Array(0.16635253, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.08487970190233331, 'omega0_square': Array(0.27469614, dtype=float32), 'alpha': Array(0.1664424, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.08480255567654861, 'omega0_square': Array(0.2747768, dtype=float32), 'alpha': Array(0.16653208, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.08472533005643086, 'omega0_square': Array(0.27485716, dtype=float32), 'alpha': Array(0.16662161, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.0846479706890616, 'omega0_square': Array(0.27493724, dtype=float32), 'alpha': Array(0.16671097, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+[30][30/150][1/1] | loss: 7.53e-02 | loss_op: 0.00e+00 | param_error: 8.46e-02 | omega0_square: 2.75e-01 | alpha: 1.67e-01 | omega0_square_real: 2.74e-01 | alpha_real: 2.00e-01
+################################################################################
+[30][30/150][1/1] | loss_test: 5.58e-01 | param_error: 8.46e-02 | omega0_square: 2.75e-01 | alpha: 1.67e-01 | omega0_square_real: 2.74e-01 | alpha_real: 2.00e-01
+lambda: 4455.3516037762165
+################################################################################
+{'param_error': 0.08457049467445629, 'omega0_square': Array(0.27501705, dtype=float32), 'alpha': Array(0.16680019, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.08449290201261493, 'omega0_square': Array(0.2750966, dtype=float32), 'alpha': Array(0.16688925, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.08441519270353753, 'omega0_square': Array(0.27517587, dtype=float32), 'alpha': Array(0.16697817, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.08433732949432109, 'omega0_square': Array(0.27525488, dtype=float32), 'alpha': Array(0.16706695, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.08425936673788403, 'omega0_square': Array(0.27533364, dtype=float32), 'alpha': Array(0.1671556, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.0841812671813234, 'omega0_square': Array(0.27541217, dtype=float32), 'alpha': Array(0.16724412, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.08410297647172076, 'omega0_square': Array(0.27549043, dtype=float32), 'alpha': Array(0.16733253, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.08402454896199452, 'omega0_square': Array(0.27556846, dtype=float32), 'alpha': Array(0.16742082, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.08394598465214469, 'omega0_square': Array(0.27564624, dtype=float32), 'alpha': Array(0.16750899, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.08386728354217127, 'omega0_square': Array(0.2757238, dtype=float32), 'alpha': Array(0.16759704, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.08378840837917129, 'omega0_square': Array(0.2758011, dtype=float32), 'alpha': Array(0.16768499, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.08370941351606316, 'omega0_square': Array(0.2758782, dtype=float32), 'alpha': Array(0.16777283, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.08363024459992846, 'omega0_square': Array(0.27595505, dtype=float32), 'alpha': Array(0.16786057, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.0835509016307672, 'omega0_square': Array(0.27603167, dtype=float32), 'alpha': Array(0.1679482, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.08347143896149778, 'omega0_square': Array(0.2761081, dtype=float32), 'alpha': Array(0.16803573, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.08339176498629883, 'omega0_square': Array(0.27618426, dtype=float32), 'alpha': Array(0.16812317, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.08331197131099172, 'omega0_square': Array(0.27626023, dtype=float32), 'alpha': Array(0.1682105, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.08323202068267349, 'omega0_square': Array(0.27633598, dtype=float32), 'alpha': Array(0.16829775, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.0831518587484257, 'omega0_square': Array(0.2764115, dtype=float32), 'alpha': Array(0.16838491, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.0830715398611668, 'omega0_square': Array(0.2764868, dtype=float32), 'alpha': Array(0.16847198, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.08299106402089677, 'omega0_square': Array(0.27656192, dtype=float32), 'alpha': Array(0.16855896, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.08291043122761563, 'omega0_square': Array(0.2766368, dtype=float32), 'alpha': Array(0.16864584, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.08282964148132335, 'omega0_square': Array(0.2767115, dtype=float32), 'alpha': Array(0.16873264, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.08274869478201995, 'omega0_square': Array(0.27678597, dtype=float32), 'alpha': Array(0.16881935, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.08266759112970543, 'omega0_square': Array(0.27686024, dtype=float32), 'alpha': Array(0.16890597, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+[35][35/150][1/1] | loss: 6.44e-02 | loss_op: 0.00e+00 | param_error: 8.27e-02 | omega0_square: 2.77e-01 | alpha: 1.69e-01 | omega0_square_real: 2.74e-01 | alpha_real: 2.00e-01
+################################################################################
+[35][35/150][1/1] | loss_test: 5.36e-01 | param_error: 8.27e-02 | omega0_square: 2.77e-01 | alpha: 1.69e-01 | omega0_square_real: 2.74e-01 | alpha_real: 2.00e-01
+lambda: 4489.666422456503
+################################################################################
+{'param_error': 0.08258633052437978, 'omega0_square': Array(0.2769343, dtype=float32), 'alpha': Array(0.1689925, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.08250487571314002, 'omega0_square': Array(0.27700815, dtype=float32), 'alpha': Array(0.16907896, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.08242326394888914, 'omega0_square': Array(0.2770818, dtype=float32), 'alpha': Array(0.16916533, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.08234145797872416, 'omega0_square': Array(0.27715522, dtype=float32), 'alpha': Array(0.16925162, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.08225949505554805, 'omega0_square': Array(0.27722844, dtype=float32), 'alpha': Array(0.16933782, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.08217739227937627, 'omega0_square': Array(0.2773015, dtype=float32), 'alpha': Array(0.16942395, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.08209509529729038, 'omega0_square': Array(0.27737433, dtype=float32), 'alpha': Array(0.16951, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.08201264136219336, 'omega0_square': Array(0.27744696, dtype=float32), 'alpha': Array(0.16959597, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.08192999322118225, 'omega0_square': Array(0.27751938, dtype=float32), 'alpha': Array(0.16968186, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.08184720522717544, 'omega0_square': Array(0.27759162, dtype=float32), 'alpha': Array(0.16976768, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.08176426028015751, 'omega0_square': Array(0.27766365, dtype=float32), 'alpha': Array(0.1698534, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.08168112112722549, 'omega0_square': Array(0.27773547, dtype=float32), 'alpha': Array(0.16993906, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.08159784212129778, 'omega0_square': Array(0.27780712, dtype=float32), 'alpha': Array(0.17002463, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.08151436890945597, 'omega0_square': Array(0.27787855, dtype=float32), 'alpha': Array(0.17011014, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.08143075584461848, 'omega0_square': Array(0.2779498, dtype=float32), 'alpha': Array(0.17019556, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.08134694857386689, 'omega0_square': Array(0.27802086, dtype=float32), 'alpha': Array(0.17028092, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.08126294709720118, 'omega0_square': Array(0.2780917, dtype=float32), 'alpha': Array(0.1703662, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.0811788057675398, 'omega0_square': Array(0.27816236, dtype=float32), 'alpha': Array(0.1704514, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.08109452458488275, 'omega0_square': Array(0.27823284, dtype=float32), 'alpha': Array(0.17053653, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.08101008644921458, 'omega0_square': Array(0.27830312, dtype=float32), 'alpha': Array(0.17062157, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.08092547120764775, 'omega0_square': Array(0.2783732, dtype=float32), 'alpha': Array(0.17070656, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.0808406617601668, 'omega0_square': Array(0.2784431, dtype=float32), 'alpha': Array(0.17079146, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.08075571245969018, 'omega0_square': Array(0.2785128, dtype=float32), 'alpha': Array(0.1708763, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.08067056895329945, 'omega0_square': Array(0.2785823, dtype=float32), 'alpha': Array(0.17096105, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.08058528559391305, 'omega0_square': Array(0.27865162, dtype=float32), 'alpha': Array(0.17104574, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+[40][40/150][1/1] | loss: 5.48e-02 | loss_op: 0.00e+00 | param_error: 8.06e-02 | omega0_square: 2.79e-01 | alpha: 1.71e-01 | omega0_square_real: 2.74e-01 | alpha_real: 2.00e-01
+################################################################################
+[40][40/150][1/1] | loss_test: 5.09e-01 | param_error: 8.06e-02 | omega0_square: 2.79e-01 | alpha: 1.71e-01 | omega0_square_real: 2.74e-01 | alpha_real: 2.00e-01
+lambda: 4518.939043208957
+################################################################################
+{'param_error': 0.08049986238153096, 'omega0_square': Array(0.27872077, dtype=float32), 'alpha': Array(0.17113034, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.08041424496323478, 'omega0_square': Array(0.2787897, dtype=float32), 'alpha': Array(0.17121488, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.08032848769194292, 'omega0_square': Array(0.27885845, dtype=float32), 'alpha': Array(0.17129934, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.08024259056765538, 'omega0_square': Array(0.27892703, dtype=float32), 'alpha': Array(0.17138372, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.08015655359037217, 'omega0_square': Array(0.27899542, dtype=float32), 'alpha': Array(0.17146803, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.08007032240717486, 'omega0_square': Array(0.2790636, dtype=float32), 'alpha': Array(0.17155227, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07998395137098187, 'omega0_square': Array(0.27913162, dtype=float32), 'alpha': Array(0.17163643, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07989740322889022, 'omega0_square': Array(0.27919945, dtype=float32), 'alpha': Array(0.17172053, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07981071523380288, 'omega0_square': Array(0.2792671, dtype=float32), 'alpha': Array(0.17180456, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07972383303280145, 'omega0_square': Array(0.27933455, dtype=float32), 'alpha': Array(0.17188852, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07963681097880435, 'omega0_square': Array(0.2794018, dtype=float32), 'alpha': Array(0.1719724, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07954964907181156, 'omega0_square': Array(0.2794689, dtype=float32), 'alpha': Array(0.1720562, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.0794623473118231, 'omega0_square': Array(0.2795358, dtype=float32), 'alpha': Array(0.17213993, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07937486844593597, 'omega0_square': Array(0.27960253, dtype=float32), 'alpha': Array(0.1722236, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07928724972705317, 'omega0_square': Array(0.27966908, dtype=float32), 'alpha': Array(0.1723072, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.0791994911551747, 'omega0_square': Array(0.27973545, dtype=float32), 'alpha': Array(0.17239071, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07911159273030056, 'omega0_square': Array(0.27980164, dtype=float32), 'alpha': Array(0.17247416, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07902350009951231, 'omega0_square': Array(0.27986762, dtype=float32), 'alpha': Array(0.17255753, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07893526761572837, 'omega0_square': Array(0.27993342, dtype=float32), 'alpha': Array(0.17264083, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.0788468580260458, 'omega0_square': Array(0.27999905, dtype=float32), 'alpha': Array(0.17272407, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07875830858336753, 'omega0_square': Array(0.2800645, dtype=float32), 'alpha': Array(0.17280723, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07866961928769359, 'omega0_square': Array(0.28012976, dtype=float32), 'alpha': Array(0.17289032, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07858079013902397, 'omega0_square': Array(0.28019485, dtype=float32), 'alpha': Array(0.17297333, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07849182113735868, 'omega0_square': Array(0.28025976, dtype=float32), 'alpha': Array(0.17305627, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07840271228269773, 'omega0_square': Array(0.2803245, dtype=float32), 'alpha': Array(0.17313914, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+[45][45/150][1/1] | loss: 4.64e-02 | loss_op: 0.00e+00 | param_error: 7.84e-02 | omega0_square: 2.80e-01 | alpha: 1.73e-01 | omega0_square_real: 2.74e-01 | alpha_real: 2.00e-01
+################################################################################
+[45][45/150][1/1] | loss_test: 4.65e-01 | param_error: 7.84e-02 | omega0_square: 2.80e-01 | alpha: 1.73e-01 | omega0_square_real: 2.74e-01 | alpha_real: 2.00e-01
+lambda: 4543.786653503776
+################################################################################
+{'param_error': 0.0783134263221381, 'omega0_square': Array(0.28038904, dtype=float32), 'alpha': Array(0.17322195, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.0782240005085828, 'omega0_square': Array(0.2804534, dtype=float32), 'alpha': Array(0.17330468, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07813448919495027, 'omega0_square': Array(0.28051764, dtype=float32), 'alpha': Array(0.17338733, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07804483802832206, 'omega0_square': Array(0.28058168, dtype=float32), 'alpha': Array(0.17346992, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07795504700869817, 'omega0_square': Array(0.28064555, dtype=float32), 'alpha': Array(0.17355242, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.0778651161360786, 'omega0_square': Array(0.28070924, dtype=float32), 'alpha': Array(0.17363486, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07777504541046336, 'omega0_square': Array(0.28077275, dtype=float32), 'alpha': Array(0.17371722, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07768483483185244, 'omega0_square': Array(0.28083608, dtype=float32), 'alpha': Array(0.1737995, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07759444714734287, 'omega0_square': Array(0.28089923, dtype=float32), 'alpha': Array(0.17388172, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07750391960983763, 'omega0_square': Array(0.2809622, dtype=float32), 'alpha': Array(0.17396387, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.0774132522193367, 'omega0_square': Array(0.281025, dtype=float32), 'alpha': Array(0.17404595, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.0773224449758401, 'omega0_square': Array(0.2810876, dtype=float32), 'alpha': Array(0.17412795, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07723155223226626, 'omega0_square': Array(0.28115007, dtype=float32), 'alpha': Array(0.17420988, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07714051963569674, 'omega0_square': Array(0.28121236, dtype=float32), 'alpha': Array(0.17429173, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07704934718613154, 'omega0_square': Array(0.28127447, dtype=float32), 'alpha': Array(0.17437351, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07695803488357068, 'omega0_square': Array(0.2813364, dtype=float32), 'alpha': Array(0.17445521, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07686658272801414, 'omega0_square': Array(0.28139815, dtype=float32), 'alpha': Array(0.17453684, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07677504507238037, 'omega0_square': Array(0.28145975, dtype=float32), 'alpha': Array(0.1746184, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07668336756375091, 'omega0_square': Array(0.28152117, dtype=float32), 'alpha': Array(0.17469987, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07659155020212577, 'omega0_square': Array(0.28158242, dtype=float32), 'alpha': Array(0.17478128, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07649959298750497, 'omega0_square': Array(0.28164348, dtype=float32), 'alpha': Array(0.17486261, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07640753317279146, 'omega0_square': Array(0.28170437, dtype=float32), 'alpha': Array(0.17494385, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07631538785800072, 'omega0_square': Array(0.2817651, dtype=float32), 'alpha': Array(0.17502502, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07622310269021432, 'omega0_square': Array(0.28182566, dtype=float32), 'alpha': Array(0.17510611, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07613067766943223, 'omega0_square': Array(0.28188604, dtype=float32), 'alpha': Array(0.17518713, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+[50][50/150][1/1] | loss: 3.89e-02 | loss_op: 0.00e+00 | param_error: 7.61e-02 | omega0_square: 2.82e-01 | alpha: 1.75e-01 | omega0_square_real: 2.74e-01 | alpha_real: 2.00e-01
+################################################################################
+[50][50/150][1/1] | loss_test: 3.47e-01 | param_error: 7.61e-02 | omega0_square: 2.82e-01 | alpha: 1.75e-01 | omega0_square_real: 2.74e-01 | alpha_real: 2.00e-01
+lambda: 4564.7153947502375
+################################################################################
+{'param_error': 0.07603811279565445, 'omega0_square': Array(0.28194624, dtype=float32), 'alpha': Array(0.17526807, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07594540806888102, 'omega0_square': Array(0.28200626, dtype=float32), 'alpha': Array(0.17534894, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07585265509493332, 'omega0_square': Array(0.28206614, dtype=float32), 'alpha': Array(0.17542972, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07575976226798994, 'omega0_square': Array(0.28212583, dtype=float32), 'alpha': Array(0.17551042, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.0756667295880509, 'omega0_square': Array(0.28218535, dtype=float32), 'alpha': Array(0.17559105, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07557359430801916, 'omega0_square': Array(0.28224468, dtype=float32), 'alpha': Array(0.17567159, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07548037352791018, 'omega0_square': Array(0.28230387, dtype=float32), 'alpha': Array(0.17575206, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07538701289480552, 'omega0_square': Array(0.28236288, dtype=float32), 'alpha': Array(0.17583245, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07529354966160819, 'omega0_square': Array(0.2824217, dtype=float32), 'alpha': Array(0.17591275, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07519994657541516, 'omega0_square': Array(0.28248036, dtype=float32), 'alpha': Array(0.17599298, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.0751062579891449, 'omega0_square': Array(0.28253886, dtype=float32), 'alpha': Array(0.17607313, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07501246680278195, 'omega0_square': Array(0.28259718, dtype=float32), 'alpha': Array(0.1761532, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07491853576342332, 'omega0_square': Array(0.28265533, dtype=float32), 'alpha': Array(0.17623319, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.074824502123972, 'omega0_square': Array(0.2827133, dtype=float32), 'alpha': Array(0.17631309, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07473038298444344, 'omega0_square': Array(0.2827711, dtype=float32), 'alpha': Array(0.17639291, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.0746361612448222, 'omega0_square': Array(0.28282875, dtype=float32), 'alpha': Array(0.17647265, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07454183690510825, 'omega0_square': Array(0.2828862, dtype=float32), 'alpha': Array(0.1765523, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07444737271239864, 'omega0_square': Array(0.2829435, dtype=float32), 'alpha': Array(0.17663187, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07435286027251477, 'omega0_square': Array(0.28300062, dtype=float32), 'alpha': Array(0.17671135, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07425824523253821, 'omega0_square': Array(0.28305757, dtype=float32), 'alpha': Array(0.17679074, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07416349033956596, 'omega0_square': Array(0.28311434, dtype=float32), 'alpha': Array(0.17687006, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07406863284650103, 'omega0_square': Array(0.28317094, dtype=float32), 'alpha': Array(0.17694929, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07397372710626185, 'omega0_square': Array(0.28322738, dtype=float32), 'alpha': Array(0.17702843, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07387871876592997, 'omega0_square': Array(0.28328365, dtype=float32), 'alpha': Array(0.17710748, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07378360782550542, 'omega0_square': Array(0.28333974, dtype=float32), 'alpha': Array(0.17718644, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+[55][55/150][1/1] | loss: 3.23e-02 | loss_op: 0.00e+00 | param_error: 7.38e-02 | omega0_square: 2.83e-01 | alpha: 1.77e-01 | omega0_square_real: 2.74e-01 | alpha_real: 2.00e-01
+################################################################################
+[55][55/150][1/1] | loss_test: 6.44e-02 | param_error: 7.38e-02 | omega0_square: 2.83e-01 | alpha: 1.77e-01 | omega0_square_real: 2.74e-01 | alpha_real: 2.00e-01
+lambda: 4582.161397859454
+################################################################################
+{'param_error': 0.07368839428498815, 'omega0_square': Array(0.28339565, dtype=float32), 'alpha': Array(0.17726532, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07359307814437821, 'omega0_square': Array(0.28345138, dtype=float32), 'alpha': Array(0.1773441, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.073497713756594, 'omega0_square': Array(0.28350696, dtype=float32), 'alpha': Array(0.17742279, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07340224676871711, 'omega0_square': Array(0.28356236, dtype=float32), 'alpha': Array(0.1775014, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07330667718074751, 'omega0_square': Array(0.2836176, dtype=float32), 'alpha': Array(0.17757991, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07321100499268525, 'omega0_square': Array(0.28367263, dtype=float32), 'alpha': Array(0.17765833, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07311523020453028, 'omega0_square': Array(0.2837275, dtype=float32), 'alpha': Array(0.17773667, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07301940716920105, 'omega0_square': Array(0.2837822, dtype=float32), 'alpha': Array(0.17781492, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07292351878668213, 'omega0_square': Array(0.28383675, dtype=float32), 'alpha': Array(0.17789306, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07282752780407051, 'omega0_square': Array(0.2838911, dtype=float32), 'alpha': Array(0.17797111, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.0727314342213662, 'omega0_square': Array(0.2839453, dtype=float32), 'alpha': Array(0.17804907, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07263527529147218, 'omega0_square': Array(0.2839993, dtype=float32), 'alpha': Array(0.17812693, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07253901376148547, 'omega0_square': Array(0.28405312, dtype=float32), 'alpha': Array(0.1782047, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07244268688430906, 'omega0_square': Array(0.28410676, dtype=float32), 'alpha': Array(0.17828237, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07234625740703995, 'omega0_square': Array(0.28416023, dtype=float32), 'alpha': Array(0.17835994, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07224976258258116, 'omega0_square': Array(0.2842135, dtype=float32), 'alpha': Array(0.17843741, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07215316515802966, 'omega0_square': Array(0.28426662, dtype=float32), 'alpha': Array(0.1785148, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07205650238628845, 'omega0_square': Array(0.28431955, dtype=float32), 'alpha': Array(0.17859207, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07195977426735754, 'omega0_square': Array(0.2843723, dtype=float32), 'alpha': Array(0.17866924, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07186294354833395, 'omega0_square': Array(0.28442487, dtype=float32), 'alpha': Array(0.17874633, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07176604748212063, 'omega0_square': Array(0.28447726, dtype=float32), 'alpha': Array(0.1788233, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07166908606871762, 'omega0_square': Array(0.28452948, dtype=float32), 'alpha': Array(0.17890018, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07157205930812491, 'omega0_square': Array(0.2845815, dtype=float32), 'alpha': Array(0.17897695, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07147496720034249, 'omega0_square': Array(0.28463337, dtype=float32), 'alpha': Array(0.17905362, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07137780974537036, 'omega0_square': Array(0.28468505, dtype=float32), 'alpha': Array(0.17913018, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+[60][60/150][1/1] | loss: 2.64e-02 | loss_op: 0.00e+00 | param_error: 7.14e-02 | omega0_square: 2.85e-01 | alpha: 1.79e-01 | omega0_square_real: 2.74e-01 | alpha_real: 2.00e-01
+################################################################################
+[60][60/150][1/1] | loss_test: 3.07e-02 | param_error: 7.14e-02 | omega0_square: 2.85e-01 | alpha: 1.79e-01 | omega0_square_real: 2.74e-01 | alpha_real: 2.00e-01
+lambda: 4596.518081240356
+################################################################################
+{'param_error': 0.07128058694320852, 'omega0_square': Array(0.28473654, dtype=float32), 'alpha': Array(0.17920664, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07118329879385699, 'omega0_square': Array(0.28478786, dtype=float32), 'alpha': Array(0.179283, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07108598255021872, 'omega0_square': Array(0.284839, dtype=float32), 'alpha': Array(0.17935923, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07098860095939075, 'omega0_square': Array(0.28488997, dtype=float32), 'alpha': Array(0.17943536, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07089115402137308, 'omega0_square': Array(0.28494075, dtype=float32), 'alpha': Array(0.17951138, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07079362463615026, 'omega0_square': Array(0.28499132, dtype=float32), 'alpha': Array(0.17958729, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07069602990373772, 'omega0_square': Array(0.28504172, dtype=float32), 'alpha': Array(0.17966309, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07059840707703846, 'omega0_square': Array(0.28509194, dtype=float32), 'alpha': Array(0.17973877, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07050071890314952, 'omega0_square': Array(0.28514197, dtype=float32), 'alpha': Array(0.17981435, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.0704029482820554, 'omega0_square': Array(0.2851918, dtype=float32), 'alpha': Array(0.17988981, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07030511231377158, 'omega0_square': Array(0.28524145, dtype=float32), 'alpha': Array(0.17996517, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07020724825120103, 'omega0_square': Array(0.28529093, dtype=float32), 'alpha': Array(0.1800404, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07010930174142534, 'omega0_square': Array(0.2853402, dtype=float32), 'alpha': Array(0.18011552, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.07001132713736292, 'omega0_square': Array(0.28538927, dtype=float32), 'alpha': Array(0.18019052, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.06991327008609535, 'omega0_square': Array(0.28543815, dtype=float32), 'alpha': Array(0.1802654, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.06981518494054106, 'omega0_square': Array(0.28548685, dtype=float32), 'alpha': Array(0.18034016, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.06971707170070005, 'omega0_square': Array(0.28553537, dtype=float32), 'alpha': Array(0.1804148, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.06961887601365388, 'omega0_square': Array(0.28558367, dtype=float32), 'alpha': Array(0.18048932, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.06952059787940257, 'omega0_square': Array(0.28563178, dtype=float32), 'alpha': Array(0.18056372, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.06942232890376751, 'omega0_square': Array(0.2856797, dtype=float32), 'alpha': Array(0.18063799, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.06932397748092729, 'omega0_square': Array(0.2857274, dtype=float32), 'alpha': Array(0.18071213, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.06922559796380037, 'omega0_square': Array(0.28577495, dtype=float32), 'alpha': Array(0.18078616, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.06912717325237126, 'omega0_square': Array(0.28582227, dtype=float32), 'alpha': Array(0.18086006, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.069028666093737, 'omega0_square': Array(0.2858694, dtype=float32), 'alpha': Array(0.18093383, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.06893016809371902, 'omega0_square': Array(0.28591633, dtype=float32), 'alpha': Array(0.18100747, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+[65][65/150][1/1] | loss: 2.13e-02 | loss_op: 0.00e+00 | param_error: 6.89e-02 | omega0_square: 2.86e-01 | alpha: 1.81e-01 | omega0_square_real: 2.74e-01 | alpha_real: 2.00e-01
+################################################################################
+[65][65/150][1/1] | loss_test: 1.75e-02 | param_error: 6.89e-02 | omega0_square: 2.86e-01 | alpha: 1.81e-01 | omega0_square_real: 2.74e-01 | alpha_real: 2.00e-01
+lambda: 4608.155910484493
+################################################################################
+{'param_error': 0.06883162489939885, 'omega0_square': Array(0.28596306, dtype=float32), 'alpha': Array(0.18108098, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.06873303651077653, 'omega0_square': Array(0.28600958, dtype=float32), 'alpha': Array(0.18115436, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.06863436567494904, 'omega0_square': Array(0.2860559, dtype=float32), 'alpha': Array(0.18122761, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.06853564964481938, 'omega0_square': Array(0.286102, dtype=float32), 'alpha': Array(0.18130073, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.06843688842038756, 'omega0_square': Array(0.2861479, dtype=float32), 'alpha': Array(0.18137372, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.06833813635457199, 'omega0_square': Array(0.2861936, dtype=float32), 'alpha': Array(0.18144657, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.06823937634735724, 'omega0_square': Array(0.28623912, dtype=float32), 'alpha': Array(0.18151927, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.06814057114584034, 'omega0_square': Array(0.28628442, dtype=float32), 'alpha': Array(0.18159184, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.06804172075002125, 'omega0_square': Array(0.2863295, dtype=float32), 'alpha': Array(0.18166427, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.06794280805988455, 'omega0_square': Array(0.28637436, dtype=float32), 'alpha': Array(0.18173656, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.06784385017544567, 'omega0_square': Array(0.286419, dtype=float32), 'alpha': Array(0.18180871, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.06774488434960761, 'omega0_square': Array(0.28646344, dtype=float32), 'alpha': Array(0.18188071, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.0676458733294674, 'omega0_square': Array(0.28650767, dtype=float32), 'alpha': Array(0.18195258, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.06754685436792798, 'omega0_square': Array(0.28655168, dtype=float32), 'alpha': Array(0.1820243, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.06744777311207095, 'omega0_square': Array(0.28659546, dtype=float32), 'alpha': Array(0.18209587, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.06734868391481473, 'omega0_square': Array(0.28663903, dtype=float32), 'alpha': Array(0.18216729, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.06724958677615933, 'omega0_square': Array(0.2866824, dtype=float32), 'alpha': Array(0.18223856, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.06715042734318633, 'omega0_square': Array(0.28672552, dtype=float32), 'alpha': Array(0.18230969, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.06705125996881411, 'omega0_square': Array(0.28676844, dtype=float32), 'alpha': Array(0.18238066, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.06695206755302728, 'omega0_square': Array(0.2868111, dtype=float32), 'alpha': Array(0.18245147, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.06685286719584126, 'omega0_square': Array(0.28685358, dtype=float32), 'alpha': Array(0.18252213, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.06675360454433762, 'omega0_square': Array(0.2868958, dtype=float32), 'alpha': Array(0.18259265, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.06665431685141934, 'omega0_square': Array(0.2869378, dtype=float32), 'alpha': Array(0.182663, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.06655502121710188, 'omega0_square': Array(0.2869796, dtype=float32), 'alpha': Array(0.1827332, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.0664557005413698, 'omega0_square': Array(0.28702113, dtype=float32), 'alpha': Array(0.18280323, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+[70][70/150][1/1] | loss: 1.68e-02 | loss_op: 0.00e+00 | param_error: 6.65e-02 | omega0_square: 2.87e-01 | alpha: 1.83e-01 | omega0_square_real: 2.74e-01 | alpha_real: 2.00e-01
+################################################################################
+[70][70/150][1/1] | loss_test: 1.13e-02 | param_error: 6.65e-02 | omega0_square: 2.87e-01 | alpha: 1.83e-01 | omega0_square_real: 2.74e-01 | alpha_real: 2.00e-01
+lambda: 4617.436747252941
+################################################################################
+{'param_error': 0.06635635482422308, 'omega0_square': Array(0.28706244, dtype=float32), 'alpha': Array(0.1828731, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.06625698406566172, 'omega0_square': Array(0.2871035, dtype=float32), 'alpha': Array(0.18294281, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.06615758826568574, 'omega0_square': Array(0.28714433, dtype=float32), 'alpha': Array(0.18301235, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.06605816742429511, 'omega0_square': Array(0.28718492, dtype=float32), 'alpha': Array(0.18308173, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.06595872154148985, 'omega0_square': Array(0.28722528, dtype=float32), 'alpha': Array(0.18315095, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.06585925061726997, 'omega0_square': Array(0.2872654, dtype=float32), 'alpha': Array(0.18322, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.06575979190453843, 'omega0_square': Array(0.28730527, dtype=float32), 'alpha': Array(0.18328887, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.06566030815039225, 'omega0_square': Array(0.2873449, dtype=float32), 'alpha': Array(0.18335758, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.06556083660773443, 'omega0_square': Array(0.2873843, dtype=float32), 'alpha': Array(0.18342611, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.06546132292364654, 'omega0_square': Array(0.28742343, dtype=float32), 'alpha': Array(0.18349446, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.065361784198144, 'omega0_square': Array(0.28746232, dtype=float32), 'alpha': Array(0.18356265, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.06526225768412981, 'omega0_square': Array(0.28750098, dtype=float32), 'alpha': Array(0.18363066, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.06516268902868555, 'omega0_square': Array(0.28753936, dtype=float32), 'alpha': Array(0.18369849, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.06506313258472964, 'omega0_square': Array(0.2875775, dtype=float32), 'alpha': Array(0.18376614, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.06496353399934364, 'omega0_square': Array(0.2876154, dtype=float32), 'alpha': Array(0.18383361, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.06486393052543055, 'omega0_square': Array(0.287653, dtype=float32), 'alpha': Array(0.1839009, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.0647643392630058, 'omega0_square': Array(0.28769037, dtype=float32), 'alpha': Array(0.183968, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.06466470585915098, 'omega0_square': Array(0.28772748, dtype=float32), 'alpha': Array(0.18403491, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.06456506756676905, 'omega0_square': Array(0.2877643, dtype=float32), 'alpha': Array(0.18410164, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.06446542438586003, 'omega0_square': Array(0.28780088, dtype=float32), 'alpha': Array(0.18416817, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.06436573906352094, 'omega0_square': Array(0.28783718, dtype=float32), 'alpha': Array(0.18423453, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.06426604885265474, 'omega0_square': Array(0.2878732, dtype=float32), 'alpha': Array(0.18430069, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.06416635375326145, 'omega0_square': Array(0.28790897, dtype=float32), 'alpha': Array(0.18436666, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.06406665376534106, 'omega0_square': Array(0.28794447, dtype=float32), 'alpha': Array(0.18443243, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.06396698614179655, 'omega0_square': Array(0.2879797, dtype=float32), 'alpha': Array(0.184498, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+[75][75/150][1/1] | loss: 1.32e-02 | loss_op: 0.00e+00 | param_error: 6.40e-02 | omega0_square: 2.88e-01 | alpha: 1.84e-01 | omega0_square_real: 2.74e-01 | alpha_real: 2.00e-01
+################################################################################
+[75][75/150][1/1] | loss_test: 8.38e-03 | param_error: 6.40e-02 | omega0_square: 2.88e-01 | alpha: 1.84e-01 | omega0_square_real: 2.74e-01 | alpha_real: 2.00e-01
+lambda: 4624.72260678187
+################################################################################
+{'param_error': 0.06386725927680653, 'omega0_square': Array(0.28801462, dtype=float32), 'alpha': Array(0.18456337, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.0637675275232894, 'omega0_square': Array(0.28804928, dtype=float32), 'alpha': Array(0.18462855, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.06366782813414815, 'omega0_square': Array(0.28808367, dtype=float32), 'alpha': Array(0.18469352, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.06356806950356138, 'omega0_square': Array(0.28811777, dtype=float32), 'alpha': Array(0.18475829, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.0634683432373505, 'omega0_square': Array(0.2881516, dtype=float32), 'alpha': Array(0.18482286, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.06336859498259706, 'omega0_square': Array(0.28818512, dtype=float32), 'alpha': Array(0.18488722, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.0632688247393011, 'omega0_square': Array(0.28821835, dtype=float32), 'alpha': Array(0.18495136, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.063169086860381, 'omega0_square': Array(0.2882513, dtype=float32), 'alpha': Array(0.1850153, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.06306932699291837, 'omega0_square': Array(0.28828397, dtype=float32), 'alpha': Array(0.18507904, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.06296954513691319, 'omega0_square': Array(0.28831634, dtype=float32), 'alpha': Array(0.18514256, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.06286977854526844, 'omega0_square': Array(0.2883484, dtype=float32), 'alpha': Array(0.18520586, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.06276998996508117, 'omega0_square': Array(0.28838018, dtype=float32), 'alpha': Array(0.18526895, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.06267021664925432, 'omega0_square': Array(0.28841165, dtype=float32), 'alpha': Array(0.18533182, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.06257042134488493, 'omega0_square': Array(0.28844282, dtype=float32), 'alpha': Array(0.18539448, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.062470641304875965, 'omega0_square': Array(0.2884737, dtype=float32), 'alpha': Array(0.18545692, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.06237082217630902, 'omega0_square': Array(0.28850424, dtype=float32), 'alpha': Array(0.18551913, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.062271018312102515, 'omega0_square': Array(0.2885345, dtype=float32), 'alpha': Array(0.18558112, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.06217122971225644, 'omega0_square': Array(0.28856444, dtype=float32), 'alpha': Array(0.18564288, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.06207140202385239, 'omega0_square': Array(0.28859407, dtype=float32), 'alpha': Array(0.18570442, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.06197157249979331, 'omega0_square': Array(0.28862336, dtype=float32), 'alpha': Array(0.18576573, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.06187175824009468, 'omega0_square': Array(0.28865236, dtype=float32), 'alpha': Array(0.18582681, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.061771942144741035, 'omega0_square': Array(0.28868103, dtype=float32), 'alpha': Array(0.18588765, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.0616720869608294, 'omega0_square': Array(0.28870937, dtype=float32), 'alpha': Array(0.18594827, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.0615722842941812, 'omega0_square': Array(0.28873742, dtype=float32), 'alpha': Array(0.18600865, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.061472479791877976, 'omega0_square': Array(0.28876513, dtype=float32), 'alpha': Array(0.18606879, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+[80][80/150][1/1] | loss: 1.02e-02 | loss_op: 0.00e+00 | param_error: 6.15e-02 | omega0_square: 2.89e-01 | alpha: 1.86e-01 | omega0_square_real: 2.74e-01 | alpha_real: 2.00e-01
+################################################################################
+[80][80/150][1/1] | loss_test: 7.15e-03 | param_error: 6.15e-02 | omega0_square: 2.89e-01 | alpha: 1.86e-01 | omega0_square_real: 2.74e-01 | alpha_real: 2.00e-01
+lambda: 4630.377020873129
+################################################################################
+{'param_error': 0.06137267345391974, 'omega0_square': Array(0.28879252, dtype=float32), 'alpha': Array(0.18612869, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.0612728652803065, 'omega0_square': Array(0.28881958, dtype=float32), 'alpha': Array(0.18618836, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.06117300091811982, 'omega0_square': Array(0.28884628, dtype=float32), 'alpha': Array(0.18624778, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.06107313472027813, 'omega0_square': Array(0.28887266, dtype=float32), 'alpha': Array(0.18630697, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.06097330393968442, 'omega0_square': Array(0.2888987, dtype=float32), 'alpha': Array(0.1863659, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.06087347132343569, 'omega0_square': Array(0.28892443, dtype=float32), 'alpha': Array(0.1864246, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.060773619771516504, 'omega0_square': Array(0.2889498, dtype=float32), 'alpha': Array(0.18648304, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.06067376638394231, 'omega0_square': Array(0.28897482, dtype=float32), 'alpha': Array(0.18654124, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.06057389406069767, 'omega0_square': Array(0.2889995, dtype=float32), 'alpha': Array(0.1865992, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.06047405715470099, 'omega0_square': Array(0.28902385, dtype=float32), 'alpha': Array(0.18665689, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.060374201313033865, 'omega0_square': Array(0.28904784, dtype=float32), 'alpha': Array(0.18671434, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.060274326535696275, 'omega0_square': Array(0.28907147, dtype=float32), 'alpha': Array(0.18677153, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.06017443282268822, 'omega0_square': Array(0.28909475, dtype=float32), 'alpha': Array(0.18682846, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.06007457452692816, 'omega0_square': Array(0.2891177, dtype=float32), 'alpha': Array(0.18688515, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.05997469729549763, 'omega0_square': Array(0.28914028, dtype=float32), 'alpha': Array(0.18694158, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.05987483838129963, 'omega0_square': Array(0.28916252, dtype=float32), 'alpha': Array(0.18699774, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.059774960531431165, 'omega0_square': Array(0.2891844, dtype=float32), 'alpha': Array(0.18705365, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.059675100998795236, 'omega0_square': Array(0.2892059, dtype=float32), 'alpha': Array(0.18710929, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.0595752054304734, 'omega0_square': Array(0.28922704, dtype=float32), 'alpha': Array(0.18716466, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.0594752909264811, 'omega0_square': Array(0.2892478, dtype=float32), 'alpha': Array(0.18721978, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.05937539473972133, 'omega0_square': Array(0.28926823, dtype=float32), 'alpha': Array(0.18727463, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.059275462517275654, 'omega0_square': Array(0.28928825, dtype=float32), 'alpha': Array(0.18732922, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.059175548612062506, 'omega0_square': Array(0.28930792, dtype=float32), 'alpha': Array(0.18738353, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.05907559867116345, 'omega0_square': Array(0.2893272, dtype=float32), 'alpha': Array(0.18743758, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.058975667047496926, 'omega0_square': Array(0.28934613, dtype=float32), 'alpha': Array(0.18749136, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+[85][85/150][1/1] | loss: 7.90e-03 | loss_op: 0.00e+00 | param_error: 5.90e-02 | omega0_square: 2.89e-01 | alpha: 1.87e-01 | omega0_square_real: 2.74e-01 | alpha_real: 2.00e-01
+################################################################################
+[85][85/150][1/1] | loss_test: 6.80e-03 | param_error: 5.90e-02 | omega0_square: 2.89e-01 | alpha: 1.87e-01 | omega0_square_real: 2.74e-01 | alpha_real: 2.00e-01
+lambda: 4634.756899066269
+################################################################################
+{'param_error': 0.05887573664104748, 'omega0_square': Array(0.28936467, dtype=float32), 'alpha': Array(0.18754485, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.05877582455183056, 'omega0_square': Array(0.28938285, dtype=float32), 'alpha': Array(0.18759808, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.05867587642692773, 'omega0_square': Array(0.28940064, dtype=float32), 'alpha': Array(0.18765104, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.05857592951924198, 'omega0_square': Array(0.28941804, dtype=float32), 'alpha': Array(0.18770371, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.058475946575870325, 'omega0_square': Array(0.28943506, dtype=float32), 'alpha': Array(0.18775612, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.058376019202634175, 'omega0_square': Array(0.28945172, dtype=float32), 'alpha': Array(0.18780825, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.058276093046615116, 'omega0_square': Array(0.289468, dtype=float32), 'alpha': Array(0.18786009, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.05817613085491014, 'omega0_square': Array(0.28948388, dtype=float32), 'alpha': Array(0.18791166, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.058076169880422246, 'omega0_square': Array(0.28949937, dtype=float32), 'alpha': Array(0.18796295, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.057976210123151434, 'omega0_square': Array(0.28951448, dtype=float32), 'alpha': Array(0.18801396, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.0578762515830977, 'omega0_square': Array(0.2895292, dtype=float32), 'alpha': Array(0.18806468, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.05777623990734261, 'omega0_square': Array(0.2895435, dtype=float32), 'alpha': Array(0.18811512, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.0576762294488046, 'omega0_square': Array(0.28955743, dtype=float32), 'alpha': Array(0.18816528, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.05757622020748367, 'omega0_square': Array(0.28957096, dtype=float32), 'alpha': Array(0.18821515, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.05747621218337982, 'omega0_square': Array(0.2895841, dtype=float32), 'alpha': Array(0.18826474, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.05737615102357461, 'omega0_square': Array(0.28959683, dtype=float32), 'alpha': Array(0.18831405, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.05727612833388947, 'omega0_square': Array(0.28960916, dtype=float32), 'alpha': Array(0.18836306, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.0571761068614214, 'omega0_square': Array(0.2896211, dtype=float32), 'alpha': Array(0.18841179, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.057076032253251974, 'omega0_square': Array(0.28963265, dtype=float32), 'alpha': Array(0.18846023, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.05697599611520261, 'omega0_square': Array(0.2896438, dtype=float32), 'alpha': Array(0.18850838, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.05687596119437034, 'omega0_square': Array(0.28965455, dtype=float32), 'alpha': Array(0.18855624, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.056775873137836705, 'omega0_square': Array(0.2896649, dtype=float32), 'alpha': Array(0.18860382, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.056675823551423136, 'omega0_square': Array(0.28967485, dtype=float32), 'alpha': Array(0.1886511, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.056575720829308215, 'omega0_square': Array(0.28968439, dtype=float32), 'alpha': Array(0.1886981, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.05647565657731335, 'omega0_square': Array(0.28969353, dtype=float32), 'alpha': Array(0.1887448, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+[90][90/150][1/1] | loss: 6.26e-03 | loss_op: 0.00e+00 | param_error: 5.65e-02 | omega0_square: 2.90e-01 | alpha: 1.89e-01 | omega0_square_real: 2.74e-01 | alpha_real: 2.00e-01
+################################################################################
+[90][90/150][1/1] | loss_test: 6.85e-03 | param_error: 5.65e-02 | omega0_square: 2.90e-01 | alpha: 1.89e-01 | omega0_square_real: 2.74e-01 | alpha_real: 2.00e-01
+lambda: 4638.193658087403
+################################################################################
+{'param_error': 0.05637553918961713, 'omega0_square': Array(0.28970227, dtype=float32), 'alpha': Array(0.18879122, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.05627540591912254, 'omega0_square': Array(0.28971058, dtype=float32), 'alpha': Array(0.18883733, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.05617527386584504, 'omega0_square': Array(0.2897185, dtype=float32), 'alpha': Array(0.18888317, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.05607512592976917, 'omega0_square': Array(0.28972602, dtype=float32), 'alpha': Array(0.18892871, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.05597497921091037, 'omega0_square': Array(0.28973314, dtype=float32), 'alpha': Array(0.18897396, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.0558748166092532, 'omega0_square': Array(0.28973985, dtype=float32), 'alpha': Array(0.18901892, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.05577463812479766, 'omega0_square': Array(0.28974614, dtype=float32), 'alpha': Array(0.18906358, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.0556744608575592, 'omega0_square': Array(0.28975204, dtype=float32), 'alpha': Array(0.18910795, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.05557426770752237, 'omega0_square': Array(0.28975752, dtype=float32), 'alpha': Array(0.18915203, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.05547407577470262, 'omega0_square': Array(0.28976262, dtype=float32), 'alpha': Array(0.18919583, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.0553738679590845, 'omega0_square': Array(0.2897673, dtype=float32), 'alpha': Array(0.18923932, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.05527364426066801, 'omega0_square': Array(0.28977156, dtype=float32), 'alpha': Array(0.18928252, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.0551734217794686, 'omega0_square': Array(0.28977543, dtype=float32), 'alpha': Array(0.18932544, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.05507318341547082, 'omega0_square': Array(0.2897789, dtype=float32), 'alpha': Array(0.18936805, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.054972946268690114, 'omega0_square': Array(0.28978196, dtype=float32), 'alpha': Array(0.18941039, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.054872693239111044, 'omega0_square': Array(0.2897846, dtype=float32), 'alpha': Array(0.18945242, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.054772441426749044, 'omega0_square': Array(0.28978688, dtype=float32), 'alpha': Array(0.18949418, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.0546721364786857, 'omega0_square': Array(0.28978872, dtype=float32), 'alpha': Array(0.18953565, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.054571870000742415, 'omega0_square': Array(0.28979018, dtype=float32), 'alpha': Array(0.18957682, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.05447155038709778, 'omega0_square': Array(0.28979123, dtype=float32), 'alpha': Array(0.18961771, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.0543712692435732, 'omega0_square': Array(0.28979188, dtype=float32), 'alpha': Array(0.1896583, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.054270989317265705, 'omega0_square': Array(0.28979215, dtype=float32), 'alpha': Array(0.1896986, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.054170656255256855, 'omega0_square': Array(0.289792, dtype=float32), 'alpha': Array(0.18973863, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.05407032441046508, 'omega0_square': Array(0.28979146, dtype=float32), 'alpha': Array(0.18977837, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.053969993782890385, 'omega0_square': Array(0.28979054, dtype=float32), 'alpha': Array(0.18981783, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+[95][95/150][1/1] | loss: 5.13e-03 | loss_op: 0.00e+00 | param_error: 5.40e-02 | omega0_square: 2.90e-01 | alpha: 1.90e-01 | omega0_square_real: 2.74e-01 | alpha_real: 2.00e-01
+################################################################################
+[95][95/150][1/1] | loss_test: 6.98e-03 | param_error: 5.40e-02 | omega0_square: 2.90e-01 | alpha: 1.90e-01 | omega0_square_real: 2.74e-01 | alpha_real: 2.00e-01
+lambda: 4640.96839223057
+################################################################################
+{'param_error': 0.053869610019614336, 'omega0_square': Array(0.2897892, dtype=float32), 'alpha': Array(0.189857, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.053769227473555364, 'omega0_square': Array(0.28978747, dtype=float32), 'alpha': Array(0.1898959, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.05366884614471347, 'omega0_square': Array(0.28978536, dtype=float32), 'alpha': Array(0.1899345, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.05356846603308865, 'omega0_square': Array(0.28978285, dtype=float32), 'alpha': Array(0.18997283, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.053468087138680925, 'omega0_square': Array(0.28977996, dtype=float32), 'alpha': Array(0.19001088, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.05336770946149026, 'omega0_square': Array(0.28977668, dtype=float32), 'alpha': Array(0.19004864, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.05326733300151669, 'omega0_square': Array(0.28977302, dtype=float32), 'alpha': Array(0.19008611, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.0531669205058572, 'omega0_square': Array(0.28976896, dtype=float32), 'alpha': Array(0.19012332, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.05306650922741479, 'omega0_square': Array(0.28976452, dtype=float32), 'alpha': Array(0.19016024, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.05296611626620492, 'omega0_square': Array(0.28975973, dtype=float32), 'alpha': Array(0.1901969, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.052865724522212124, 'omega0_square': Array(0.28975454, dtype=float32), 'alpha': Array(0.19023328, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.05276529674253341, 'omega0_square': Array(0.28974897, dtype=float32), 'alpha': Array(0.19026938, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.05266488728008724, 'omega0_square': Array(0.28974304, dtype=float32), 'alpha': Array(0.19030522, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.05256444178195515, 'omega0_square': Array(0.28973672, dtype=float32), 'alpha': Array(0.19034079, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.0524640146010556, 'omega0_square': Array(0.28973004, dtype=float32), 'alpha': Array(0.19037609, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.05236355138447013, 'omega0_square': Array(0.28972298, dtype=float32), 'alpha': Array(0.19041112, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.05226310648511719, 'omega0_square': Array(0.28971556, dtype=float32), 'alpha': Array(0.19044589, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.052162679902996785, 'omega0_square': Array(0.28970778, dtype=float32), 'alpha': Array(0.19048038, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.05206223438520592, 'omega0_square': Array(0.28969964, dtype=float32), 'alpha': Array(0.19051462, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.051961807184647574, 'omega0_square': Array(0.28969115, dtype=float32), 'alpha': Array(0.1905486, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.05186136104841878, 'omega0_square': Array(0.2896823, dtype=float32), 'alpha': Array(0.19058232, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.05176089597651952, 'omega0_square': Array(0.2896731, dtype=float32), 'alpha': Array(0.19061579, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.05166041196894981, 'omega0_square': Array(0.28966352, dtype=float32), 'alpha': Array(0.190649, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.051559963378628074, 'omega0_square': Array(0.28965363, dtype=float32), 'alpha': Array(0.19068196, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.05145949585263587, 'omega0_square': Array(0.28964338, dtype=float32), 'alpha': Array(0.19071467, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+[100][100/150][1/1] | loss: 4.36e-03 | loss_op: 0.00e+00 | param_error: 5.15e-02 | omega0_square: 2.90e-01 | alpha: 1.91e-01 | omega0_square_real: 2.74e-01 | alpha_real: 2.00e-01
+################################################################################
+[100][100/150][1/1] | loss_test: 7.00e-03 | param_error: 5.15e-02 | omega0_square: 2.90e-01 | alpha: 1.91e-01 | omega0_square_real: 2.74e-01 | alpha_real: 2.00e-01
+lambda: 4643.291847314686
+################################################################################
+{'param_error': 0.05135906374389165, 'omega0_square': Array(0.2896328, dtype=float32), 'alpha': Array(0.19074713, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.05125861269947698, 'omega0_square': Array(0.28962186, dtype=float32), 'alpha': Array(0.19077933, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.05115815981940729, 'omega0_square': Array(0.2896106, dtype=float32), 'alpha': Array(0.19081129, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.051057742356585584, 'omega0_square': Array(0.289599, dtype=float32), 'alpha': Array(0.190843, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.050957323058108864, 'omega0_square': Array(0.28958708, dtype=float32), 'alpha': Array(0.19087447, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.05085690192397713, 'omega0_square': Array(0.28957483, dtype=float32), 'alpha': Array(0.1909057, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.05075647895419039, 'omega0_square': Array(0.28956226, dtype=float32), 'alpha': Array(0.1909367, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.050656054148748644, 'omega0_square': Array(0.28954935, dtype=float32), 'alpha': Array(0.19096746, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.050555627507651885, 'omega0_square': Array(0.28953612, dtype=float32), 'alpha': Array(0.19099797, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.05045525338381855, 'omega0_square': Array(0.2895226, dtype=float32), 'alpha': Array(0.19102825, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.050354894524345654, 'omega0_square': Array(0.28950876, dtype=float32), 'alpha': Array(0.19105831, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.05025449657631477, 'omega0_square': Array(0.2894946, dtype=float32), 'alpha': Array(0.19108814, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.050154151145547304, 'omega0_square': Array(0.28948015, dtype=float32), 'alpha': Array(0.19111773, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.050053820979140275, 'omega0_square': Array(0.2894654, dtype=float32), 'alpha': Array(0.1911471, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.04995350607709369, 'omega0_square': Array(0.28945035, dtype=float32), 'alpha': Array(0.19117625, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.04985316918650456, 'omega0_square': Array(0.289435, dtype=float32), 'alpha': Array(0.19120519, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.04975284756027586, 'omega0_square': Array(0.28941935, dtype=float32), 'alpha': Array(0.1912339, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.049652558298423057, 'omega0_square': Array(0.28940344, dtype=float32), 'alpha': Array(0.19126241, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.04955228430093069, 'omega0_square': Array(0.28938723, dtype=float32), 'alpha': Array(0.19129069, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.04945204266781421, 'omega0_square': Array(0.28937075, dtype=float32), 'alpha': Array(0.19131877, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.04935177904615519, 'omega0_square': Array(0.28935397, dtype=float32), 'alpha': Array(0.19134663, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.04925154778887206, 'omega0_square': Array(0.28933692, dtype=float32), 'alpha': Array(0.19137429, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.0491513488959648, 'omega0_square': Array(0.2893196, dtype=float32), 'alpha': Array(0.19140173, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.04905114511453046, 'omega0_square': Array(0.28930202, dtype=float32), 'alpha': Array(0.19142899, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.048950973697472, 'omega0_square': Array(0.28928417, dtype=float32), 'alpha': Array(0.19145603, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+[105][105/150][1/1] | loss: 3.81e-03 | loss_op: 0.00e+00 | param_error: 4.90e-02 | omega0_square: 2.89e-01 | alpha: 1.91e-01 | omega0_square_real: 2.74e-01 | alpha_real: 2.00e-01
+################################################################################
+[105][105/150][1/1] | loss_test: 6.84e-03 | param_error: 4.90e-02 | omega0_square: 2.89e-01 | alpha: 1.91e-01 | omega0_square_real: 2.74e-01 | alpha_real: 2.00e-01
+lambda: 4645.30111909844
+################################################################################
+{'param_error': 0.04885085174480488, 'omega0_square': Array(0.28926608, dtype=float32), 'alpha': Array(0.19148289, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.048750724903610654, 'omega0_square': Array(0.28924772, dtype=float32), 'alpha': Array(0.19150954, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.04865064752680777, 'omega0_square': Array(0.28922912, dtype=float32), 'alpha': Array(0.19153601, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.04855056526147779, 'omega0_square': Array(0.28921026, dtype=float32), 'alpha': Array(0.19156228, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.04845049520763617, 'omega0_square': Array(0.28919116, dtype=float32), 'alpha': Array(0.19158837, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.04835047461818587, 'omega0_square': Array(0.28917181, dtype=float32), 'alpha': Array(0.19161427, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.04825046624022393, 'omega0_square': Array(0.28915223, dtype=float32), 'alpha': Array(0.19163999, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.048150507326653325, 'omega0_square': Array(0.28913242, dtype=float32), 'alpha': Array(0.19166552, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.0480506149774895, 'omega0_square': Array(0.2891124, dtype=float32), 'alpha': Array(0.19169086, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.04795073483981403, 'omega0_square': Array(0.28909212, dtype=float32), 'alpha': Array(0.19171603, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.04785088401364236, 'omega0_square': Array(0.28907165, dtype=float32), 'alpha': Array(0.19174103, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.04775104539895904, 'omega0_square': Array(0.28905094, dtype=float32), 'alpha': Array(0.19176586, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.04765123609577952, 'omega0_square': Array(0.28903002, dtype=float32), 'alpha': Array(0.19179052, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.047551493357006785, 'omega0_square': Array(0.2890089, dtype=float32), 'alpha': Array(0.191815, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.04745177992973785, 'omega0_square': Array(0.28898755, dtype=float32), 'alpha': Array(0.19183932, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.04735209581397271, 'omega0_square': Array(0.288966, dtype=float32), 'alpha': Array(0.19186348, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.04725244100971138, 'omega0_square': Array(0.28894424, dtype=float32), 'alpha': Array(0.19188747, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.04715286986987227, 'omega0_square': Array(0.2889223, dtype=float32), 'alpha': Array(0.1919113, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.04705329078863398, 'omega0_square': Array(0.28890017, dtype=float32), 'alpha': Array(0.19193497, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.04695379537181793, 'omega0_square': Array(0.28887784, dtype=float32), 'alpha': Array(0.19195849, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.046854346366521124, 'omega0_square': Array(0.28885534, dtype=float32), 'alpha': Array(0.19198185, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.04675488941982513, 'omega0_square': Array(0.28883263, dtype=float32), 'alpha': Array(0.19200507, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.04665547888464838, 'omega0_square': Array(0.28880975, dtype=float32), 'alpha': Array(0.19202814, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.04655611476099089, 'omega0_square': Array(0.28878668, dtype=float32), 'alpha': Array(0.19205105, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.04645685140177107, 'omega0_square': Array(0.28876346, dtype=float32), 'alpha': Array(0.19207382, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+[110][110/150][1/1] | loss: 3.38e-03 | loss_op: 0.00e+00 | param_error: 4.65e-02 | omega0_square: 2.89e-01 | alpha: 1.92e-01 | omega0_square_real: 2.74e-01 | alpha_real: 2.00e-01
+################################################################################
+[110][110/150][1/1] | loss_test: 6.50e-03 | param_error: 4.65e-02 | omega0_square: 2.89e-01 | alpha: 1.92e-01 | omega0_square_real: 2.74e-01 | alpha_real: 2.00e-01
+lambda: 4647.074455930851
+################################################################################
+{'param_error': 0.04635759720116752, 'omega0_square': Array(0.28874007, dtype=float32), 'alpha': Array(0.19209646, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.04625838941208321, 'omega0_square': Array(0.2887165, dtype=float32), 'alpha': Array(0.19211894, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.04615924513453361, 'omega0_square': Array(0.28869277, dtype=float32), 'alpha': Array(0.1921413, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.0460601643685187, 'omega0_square': Array(0.2886689, dtype=float32), 'alpha': Array(0.19216351, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.04596109276112005, 'omega0_square': Array(0.28864485, dtype=float32), 'alpha': Array(0.1921856, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.0458620846652561, 'omega0_square': Array(0.28862065, dtype=float32), 'alpha': Array(0.19220755, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.04576314008092684, 'omega0_square': Array(0.2885963, dtype=float32), 'alpha': Array(0.19222936, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.045664259008132285, 'omega0_square': Array(0.2885718, dtype=float32), 'alpha': Array(0.19225104, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.04556540419396944, 'omega0_square': Array(0.28854716, dtype=float32), 'alpha': Array(0.1922726, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.04546662999135674, 'omega0_square': Array(0.2885224, dtype=float32), 'alpha': Array(0.19229405, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.04536791930027874, 'omega0_square': Array(0.28849748, dtype=float32), 'alpha': Array(0.19231535, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.04526928922075088, 'omega0_square': Array(0.28847244, dtype=float32), 'alpha': Array(0.19233654, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.045170685399854735, 'omega0_square': Array(0.28844726, dtype=float32), 'alpha': Array(0.19235761, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.04507216219050873, 'omega0_square': Array(0.28842196, dtype=float32), 'alpha': Array(0.19237857, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.04497368233980989, 'omega0_square': Array(0.28839654, dtype=float32), 'alpha': Array(0.19239941, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.04487528310066119, 'omega0_square': Array(0.288371, dtype=float32), 'alpha': Array(0.19242014, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.04477696447306263, 'omega0_square': Array(0.28834534, dtype=float32), 'alpha': Array(0.19244075, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.04467868920411125, 'omega0_square': Array(0.28831956, dtype=float32), 'alpha': Array(0.19246125, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.04458045729380701, 'omega0_square': Array(0.28829366, dtype=float32), 'alpha': Array(0.19248165, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.044482268742149944, 'omega0_square': Array(0.28826764, dtype=float32), 'alpha': Array(0.19250195, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.044384177902058466, 'omega0_square': Array(0.28824154, dtype=float32), 'alpha': Array(0.19252214, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.04428613042061415, 'omega0_square': Array(0.2882153, dtype=float32), 'alpha': Array(0.19254223, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.04418818065073542, 'omega0_square': Array(0.288189, dtype=float32), 'alpha': Array(0.19256221, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.04409027423950386, 'omega0_square': Array(0.28816256, dtype=float32), 'alpha': Array(0.19258209, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.043992465539837884, 'omega0_square': Array(0.28813604, dtype=float32), 'alpha': Array(0.19260186, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+[115][115/150][1/1] | loss: 3.02e-03 | loss_op: 0.00e+00 | param_error: 4.40e-02 | omega0_square: 2.88e-01 | alpha: 1.93e-01 | omega0_square_real: 2.74e-01 | alpha_real: 2.00e-01
+################################################################################
+[115][115/150][1/1] | loss_test: 6.04e-03 | param_error: 4.40e-02 | omega0_square: 2.88e-01 | alpha: 1.93e-01 | omega0_square_real: 2.74e-01 | alpha_real: 2.00e-01
+lambda: 4648.653681972064
+################################################################################
+{'param_error': 0.043894717298834526, 'omega0_square': Array(0.28810942, dtype=float32), 'alpha': Array(0.19262154, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.043797029516493766, 'omega0_square': Array(0.28808272, dtype=float32), 'alpha': Array(0.19264114, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.04369943944571861, 'omega0_square': Array(0.28805593, dtype=float32), 'alpha': Array(0.19266063, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.04360190983360605, 'omega0_square': Array(0.28802904, dtype=float32), 'alpha': Array(0.19268003, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.04350444068015612, 'omega0_square': Array(0.28800207, dtype=float32), 'alpha': Array(0.19269934, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.043407086338287215, 'omega0_square': Array(0.28797504, dtype=float32), 'alpha': Array(0.19271857, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.04330979245508092, 'omega0_square': Array(0.28794792, dtype=float32), 'alpha': Array(0.1927377, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.04321255903053724, 'omega0_square': Array(0.2879207, dtype=float32), 'alpha': Array(0.19275674, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.043115403164671606, 'omega0_square': Array(0.28789344, dtype=float32), 'alpha': Array(0.19277571, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.043018307757468593, 'omega0_square': Array(0.2878661, dtype=float32), 'alpha': Array(0.19279459, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.042921327161846615, 'omega0_square': Array(0.28783867, dtype=float32), 'alpha': Array(0.19281338, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.0428244241249027, 'omega0_square': Array(0.2878112, dtype=float32), 'alpha': Array(0.1928321, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.04272759864663683, 'omega0_square': Array(0.28778365, dtype=float32), 'alpha': Array(0.19285074, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.042630887979952015, 'omega0_square': Array(0.28775606, dtype=float32), 'alpha': Array(0.19286929, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.042534254871945246, 'omega0_square': Array(0.2877284, dtype=float32), 'alpha': Array(0.19288777, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.04243769932261654, 'omega0_square': Array(0.28770068, dtype=float32), 'alpha': Array(0.19290617, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.04234122133196589, 'omega0_square': Array(0.2876729, dtype=float32), 'alpha': Array(0.1929245, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.0422448208999933, 'omega0_square': Array(0.28764507, dtype=float32), 'alpha': Array(0.19294275, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.04214849802669876, 'omega0_square': Array(0.28761718, dtype=float32), 'alpha': Array(0.19296093, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.04205225271208228, 'omega0_square': Array(0.28758922, dtype=float32), 'alpha': Array(0.19297904, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.04195610205615931, 'omega0_square': Array(0.28756124, dtype=float32), 'alpha': Array(0.19299708, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.0418600289589144, 'omega0_square': Array(0.2875332, dtype=float32), 'alpha': Array(0.19301505, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.041764050520362986, 'omega0_square': Array(0.28750512, dtype=float32), 'alpha': Array(0.19303297, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.041668149640489635, 'omega0_square': Array(0.287477, dtype=float32), 'alpha': Array(0.1930508, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.04157234341930978, 'omega0_square': Array(0.28744882, dtype=float32), 'alpha': Array(0.19306858, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+[120][120/150][1/1] | loss: 2.69e-03 | loss_op: 0.00e+00 | param_error: 4.16e-02 | omega0_square: 2.87e-01 | alpha: 1.93e-01 | omega0_square_real: 2.74e-01 | alpha_real: 2.00e-01
+################################################################################
+[120][120/150][1/1] | loss_test: 5.52e-03 | param_error: 4.16e-02 | omega0_square: 2.87e-01 | alpha: 1.93e-01 | omega0_square_real: 2.74e-01 | alpha_real: 2.00e-01
+lambda: 4650.062636635266
+################################################################################
+{'param_error': 0.04147666910972643, 'omega0_square': Array(0.28742063, dtype=float32), 'alpha': Array(0.19308628, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.04138103510591814, 'omega0_square': Array(0.28739238, dtype=float32), 'alpha': Array(0.19310392, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.041285495760803356, 'omega0_square': Array(0.2873641, dtype=float32), 'alpha': Array(0.19312151, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.04119005107438209, 'omega0_square': Array(0.28733578, dtype=float32), 'alpha': Array(0.19313903, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.04109470104665432, 'omega0_square': Array(0.28730744, dtype=float32), 'alpha': Array(0.1931565, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.04099944567762005, 'omega0_square': Array(0.28727907, dtype=float32), 'alpha': Array(0.1931739, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.0409042849672793, 'omega0_square': Array(0.28725067, dtype=float32), 'alpha': Array(0.19319125, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.040809218915632044, 'omega0_square': Array(0.28722224, dtype=float32), 'alpha': Array(0.19320853, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.0407142475226783, 'omega0_square': Array(0.28719378, dtype=float32), 'alpha': Array(0.19322576, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.040619370788418055, 'omega0_square': Array(0.28716528, dtype=float32), 'alpha': Array(0.19324292, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.040524605812866765, 'omega0_square': Array(0.2871368, dtype=float32), 'alpha': Array(0.19326004, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.040429935496008984, 'omega0_square': Array(0.28710827, dtype=float32), 'alpha': Array(0.1932771, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.04033535983784471, 'omega0_square': Array(0.28707972, dtype=float32), 'alpha': Array(0.19329411, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.040240895938389386, 'omega0_square': Array(0.28705117, dtype=float32), 'alpha': Array(0.19331107, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.04014652669762757, 'omega0_square': Array(0.2870226, dtype=float32), 'alpha': Array(0.19332796, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.04005221486265627, 'omega0_square': Array(0.28699398, dtype=float32), 'alpha': Array(0.19334482, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.03995805203929691, 'omega0_square': Array(0.28696537, dtype=float32), 'alpha': Array(0.19336161, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.039864000974646506, 'omega0_square': Array(0.28693676, dtype=float32), 'alpha': Array(0.19337836, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.03977000731578662, 'omega0_square': Array(0.28690812, dtype=float32), 'alpha': Array(0.19339506, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.0396761254156357, 'omega0_square': Array(0.28687948, dtype=float32), 'alpha': Array(0.19341172, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.03958233817417827, 'omega0_square': Array(0.2868508, dtype=float32), 'alpha': Array(0.19342832, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.039488662691429796, 'omega0_square': Array(0.28682214, dtype=float32), 'alpha': Array(0.19344488, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.03939509896739028, 'omega0_square': Array(0.28679347, dtype=float32), 'alpha': Array(0.19346139, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.03930164700205972, 'omega0_square': Array(0.2867648, dtype=float32), 'alpha': Array(0.19347785, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.039208306795438116, 'omega0_square': Array(0.28673613, dtype=float32), 'alpha': Array(0.19349428, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+[125][125/150][1/1] | loss: 2.39e-03 | loss_op: 0.00e+00 | param_error: 3.92e-02 | omega0_square: 2.87e-01 | alpha: 1.93e-01 | omega0_square_real: 2.74e-01 | alpha_real: 2.00e-01
+################################################################################
+[125][125/150][1/1] | loss_test: 4.98e-03 | param_error: 3.92e-02 | omega0_square: 2.87e-01 | alpha: 1.93e-01 | omega0_square_real: 2.74e-01 | alpha_real: 2.00e-01
+lambda: 4651.317727682181
+################################################################################
+{'param_error': 0.03911502399460702, 'omega0_square': Array(0.28670743, dtype=float32), 'alpha': Array(0.19351065, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.03902185295248489, 'omega0_square': Array(0.28667873, dtype=float32), 'alpha': Array(0.19352698, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.03892879366907171, 'omega0_square': Array(0.28665003, dtype=float32), 'alpha': Array(0.19354327, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.038835846144367484, 'omega0_square': Array(0.28662133, dtype=float32), 'alpha': Array(0.19355951, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.03874301037837221, 'omega0_square': Array(0.28659263, dtype=float32), 'alpha': Array(0.19357571, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.038650249118182906, 'omega0_square': Array(0.28656393, dtype=float32), 'alpha': Array(0.19359188, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.03855759961670256, 'omega0_square': Array(0.28653523, dtype=float32), 'alpha': Array(0.193608, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.03846506187393116, 'omega0_square': Array(0.28650653, dtype=float32), 'alpha': Array(0.19362408, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.03837269024278715, 'omega0_square': Array(0.28647786, dtype=float32), 'alpha': Array(0.19364011, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.038280393117449116, 'omega0_square': Array(0.2864492, dtype=float32), 'alpha': Array(0.19365612, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.03818820775082003, 'omega0_square': Array(0.28642052, dtype=float32), 'alpha': Array(0.19367208, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.03809609688999691, 'omega0_square': Array(0.28639185, dtype=float32), 'alpha': Array(0.193688, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.038004097787882746, 'omega0_square': Array(0.28636318, dtype=float32), 'alpha': Array(0.19370389, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.03791226479739597, 'omega0_square': Array(0.28633454, dtype=float32), 'alpha': Array(0.19371973, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.03782050631271516, 'omega0_square': Array(0.2863059, dtype=float32), 'alpha': Array(0.19373554, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.03772885958674332, 'omega0_square': Array(0.28627726, dtype=float32), 'alpha': Array(0.1937513, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.03763734171949586, 'omega0_square': Array(0.28624865, dtype=float32), 'alpha': Array(0.19376704, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.037545898358054386, 'omega0_square': Array(0.28622004, dtype=float32), 'alpha': Array(0.19378275, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.037454621108240285, 'omega0_square': Array(0.28619146, dtype=float32), 'alpha': Array(0.19379841, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.03736341836423217, 'omega0_square': Array(0.28616288, dtype=float32), 'alpha': Array(0.19381404, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.037272290126030005, 'omega0_square': Array(0.2861343, dtype=float32), 'alpha': Array(0.19382964, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.03718132799945524, 'omega0_square': Array(0.28610575, dtype=float32), 'alpha': Array(0.1938452, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.037090440378686446, 'omega0_square': Array(0.2860772, dtype=float32), 'alpha': Array(0.19386072, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.03699968161664204, 'omega0_square': Array(0.28604868, dtype=float32), 'alpha': Array(0.19387622, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.03690908896622504, 'omega0_square': Array(0.2860202, dtype=float32), 'alpha': Array(0.19389167, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+[130][130/150][1/1] | loss: 2.12e-03 | loss_op: 0.00e+00 | param_error: 3.69e-02 | omega0_square: 2.86e-01 | alpha: 1.94e-01 | omega0_square_real: 2.74e-01 | alpha_real: 2.00e-01
+################################################################################
+[130][130/150][1/1] | loss_test: 4.46e-03 | param_error: 3.69e-02 | omega0_square: 2.86e-01 | alpha: 1.94e-01 | omega0_square_real: 2.74e-01 | alpha_real: 2.00e-01
+lambda: 4652.432528464124
+################################################################################
+{'param_error': 0.036818570821613994, 'omega0_square': Array(0.2859917, dtype=float32), 'alpha': Array(0.1939071, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.03672818153572735, 'omega0_square': Array(0.28596324, dtype=float32), 'alpha': Array(0.19392249, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.03663786675564668, 'omega0_square': Array(0.28593478, dtype=float32), 'alpha': Array(0.19393785, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.036547680834290414, 'omega0_square': Array(0.28590634, dtype=float32), 'alpha': Array(0.19395319, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.036457661024561536, 'omega0_square': Array(0.28587794, dtype=float32), 'alpha': Array(0.19396847, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.03636771572063863, 'omega0_square': Array(0.28584954, dtype=float32), 'alpha': Array(0.19398373, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.03627789927544012, 'omega0_square': Array(0.28582117, dtype=float32), 'alpha': Array(0.19399896, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.03618821168896601, 'omega0_square': Array(0.28579283, dtype=float32), 'alpha': Array(0.19401416, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.036098598608297866, 'omega0_square': Array(0.2857645, dtype=float32), 'alpha': Array(0.19402933, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.03600911438635414, 'omega0_square': Array(0.28573617, dtype=float32), 'alpha': Array(0.19404447, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.0359197590231348, 'omega0_square': Array(0.2857079, dtype=float32), 'alpha': Array(0.19405958, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.03583053251863987, 'omega0_square': Array(0.28567964, dtype=float32), 'alpha': Array(0.19407466, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.03574143487286934, 'omega0_square': Array(0.28565142, dtype=float32), 'alpha': Array(0.19408971, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.03565241173290479, 'omega0_square': Array(0.2856232, dtype=float32), 'alpha': Array(0.19410473, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.035563517451664625, 'omega0_square': Array(0.285595, dtype=float32), 'alpha': Array(0.19411972, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.035474752029148876, 'omega0_square': Array(0.28556684, dtype=float32), 'alpha': Array(0.19413468, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.03538611546535752, 'omega0_square': Array(0.2855387, dtype=float32), 'alpha': Array(0.19414961, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.03529760776029057, 'omega0_square': Array(0.2855106, dtype=float32), 'alpha': Array(0.19416451, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.035209228913948024, 'omega0_square': Array(0.28548253, dtype=float32), 'alpha': Array(0.19417939, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.03512097892632987, 'omega0_square': Array(0.28545448, dtype=float32), 'alpha': Array(0.19419423, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.03503276619161472, 'omega0_square': Array(0.28542644, dtype=float32), 'alpha': Array(0.19420905, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.034944682315623955, 'omega0_square': Array(0.28539842, dtype=float32), 'alpha': Array(0.19422385, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.03485672729835759, 'omega0_square': Array(0.28537044, dtype=float32), 'alpha': Array(0.19423862, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.03476890113981564, 'omega0_square': Array(0.28534248, dtype=float32), 'alpha': Array(0.19425336, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.03468120383999809, 'omega0_square': Array(0.28531456, dtype=float32), 'alpha': Array(0.19426806, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+[135][135/150][1/1] | loss: 1.88e-03 | loss_op: 0.00e+00 | param_error: 3.47e-02 | omega0_square: 2.85e-01 | alpha: 1.94e-01 | omega0_square_real: 2.74e-01 | alpha_real: 2.00e-01
+################################################################################
+[135][135/150][1/1] | loss_test: 3.96e-03 | param_error: 3.47e-02 | omega0_square: 2.85e-01 | alpha: 1.94e-01 | omega0_square_real: 2.74e-01 | alpha_real: 2.00e-01
+lambda: 4653.419404616579
+################################################################################
+{'param_error': 0.03459363539890494, 'omega0_square': Array(0.28528666, dtype=float32), 'alpha': Array(0.19428274, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.03450619581653619, 'omega0_square': Array(0.2852588, dtype=float32), 'alpha': Array(0.19429739, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.03441884783998886, 'omega0_square': Array(0.28523096, dtype=float32), 'alpha': Array(0.19431202, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.034331628722165934, 'omega0_square': Array(0.28520316, dtype=float32), 'alpha': Array(0.19432662, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.03424453846306741, 'omega0_square': Array(0.28517538, dtype=float32), 'alpha': Array(0.1943412, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.03415757706269329, 'omega0_square': Array(0.28514764, dtype=float32), 'alpha': Array(0.19435574, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.034070707268140585, 'omega0_square': Array(0.28511992, dtype=float32), 'alpha': Array(0.19437027, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.03398396633231228, 'omega0_square': Array(0.28509223, dtype=float32), 'alpha': Array(0.19438477, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.03389735425520837, 'omega0_square': Array(0.28506458, dtype=float32), 'alpha': Array(0.19439924, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.03381092538974731, 'omega0_square': Array(0.28503698, dtype=float32), 'alpha': Array(0.19441368, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.03372458813010766, 'omega0_square': Array(0.2850094, dtype=float32), 'alpha': Array(0.1944281, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.03363837972919241, 'omega0_square': Array(0.28498188, dtype=float32), 'alpha': Array(0.1944425, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.033552300187001574, 'omega0_square': Array(0.28495437, dtype=float32), 'alpha': Array(0.19445686, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.03346634950353513, 'omega0_square': Array(0.2849269, dtype=float32), 'alpha': Array(0.1944712, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.03338049042589011, 'omega0_square': Array(0.28489944, dtype=float32), 'alpha': Array(0.19448552, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.03329476020696948, 'omega0_square': Array(0.28487203, dtype=float32), 'alpha': Array(0.1944998, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.033209158846773265, 'omega0_square': Array(0.28484464, dtype=float32), 'alpha': Array(0.19451407, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.03312364909239846, 'omega0_square': Array(0.28481728, dtype=float32), 'alpha': Array(0.19452831, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.033038322549666495, 'omega0_square': Array(0.28478998, dtype=float32), 'alpha': Array(0.19454253, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.032953124865658934, 'omega0_square': Array(0.2847627, dtype=float32), 'alpha': Array(0.19455671, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.03286801878747278, 'omega0_square': Array(0.28473547, dtype=float32), 'alpha': Array(0.19457088, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.03278304156801104, 'omega0_square': Array(0.28470826, dtype=float32), 'alpha': Array(0.19458503, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.0326981932072737, 'omega0_square': Array(0.28468108, dtype=float32), 'alpha': Array(0.19459914, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.0326134908052762, 'omega0_square': Array(0.28465396, dtype=float32), 'alpha': Array(0.19461323, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.03252891726200312, 'omega0_square': Array(0.28462687, dtype=float32), 'alpha': Array(0.1946273, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+[140][140/150][1/1] | loss: 1.65e-03 | loss_op: 0.00e+00 | param_error: 3.25e-02 | omega0_square: 2.85e-01 | alpha: 1.95e-01 | omega0_square_real: 2.74e-01 | alpha_real: 2.00e-01
+################################################################################
+[140][140/150][1/1] | loss_test: 3.50e-03 | param_error: 3.25e-02 | omega0_square: 2.85e-01 | alpha: 1.95e-01 | omega0_square_real: 2.74e-01 | alpha_real: 2.00e-01
+lambda: 4654.289971443359
+################################################################################
+{'param_error': 0.032444472577454433, 'omega0_square': Array(0.2845998, dtype=float32), 'alpha': Array(0.19464134, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.03236011949872716, 'omega0_square': Array(0.28457278, dtype=float32), 'alpha': Array(0.19465536, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.03227589527872429, 'omega0_square': Array(0.28454578, dtype=float32), 'alpha': Array(0.19466935, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.03219181701746128, 'omega0_square': Array(0.28451884, dtype=float32), 'alpha': Array(0.19468333, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.03210786761492267, 'omega0_square': Array(0.28449193, dtype=float32), 'alpha': Array(0.19469728, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.03202404707110845, 'omega0_square': Array(0.28446504, dtype=float32), 'alpha': Array(0.1947112, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.03194031813311565, 'omega0_square': Array(0.2844382, dtype=float32), 'alpha': Array(0.1947251, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.031856772406765696, 'omega0_square': Array(0.2844114, dtype=float32), 'alpha': Array(0.19473897, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.03177335553914014, 'omega0_square': Array(0.28438464, dtype=float32), 'alpha': Array(0.19475281, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.031690030277336, 'omega0_square': Array(0.2843579, dtype=float32), 'alpha': Array(0.19476664, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.031606833874256265, 'omega0_square': Array(0.2843312, dtype=float32), 'alpha': Array(0.19478044, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.03152378342991638, 'omega0_square': Array(0.28430456, dtype=float32), 'alpha': Array(0.19479422, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.031440861844300894, 'omega0_square': Array(0.28427795, dtype=float32), 'alpha': Array(0.19480798, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.03135803186450683, 'omega0_square': Array(0.28425136, dtype=float32), 'alpha': Array(0.19482172, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.03127533074343716, 'omega0_square': Array(0.2842248, dtype=float32), 'alpha': Array(0.19483542, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.031192812834010337, 'omega0_square': Array(0.2841983, dtype=float32), 'alpha': Array(0.1948491, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.031110386530404925, 'omega0_square': Array(0.28417185, dtype=float32), 'alpha': Array(0.19486277, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.031028089085523916, 'omega0_square': Array(0.2841454, dtype=float32), 'alpha': Array(0.1948764, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.030945937599382755, 'omega0_square': Array(0.28411904, dtype=float32), 'alpha': Array(0.19489002, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.030863914971966, 'omega0_square': Array(0.2840927, dtype=float32), 'alpha': Array(0.19490361, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.030781983950370663, 'omega0_square': Array(0.28406638, dtype=float32), 'alpha': Array(0.19491719, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.030700181787499725, 'omega0_square': Array(0.2840401, dtype=float32), 'alpha': Array(0.19493073, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.030618562836271623, 'omega0_square': Array(0.28401387, dtype=float32), 'alpha': Array(0.19494425, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.030537035490864943, 'omega0_square': Array(0.28398767, dtype=float32), 'alpha': Array(0.19495775, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.030455637004182662, 'omega0_square': Array(0.2839615, dtype=float32), 'alpha': Array(0.19497122, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+[145][145/150][1/1] | loss: 1.45e-03 | loss_op: 0.00e+00 | param_error: 3.05e-02 | omega0_square: 2.84e-01 | alpha: 1.95e-01 | omega0_square_real: 2.74e-01 | alpha_real: 2.00e-01
+################################################################################
+[145][145/150][1/1] | loss_test: 3.08e-03 | param_error: 3.05e-02 | omega0_square: 2.84e-01 | alpha: 1.95e-01 | omega0_square_real: 2.74e-01 | alpha_real: 2.00e-01
+lambda: 4655.055208073463
+################################################################################
+{'param_error': 0.03037438447624023, 'omega0_square': Array(0.2839354, dtype=float32), 'alpha': Array(0.19498467, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.0302932608070222, 'omega0_square': Array(0.28390932, dtype=float32), 'alpha': Array(0.1949981, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.030212228743625592, 'omega0_square': Array(0.28388327, dtype=float32), 'alpha': Array(0.19501151, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.030131379891871816, 'omega0_square': Array(0.2838573, dtype=float32), 'alpha': Array(0.1950249, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.030050622645939457, 'omega0_square': Array(0.28383133, dtype=float32), 'alpha': Array(0.19503826, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.0299699942587315, 'omega0_square': Array(0.2838054, dtype=float32), 'alpha': Array(0.1950516, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.02988954908316638, 'omega0_square': Array(0.28377953, dtype=float32), 'alpha': Array(0.1950649, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.02980919551342268, 'omega0_square': Array(0.2837537, dtype=float32), 'alpha': Array(0.1950782, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.029729025155321814, 'omega0_square': Array(0.2837279, dtype=float32), 'alpha': Array(0.19509146, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.029648946403042362, 'omega0_square': Array(0.28370216, dtype=float32), 'alpha': Array(0.1951047, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.029568996509487317, 'omega0_square': Array(0.28367645, dtype=float32), 'alpha': Array(0.19511792, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.02948919257467212, 'omega0_square': Array(0.2836508, dtype=float32), 'alpha': Array(0.19513112, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.029409517498581325, 'omega0_square': Array(0.28362516, dtype=float32), 'alpha': Array(0.1951443, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.02932993402831195, 'omega0_square': Array(0.28359956, dtype=float32), 'alpha': Array(0.19515745, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.029250533769685408, 'omega0_square': Array(0.28357401, dtype=float32), 'alpha': Array(0.19517058, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.029171225116880282, 'omega0_square': Array(0.2835485, dtype=float32), 'alpha': Array(0.1951837, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.029092045322799562, 'omega0_square': Array(0.28352302, dtype=float32), 'alpha': Array(0.19519678, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.02901301148745869, 'omega0_square': Array(0.2834976, dtype=float32), 'alpha': Array(0.19520985, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.02893410651084222, 'omega0_square': Array(0.2834722, dtype=float32), 'alpha': Array(0.19522288, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.028855347492965602, 'omega0_square': Array(0.28344688, dtype=float32), 'alpha': Array(0.19523591, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.028776717333813387, 'omega0_square': Array(0.28342158, dtype=float32), 'alpha': Array(0.1952489, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.02869817878048259, 'omega0_square': Array(0.2833963, dtype=float32), 'alpha': Array(0.19526188, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.028619823438794625, 'omega0_square': Array(0.2833711, dtype=float32), 'alpha': Array(0.19527483, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.028541596955831066, 'omega0_square': Array(0.2833459, dtype=float32), 'alpha': Array(0.19528775, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+{'param_error': 0.028463516431607355, 'omega0_square': Array(0.28332078, dtype=float32), 'alpha': Array(0.19530065, dtype=float32), 'omega0_square_real': 0.2741556778080377, 'alpha_real': 0.2}
+[150][150/150][1/1] | loss: 1.27e-03 | loss_op: 0.00e+00 | param_error: 2.85e-02 | omega0_square: 2.83e-01 | alpha: 1.95e-01 | omega0_square_real: 2.74e-01 | alpha_real: 2.00e-01
+################################################################################
+[150][150/150][1/1] | loss_test: 2.70e-03 | param_error: 2.85e-02 | omega0_square: 2.83e-01 | alpha: 1.95e-01 | omega0_square_real: 2.74e-01 | alpha_real: 2.00e-01
+lambda: 4655.7254510815255
+################################################################################

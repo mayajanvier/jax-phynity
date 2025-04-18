@@ -1,0 +1,1 @@
+{"lambda0": 1.0, "tau_1": 0.001, "tau_2": 10.0, "niter": 5, "min_op": "l2_normalized", "nepoch": 20, "nlog": 5, "nupdate": 5}
