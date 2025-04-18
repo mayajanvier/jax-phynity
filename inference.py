@@ -69,11 +69,15 @@ def inference(model_name,exp_name, data_path, model_phy_option, model_aug_option
 
     print(f"Final omega: {model.model_phy.omega0_square}, Final alpha: {model.model_phy.alpha}" )
     alpha = model.model_phy.alpha
+    omega = model.model_phy.omega0_square
+    print(type(alpha), type(omega))
     if type(alpha) == jnp.ndarray:
-        alpha = alpha.item()
+        alpha = float(alpha.item())
+    if type(omega) == jnp.ndarray:
+        omega = float(omega.item())
     # save omega and alpha in folder
     with open(os.path.join(data_path, f'{exp_name}/omega_alpha.json'), 'w') as f:
-        json.dump({"omega": model.model_phy.omega0_square.item(), "alpha": alpha}, f)
+        json.dump({"omega": omega.item(), "alpha": alpha.item()}, f)
 
     # inference
     results = {}
@@ -201,14 +205,14 @@ if __name__ == '__main__':
     # inference(model_name, exp_name, data_path, model_phy_option, model_aug_option, dataset_name, 'RK4')
 
     # SC4
-    print("SC4")
-    exp_name = 'none_Fa_aug_33_e6ynty14'
-    model_name = 'model_1.030e-01.eqx'
-    data_path = 'data/lipschitz'
-    model_phy_option = 'none_Fa'
-    model_aug_option = True
-    dataset_name = 'pendulum'
-    inference(model_name, exp_name, data_path, model_phy_option, model_aug_option, dataset_name, 'RK4')
+    # print("SC4")
+    # exp_name = 'none_Fa_aug_33_e6ynty14'
+    # model_name = 'model_1.030e-01.eqx'
+    # data_path = 'data/lipschitz'
+    # model_phy_option = 'none_Fa'
+    # model_aug_option = True
+    # dataset_name = 'pendulum'
+    # inference(model_name, exp_name, data_path, model_phy_option, model_aug_option, dataset_name, 'RK4')
 
     # Error scheme
     # print("ES1")
@@ -221,6 +225,18 @@ if __name__ == '__main__':
     #     model_aug_option = False
     #     dataset_name = 'pendulum'
     #     inference(model_name, exp_name, data_path, model_phy_option, model_aug_option, dataset_name, 'RK2', dt_num=0.05)
+
+    # Error scheme
+    print("ES1, variant")
+    model_list = ['model_1.401e-07.eqx','model_3.491e-05.eqx', 'model_5.444e-04.eqx']
+    for k in range(1,4):
+        exp_name = f'complete_physics_{k}_ms726d1v' 
+        model_name = model_list[k-1]
+        data_path = 'data/error_scheme2'
+        model_phy_option = 'complete'
+        model_aug_option = False
+        dataset_name = 'pendulum'
+        inference(model_name, exp_name, data_path, model_phy_option, model_aug_option, dataset_name, 'RK2', dt_num=0.05)
 
     # Lipschitz
     # model_list = [["model_6.485e-05.eqx", "model_1.202e-03.eqx", "model_4.321e-04.eqx", "model_6.669e+00.eqx"][2]]

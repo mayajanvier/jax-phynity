@@ -85,17 +85,15 @@ def l2normalize(v, eps=1e-12):
 def orthogonal_init(key: jax.random.PRNGKey, shape: tuple, gain: float = 1.0) -> jax.Array:
     """Applies orthogonal initialization to a non-square matrix."""
     out_features, in_features = shape
-    
-    if out_features >= in_features:  # More output features than input features
-        mat = jax.random.normal(key, (out_features, in_features))
-        q, r = jnp.linalg.qr(mat)  # QR decomposition to get orthogonal columns
-        d = jnp.sign(jnp.diag(r))  # Normalize the signs of the diagonal of r
-        return gain * q * d  # Orthogonal matrix scaled by gain
-    else:  # More input features than output features
-        mat = jax.random.normal(key, (in_features, out_features))
-        q, r = jnp.linalg.qr(mat.T)  # Transpose to get orthogonal rows
-        d = jnp.sign(jnp.diag(r))  # Normalize the signs of the diagonal of r
-        return gain * q.T * d  # Return transposed matrix scaled by gain
+
+    # Always generate a matrix of shape (max(out, in), in)
+    size = max(out_features, in_features)
+    mat = jax.random.normal(key, (size, in_features))
+    q, r = jnp.linalg.qr(mat)
+    q = q[:out_features]  # Truncate to desired out_features
+    d = jnp.sign(jnp.diag(r))
+    q = q * d  # Apply sign correction
+    return gain * q
 
 def init_linear_weight(model, init_fn, key, init_gain=0.2):
     """Applies a given weight initialization function to all eqx.nn.Linear layers in a model."""
@@ -111,10 +109,12 @@ def init_linear_weight(model, init_fn, key, init_gain=0.2):
     
     weights = get_weights(model)  
     biases = get_biases(model)
+    #print("weights", [weight.shape for weight in weights])
 
     # Initialization for weights
     new_weights = [init_fn(subkey, weight.shape, init_gain)  
                    for weight, subkey in zip(weights, jax.random.split(key, len(weights)))]
+    #print("weights", [w.shape for w in new_weights])
     # Zero initialization for biases
     new_biases = [jnp.zeros_like(bias) for bias in biases]
 
@@ -129,6 +129,7 @@ if __name__ == '__main__':
     # test weight initialization
     init_key, key = jax.random.split(jax.random.PRNGKey(0))
     model_aug = MLP(key=key, state_c=2, hidden=200)
+    print(model_aug)
     model_aug = init_linear_weight(model_aug, orthogonal_init, key=init_key, init_gain=0.2)
     print(model_aug)
     w = model_aug.layers[2].weight

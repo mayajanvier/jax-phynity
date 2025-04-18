@@ -73,6 +73,8 @@ def loss_fn(model, y, min_op, lambda_, model_phy_option: str, model_aug_option: 
     lossT, y_pred = loss_trajectory(model, y)
     if model_phy_option == "none": # none_aug
         return lossT, (lossT, jnp.array(0.0), y_pred)
+    elif model_phy_option == "true": # true
+        return lossT, (lossT, jnp.array(0.0), y_pred)
     elif model_phy_option == 'incomplete_no_Fa':
         loss_op = loss_Fa(model, y, min_op)
         return lossT, (lossT, loss_op, y_pred)
@@ -227,7 +229,7 @@ def train_aphynity(dataset_name, model_phy_option, model_aug_option, path, devic
         elif model_phy_option == 'complete':
             model_phy = PendulumParamPDE(is_damped=True)
         elif model_phy_option == 'true':
-            model_phy = PendulumParamPDE(is_damped=True, params=train.dataset.params)
+            model_phy = PendulumParamPDE(is_damped=True, params=train.dataset.params, is_true=True)
         # SC3
         elif model_phy_option == 'none':
             model_phy = PendulumParamPDE(is_damped=False) # mock model not trained 
@@ -240,7 +242,7 @@ def train_aphynity(dataset_name, model_phy_option, model_aug_option, path, devic
         
         mkey, ikey = jax.random.split(jax.random.PRNGKey(0))
         model_aug = MLP(key=mkey, state_c=2, hidden=200)
-        init_linear_weight(model_aug, orthogonal_init, key=ikey, init_gain=0.2) 
+        model_aug = init_linear_weight(model_aug, orthogonal_init, key=ikey, init_gain=0.2) #(dt_factor * train.dataset.dt)**2) 
         net = Forecaster(
             model_phy=model_phy,
             model_aug=model_aug,
@@ -270,6 +272,9 @@ def train_aphynity(dataset_name, model_phy_option, model_aug_option, path, devic
         elif model_phy_option == 'none_Fa':
             lambda_0 = 1.0
             tau_2 = 10.0
+        elif model_phy_option == 'true': # loss_traj only
+            lambda_0 = 0.0
+            tau_2 = 0.0
         
         
         nepoch = 400
@@ -357,12 +362,23 @@ if __name__ == '__main__':
     #     train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device, method, data_integration_method="RK4", dt_factor=dt_factor, dt_num=0.05)
 
     ### Lipschitz
-    method = 'RK4' 
-    dataset_name = 'pendulum'
-    model_phy_option = 'incomplete'
-    model_aug_option = True
-    path = 'data/lipschitz'
-    device = 'cpu'
-    duration = 20
-    train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device, method, dt_factor = 1, duration=duration)
+    # method = 'RK4' 
+    # dataset_name = 'pendulum'
+    # model_phy_option = 'incomplete'
+    # model_aug_option = True
+    # path = 'data/lipschitz'
+    # device = 'cpu'
+    # duration = 20
+    # train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device, method, dt_factor = 1, duration=duration)
+
+    ### Correct numerical errors 
+    for dt_factor in [2,5]:
+        method = 'RK2'
+        dataset_name = 'pendulum'
+        model_phy_option = 'true'
+        model_aug_option = True
+        path = 'data/correct_num_err'
+        device = 'cpu'
+        duration = 20
+        train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device, method, dt_factor = dt_factor, duration=duration, dt_num=0.05)
 
