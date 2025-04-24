@@ -4,13 +4,11 @@ import json
 import pandas as pd
 import wandb
 import statistics
-from experiments import APHYNITYExperiment
 from networks import *
 from forecasters import *
 from utils import init_linear_weight, orthogonal_init
 from datasets import init_dataloaders
 from utils import Logger, save, make_basedir, log
-import torch
 import numpy as np
 
 # Pytorch seed
@@ -23,15 +21,21 @@ def compute_metric(net, train_data):
     metrics.update({f'{k}_real': v for k, v in train_data.dataset.params.items() if k in metrics})
     return metrics
 
-def log_wandb(net, dataloader, _lambda, loss_dict, split):
-    metric = compute_metric(net, dataloader)
-    omega_error = abs(metric["omega0_square"] - metric["omega0_square_real"]) / metric["omega0_square_real"]
-    alpha_error = abs(metric["alpha"] - metric["alpha_real"]) / metric['alpha_real']
-    if split == 'train':
-        wandb.log({"Train loss": loss_dict["loss_traj"], "Lambda": _lambda, "Loss_Fa": loss_dict["loss_op"],
-                    "Param error": metric["param_error"], "Omega error":omega_error, "Alpha error":alpha_error,})
-    elif split == 'val':
-        wandb.log({"Test loss": loss_dict["loss_traj"], "Param error test": metric["param_error"]})
+def log_wandb(net, dataloader, _lambda, loss_dict, split, log_param_error=True):
+    if log_param_error:
+        metric = compute_metric(net, dataloader)
+        omega_error = abs(metric["omega0_square"] - metric["omega0_square_real"]) / metric["omega0_square_real"]
+        alpha_error = abs(metric["alpha"] - metric["alpha_real"]) / metric['alpha_real']
+        if split == 'train':
+            wandb.log({"Train loss": loss_dict["loss_traj"], "Lambda": _lambda, "Loss_Fa": loss_dict["loss_op"],
+                        "Param error": metric["param_error"], "Omega error":omega_error, "Alpha error":alpha_error,})
+        elif split == 'val':
+            wandb.log({"Test loss": loss_dict["loss_traj"], "Param error test": metric["param_error"]})
+    else:
+        if split == 'train':
+            wandb.log({"Train loss": loss_dict["loss_traj"], "Loss_Fa": loss_dict["loss_op"]})
+        elif split == 'val':
+            wandb.log({"Test loss": loss_dict["loss_traj"]})
 
 def save_loss_local(val_losses, train_losses, l_test, l_train, exp_path):
     val_losses.append(l_test['loss_traj'].item())
@@ -72,7 +76,8 @@ def loss_fn(model, y, min_op, lambda_, model_phy_option: str, model_aug_option: 
     print('loss_fn')
     lossT, y_pred = loss_trajectory(model, y)
     if model_phy_option == "none": # none_aug
-        return lossT, (lossT, jnp.array(0.0), y_pred)
+        loss_op = loss_Fa(model, y, min_op)
+        return lossT, (lossT, loss_op, y_pred)
     elif model_phy_option == "true": # true
         return lossT, (lossT, jnp.array(0.0), y_pred)
     elif model_phy_option == 'incomplete_no_Fa':
@@ -86,13 +91,13 @@ def loss_fn(model, y, min_op, lambda_, model_phy_option: str, model_aug_option: 
             return lossT, (lossT, jnp.array(0.0), y_pred)
           
 # Routine
-def training_routine(train, test, net, optimizer, min_op, _lambda,tau_1, tau_2, niter, path, device, dt_factor=1, nlog=1, nupdate=1, nepoch=10):   
+def training_routine(train, test, net, optimizer, min_op, _lambda,tau_1, tau_2, niter, path, device, dt_factor=1, nlog=1, nupdate=1, nepoch=10, name_project="Damped_Pendulum", log_param_error=True, duration=None):   
     # Setup to save logs 
-    name_experiment = model_phy_option+"_"+("aug" if model_aug_option else "physics")
+    name_experiment = model_phy_option+"_"+("aug" if model_aug_option else "physics")+"_"+str(duration)
     
     # Weights and Biases
     wandb.init(
-        project = "Damped_Pendulum", # set the wandb project where this run will be logged
+        project = name_project, # set the wandb project where this run will be logged
         name = name_experiment,     #
         config={                    # track hyperparameters and run metadata
         "learning_rate": tau_1,
@@ -104,6 +109,8 @@ def training_routine(train, test, net, optimizer, min_op, _lambda,tau_1, tau_2, 
         "lambda0": _lambda,    
         "dt_data": train.dataset.dt,
         "dt_train": dt_factor * train.dataset.dt,
+        "duration": duration,
+        "niter": niter,
         }
         )
 
@@ -154,8 +161,11 @@ def training_routine(train, test, net, optimizer, min_op, _lambda,tau_1, tau_2, 
                 loss_train['loss_traj'] += loss_val
                 loss_train['loss_op'] += loss_op
                 # pour voir si on train bien
-                metric = compute_metric(net, train)
-                print(metric)
+                if log_param_error:
+                    metric = compute_metric(net, train)
+                else:
+                    metric = {}
+                #print(metric)
 
         # average loss over train set
         loss_train['loss_traj'] /= (iteration + 1) * niter
@@ -169,7 +179,7 @@ def training_routine(train, test, net, optimizer, min_op, _lambda,tau_1, tau_2, 
         if total_iteration % nlog == 0:
             log(train, epoch, iteration, loss_train | metric, nepoch)
         # log metrics to wandb 
-        log_wandb(net, train, _lambda, loss_train, 'train')
+        log_wandb(net, train, _lambda, loss_train, 'train', log_param_error)
         
         ### VALIDATION STEP
         if total_iteration % nupdate == 0:
@@ -193,7 +203,7 @@ def training_routine(train, test, net, optimizer, min_op, _lambda,tau_1, tau_2, 
             log(train, epoch, iteration, loss_test | metric, nepoch)
             print('#' * 80)
             # log metrics to wandb
-            log_wandb(net, test, _lambda, loss_test, 'val')
+            log_wandb(net, test, _lambda, loss_test, 'val', log_param_error)
             # save epoch losses to csv file
             save_loss_local(val_losses, train_losses, loss_test, loss_train, exp_path)
             
@@ -220,7 +230,7 @@ def training_routine(train, test, net, optimizer, min_op, _lambda,tau_1, tau_2, 
 
 
 # Main
-def train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device, integration_method, data_integration_method="RK4", dt_factor=1, dt_num=0.5, duration=20):
+def train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device, integration_method, data_integration_method="RK4", dt_factor=1, dt_num=0.5, duration=20, init_gain=0.2):
     train, val, _ = init_dataloaders(dataset_name, data_integration_method, os.path.join(path, dataset_name+str(duration)), dt_num=dt_num, duration=duration)
 
     if dataset_name == 'pendulum':
@@ -242,7 +252,7 @@ def train_aphynity(dataset_name, model_phy_option, model_aug_option, path, devic
         
         mkey, ikey = jax.random.split(jax.random.PRNGKey(0))
         model_aug = MLP(key=mkey, state_c=2, hidden=200)
-        model_aug = init_linear_weight(model_aug, orthogonal_init, key=ikey, init_gain=0.2) #(dt_factor * train.dataset.dt)**2) 
+        model_aug = init_linear_weight(model_aug, orthogonal_init, key=ikey, init_gain=init_gain) #(dt_factor * train.dataset.dt)**2) 
         net = Forecaster(
             model_phy=model_phy,
             model_aug=model_aug,
@@ -280,10 +290,38 @@ def train_aphynity(dataset_name, model_phy_option, model_aug_option, path, devic
         nepoch = 400
         nlog = 5
         nupdate = 5
+        name_project ="Damped_Pendulum"
+        log_param_error = True
+    
+    elif dataset_name == 'lorenz':
+        model_phy = None 
+        mkey, ikey = jax.random.split(jax.random.PRNGKey(0))
+        model_aug = MLP(key=mkey, state_c=3, hidden=200)
+        model_aug = init_linear_weight(model_aug, orthogonal_init, key=ikey, init_gain=init_gain) #(dt_factor * train.dataset.dt)**2) 
+        net = Forecaster(
+            model_phy=model_phy,
+            model_aug=model_aug,
+            is_augmented=model_aug_option,
+            is_phy=model_phy_option,
+            dt=dt_factor * train.dataset.dt, # enabling comparison with GT for error scheme experiment 
+            num_steps=int(train.dataset.num_steps / dt_factor), 
+            integration_method=integration_method, # RK2 for error scheme experiment
+        )
+        
+        tau_1 = 1e-3
+        niter = 1
+        nepoch = 400
+        nlog = 5
+        nupdate = 5
+        lambda_0 = 0.0 
+        tau_2 = 0.0 
+        min_op = 'l2'
+        name_project ="Lorenz"
+        log_param_error = False
     
     # don't think we need a seed for optimizer initialization
     optimizer = optax.adam(learning_rate=tau_1, b1=0.9, b2=0.999)
-    training_routine(train, val, net, optimizer, min_op, lambda_0,tau_1, tau_2, niter, path, device, dt_factor, nlog, nupdate, nepoch)
+    training_routine(train, val, net, optimizer, min_op, lambda_0,tau_1, tau_2, niter, path, device, dt_factor, nlog, nupdate, nepoch, name_project=name_project, log_param_error=log_param_error, duration=duration)
 
 if __name__ == '__main__':
     wandb.login()
@@ -364,21 +402,34 @@ if __name__ == '__main__':
     ### Lipschitz
     # method = 'RK4' 
     # dataset_name = 'pendulum'
-    # model_phy_option = 'incomplete'
+    # model_phy_option = 'none'
     # model_aug_option = True
-    # path = 'data/lipschitz'
+    # path = 'data/lipschitz2'
     # device = 'cpu'
-    # duration = 20
-    # train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device, method, dt_factor = 1, duration=duration)
+    # duration = 5
+    # train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device, method, dt_factor = 1, duration=duration, init_gain=0.1)
 
     ### Correct numerical errors 
-    for dt_factor in [2,5]:
-        method = 'RK2'
-        dataset_name = 'pendulum'
-        model_phy_option = 'true'
-        model_aug_option = True
-        path = 'data/correct_num_err'
-        device = 'cpu'
-        duration = 20
-        train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device, method, dt_factor = dt_factor, duration=duration, dt_num=0.05)
+    # for dt_factor in [2,5]:
+    #     method = 'RK2'
+    #     dataset_name = 'pendulum'
+    #     model_phy_option = 'true'
+    #     model_aug_option = True
+    #     path = 'data/correct_num_err'
+    #     device = 'cpu'
+    #     duration = 20
+    #     train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device, method, dt_factor = dt_factor, duration=duration, dt_num=0.05)
+
+
+    ### Lorenz
+    method = 'RK4' 
+    dataset_name = 'lorenz'
+    model_phy_option = "none"
+    model_aug_option = True
+    path = 'data/lorenz'
+    device = 'cpu'
+    duration = 1
+    dt_num = 0.01
+    train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device, method, dt_factor = 1, duration=duration, init_gain=1., dt_num=dt_num)
+
 

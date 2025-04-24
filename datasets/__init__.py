@@ -1,4 +1,5 @@
 from .pendulum import DampedPendulum
+from .lorenz import LorenzTrue
 from torch.utils.data import DataLoader 
 import torch
 import numpy as np
@@ -14,12 +15,12 @@ def seed_worker(worker_id):
 
 # Build our dataloaders
 
-def param_pendulum(buffer_filepath, integration_method, batch_size=25, dt_num=0.5, duration=20):
+def param_dataset(buffer_filepath, integration_method, dataset_name="pendulum", batch_size=25, dt_num=0.5, duration=20, nb_traj=25):
     g = torch.Generator()
     g.manual_seed(0)
 
     dataset_train_params = {
-        'nb_traj': 25, 
+        'nb_traj': nb_traj, 
         'num_steps': int(duration/dt_num), 
         'dt': dt_num, # 0.05 for error scheme experiments
         'split': 'train',
@@ -29,19 +30,24 @@ def param_pendulum(buffer_filepath, integration_method, batch_size=25, dt_num=0.
 
     dataset_val_params = dict()
     dataset_val_params.update(dataset_train_params) # shared parameters across train and val
-    dataset_val_params['nb_traj'] = 25
+    dataset_val_params['nb_traj'] = nb_traj
     dataset_val_params['split'] = 'val'
     dataset_val_params['path'] = buffer_filepath+'_val'
 
     dataset_test_params = dict()
     dataset_test_params.update(dataset_train_params)
-    dataset_test_params['nb_traj'] = 25
+    dataset_test_params['nb_traj'] = nb_traj
     dataset_test_params['split'] = 'test'
     dataset_test_params['path'] = buffer_filepath+'_test'
 
-    dataset_train = DampedPendulum(**dataset_train_params)
-    dataset_val   = DampedPendulum(**dataset_val_params)
-    dataset_test  = DampedPendulum(**dataset_test_params)
+    if dataset_name == "pendulum":
+        dataset_train = DampedPendulum(**dataset_train_params)
+        dataset_val   = DampedPendulum(**dataset_val_params)
+        dataset_test  = DampedPendulum(**dataset_test_params)
+    elif dataset_name == "lorenz":
+        dataset_train = LorenzTrue(**dataset_train_params)
+        dataset_val   = LorenzTrue(**dataset_val_params)
+        dataset_test  = LorenzTrue(**dataset_test_params)
 
     dataloader_train_params = {
         'dataset'    : dataset_train,
@@ -85,9 +91,22 @@ def param_pendulum(buffer_filepath, integration_method, batch_size=25, dt_num=0.
 def init_dataloaders(dataset, integration_method, buffer_filepath=None, dt_num=0.5, duration=20):
     assert buffer_filepath is not None
     if dataset == 'pendulum':
-        return param_pendulum(buffer_filepath, integration_method, dt_num=dt_num, duration=duration)
+        batch_size = 25
+        nb_traj = 25
+    elif dataset == 'lorenz':
+        batch_size = 5
+        nb_traj = 25
+
+    return param_dataset(
+        buffer_filepath,
+        integration_method,
+        dataset_name=dataset,
+        batch_size=batch_size,
+        dt_num=dt_num,
+        duration=duration,
+        nb_traj=nb_traj)
 
 
 if __name__ == '__main__':
-    buffer_filepath = 'data/tests'
-    dataloader_train, dataloader_val, dataloader_test = init_dataloaders('pendulum', integration_method="RK4", buffer_filepath=buffer_filepath)
+    buffer_filepath = 'data/lorenz'
+    dataloader_train, dataloader_val, dataloader_test = init_dataloaders('lorenz', integration_method="RK4", buffer_filepath=buffer_filepath)
