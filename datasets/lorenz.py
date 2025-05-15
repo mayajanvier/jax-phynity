@@ -46,7 +46,13 @@ class LorenzTrue():
         else: # test
             key = random.PRNGKey(MAX - seed)
 
-        return jax.random.normal(key, 3) * 0.1 + jnp.array([0.0, 0.0, 25.0])
+        keyX, keyY, keyZ = random.split(key, 3)
+        # before jax.random.norma(keyX) * 20.0
+        x_rand = jax.random.normal(keyX) * 20.0
+        y_rand = jax.random.normal(keyY) * 20.0
+        z_rand = jax.random.normal(keyZ) * 20.0 + 20.0
+        return jnp.array([x_rand, y_rand, z_rand]) 
+        #return jax.random.normal(key, 3) * 0.1 + jnp.array([0.0, 0.0, 25.0])
     
     def __getitem__(self, index): 
         if self.data.get(str(index)) is None: # if trajectory is not saved

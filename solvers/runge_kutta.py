@@ -85,7 +85,14 @@ RK2_tableau = ButcherTableau(
     b_sol=jnp.array([0.0, 1.0]),
     b_error=jnp.array([0, 0]),
     c=jnp.array([0.5]),
-    )   
+    )
+
+Heun_tableau = ButcherTableau(
+    a_lower=(jnp.array([1.0]),),
+    b_sol=jnp.array([0.5, 0.5]),
+    b_error=jnp.array([0, 0]),
+    c=jnp.array([1.0]),
+    )
 
 # 3/8 rule in odeint used in APHYNITY (torchdiffeq)
 RK4_tableau = ButcherTableau(
