@@ -21,9 +21,9 @@ def loss_fn(model, y, t, min_op, lambda_):
         return lossT, (lossT, jnp.array(0.0), y_pred)
 
 
-def inference(model_name,exp_name, data_path, model_phy_option, model_aug_option, dataset_name, integration_method, data_integration_method="RK4", dt_num=0.5):
+def inference(model_name,exp_name, data_path, model_phy_option, model_aug_option, dataset_name, integration_method, data_integration_method="RK4", dt_num=0.5, duration=20):
     # load test data 
-    _, _, test = init_dataloaders(dataset_name, data_integration_method, os.path.join(data_path, dataset_name), dt_num)
+    _, _, test = init_dataloaders(dataset_name, data_integration_method, os.path.join(data_path, dataset_name+str(duration)), dt_num=dt_num, duration=duration)
 
     # load model
     model_path = os.path.join(data_path, f"{exp_name}/{model_name}")
@@ -47,6 +47,10 @@ def inference(model_name,exp_name, data_path, model_phy_option, model_aug_option
             model_phy = PendulumParamPDE(is_damped=False) # mock model for eqx compatibility
         elif model_phy_option == 'incomplete_no_Fa':
             model_phy = PendulumParamPDE(is_damped=False)
+        elif model_phy_option == 'none_Fa_prime':
+            model_phy = PendulumParamPDE(is_damped=False)
+        elif model_phy_option == 'incomplete_Fa_prime':
+            model_phy = PendulumParamPDE(is_damped=False)
     
         with open(model_path, "rb") as f:
             hyperparams = json.loads(f.readline().decode())
@@ -68,16 +72,15 @@ def inference(model_name,exp_name, data_path, model_phy_option, model_aug_option
     print(min_op, dt_factor)
 
     print(f"Final omega: {model.model_phy.omega0_square}, Final alpha: {model.model_phy.alpha}" )
-    alpha = model.model_phy.alpha
-    omega = model.model_phy.omega0_square
-    print(type(alpha), type(omega))
-    if type(alpha) == jnp.ndarray:
-        alpha = float(alpha.item())
-    if type(omega) == jnp.ndarray:
-        omega = float(omega.item())
-    # save omega and alpha in folder
-    with open(os.path.join(data_path, f'{exp_name}/omega_alpha.json'), 'w') as f:
-        json.dump({"omega": omega.item(), "alpha": alpha.item()}, f)
+    # alpha = model.model_phy.alpha
+    # omega = model.model_phy.omega0_square
+    # if type(alpha) == jnp.ndarray:
+    #     alpha = float(alpha.item())
+    # if type(omega) == jnp.ndarray:
+    #     omega = float(omega.item())
+    # # save omega and alpha in folder
+    # with open(os.path.join(data_path, f'{exp_name}/omega_alpha.json'), 'w') as f:
+    #     json.dump({"omega": omega.item(), "alpha": alpha.item()}, f)
 
     # inference
     results = {}
@@ -118,6 +121,10 @@ def Fa_behaviour(model_name,exp_name, data_path, model_phy_option, model_aug_opt
         elif model_phy_option == 'none':
             model_phy = PendulumParamPDE(is_damped=False) # mock model for eqx compatibility
         elif model_phy_option == 'incomplete_no_Fa':
+            model_phy = PendulumParamPDE(is_damped=False)
+        elif model_phy_option == 'none_Fa':
+            model_phy = PendulumParamPDE(is_damped=False)
+        elif model_phy_option == 'none_Fa_prime':
             model_phy = PendulumParamPDE(is_damped=False)
     
         with open(model_path, "rb") as f:
@@ -227,16 +234,16 @@ if __name__ == '__main__':
     #     inference(model_name, exp_name, data_path, model_phy_option, model_aug_option, dataset_name, 'RK2', dt_num=0.05)
 
     # Error scheme
-    print("ES1, variant")
-    model_list = ['model_1.401e-07.eqx','model_3.491e-05.eqx', 'model_5.444e-04.eqx']
-    for k in range(1,4):
-        exp_name = f'complete_physics_{k}_ms726d1v' 
-        model_name = model_list[k-1]
-        data_path = 'data/error_scheme2'
-        model_phy_option = 'complete'
-        model_aug_option = False
-        dataset_name = 'pendulum'
-        inference(model_name, exp_name, data_path, model_phy_option, model_aug_option, dataset_name, 'RK2', dt_num=0.05)
+    # print("ES1, variant")
+    # model_list = ['model_1.401e-07.eqx','model_3.491e-05.eqx', 'model_5.444e-04.eqx']
+    # for k in range(1,4):
+    #     exp_name = f'complete_physics_{k}_ms726d1v' 
+    #     model_name = model_list[k-1]
+    #     data_path = 'data/error_scheme2'
+    #     model_phy_option = 'complete'
+    #     model_aug_option = False
+    #     dataset_name = 'pendulum'
+    #     inference(model_name, exp_name, data_path, model_phy_option, model_aug_option, dataset_name, 'RK2', dt_num=0.05)
 
     # Lipschitz
     # model_list = [["model_6.485e-05.eqx", "model_1.202e-03.eqx", "model_4.321e-04.eqx", "model_6.669e+00.eqx"][2]]
@@ -250,3 +257,23 @@ if __name__ == '__main__':
     #     dataset_name = 'pendulum'
     #     inference(model_name, exp_name, data_path, model_phy_option, model_aug_option, dataset_name, 'RK4')
     #     Fa_behaviour(model_name, exp_name, data_path, model_phy_option, model_aug_option, dataset_name, 'RK4')
+
+    # Fa prime 
+    data_path = "data/lipschitz_init"
+    model_list = ["model_5.308e-01.eqx", "model_1.219e-02.eqx",  "model_1.364e-02.eqx"]
+    model_phy_options = ["none", "none_Fa", "none_Fa_prime"]
+    id_list = ["7_g5si31tr", "8_2ifdmo1z", "9_hsr8f7u5"]
+    model_aug_options = [True, True, True]
+    # model_phy_options = ["incomplete_Fa_prime", "incomplete"]
+    # model_list = ["model_1.006e-03.eqx","model_6.908e-04.eqx"]
+    # id_list = ["7_cs85eg71","9_xez0or7d"]
+    dataset_name = 'pendulum'
+    duration = 40
+    
+    for k in range(3):
+        exp_name = f'{model_phy_options[k]}_aug_{duration}_{id_list[k]}'
+        model = model_list[k]
+        model_phy_option = model_phy_options[k]
+        model_aug_option = model_aug_options[k]
+        inference(model, exp_name, data_path, model_phy_option, model_aug_option, dataset_name, 'RK4', duration=duration)
+        #Fa_behaviour(model, exp_name, data_path, model_phy_option, model_aug_option, dataset_name, 'RK4')
