@@ -98,6 +98,9 @@ class Forecaster(eqx.Module):
         elif self.is_phy == "none_Fa":
             res_aug = self.model_aug(state)
             return res_aug
+        elif self.is_phy == "none_Fa_prime":
+            res_aug = self.model_aug(state)
+            return res_aug
         else:
             res_phy = self.model_phy(state)
             if self.is_augmented:
@@ -123,9 +126,9 @@ if __name__ == '__main__':
     from utils import init_linear_weight, orthogonal_init
 
     mkey, ikey = jax.random.split(jax.random.PRNGKey(0))
-    model_phy = DampedPendulumParamPDE(is_complete=True, real_params=None)
+    model_phy = PendulumParamPDE(is_complete=True, real_params=None)
     model_aug = MLP(key=mkey, state_c=2, hidden=200)
-    init_linear_weight(model_aug, orthogonal_init, key=ikey, init_gain=0.2) 
+    model_aug = init_linear_weight(model_aug, orthogonal_init, key=ikey, init_gain=0.2) 
     net = Forecaster(model_phy=model_phy, model_aug=model_aug, is_augmented=True)
 
     y0 = jnp.ones((5,2))
