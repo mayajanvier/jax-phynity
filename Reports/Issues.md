@@ -150,21 +150,21 @@ The final experiments that I used for my plots.
 - NeuralODE-traj: $NN_\theta$ | RK4 | loss=loss_traj | $\tau_1$=1e-3 
 - NeuralODE-aph: $NN_\theta$ | RK4 | loss=loss_traj + Fa | $\tau_1$=1e-3, $\tau_2$=1, $\lambda_0$=10 and $\tau_2$=10, $\lambda_0$=100
 - ParamODE($\omega_0$)+$NN_\theta$-traj: incomplete+aug | RK4 | loss =loss_traj  | $\tau_1$=1e-3 
-- ParamODE($\omega_0$)+$NN_\theta$-aph: incomplete+aug | RK4 | loss =loss_traj + Fa | $\tau_1$=1e-3, $\tau_2$=10, $\lambda_0$=1
+- ParamODE($\omega_0$)+$NN_\theta$-aph: incomplete+aug | RK4 | loss =loss_traj + Fa | $\tau_1$=1e-3, $\tau_2$=100, $\lambda_0$=10
 
 
 **Results in `data/lipschitz`:**  logMSE ($\downarrow$)
 - NeuralODE-traj: none_aug_19_yt8wqw57 $\rightarrow$ -4.2633 +-0.792
 - NeuralODE-aph: 
-    - none_Fa_aug_33_e6ynty14, $\tau_2$=1, $\lambda_0$=10 $\rightarrow$ logMSE= -3.129 +- 0.84
-    - none_Fa_aug_31_92x54p4c, $\tau_2$=10, $\lambda_0$=100 $\rightarrow$ logMSE = -3.573 +- 0.86
-    - paper: -2.84 +- 0.7
+    - none_Fa_aug_33_e6ynty14, $\tau_2$=10, $\lambda_0$=1 $\rightarrow$ logMSE= -3.129 +- 0.84
+    - none_Fa_aug_31_92x54p4c, $\tau_2$=100, $\lambda_0$=10 $\rightarrow$ logMSE = -3.573 +- 0.86
+    - paper: -2.84 +- 0.7 ($\tau_2$=10, $\lambda_0$=1)
 
 - ParamODE($\omega_0$)+$NN_\theta$-traj: incomplete_no_Fa_aug_20_ps3fe9eb $\rightarrow$ -7.055 +- 0.6767
 
 - ParamODE($\omega_0$)+$NN_\theta$-aph: 
-    - incomplete_aug_20_srefavep $\rightarrow$ -7.80 +-0.7098
-    - paper: -7.86 +- 0.6
+    - incomplete_aug_20_srefavep $\rightarrow$ -7.80 +-0.7098, ($\tau_2$=100, $\lambda_0$=10)
+    - paper: -7.86 +- 0.6 ($\tau_2$=10, $\lambda_0$=1)
 
 # Lipschitz constant investigation (03/25)
 Same setups than before, with different training durations T=[5,10,20,40]s, one 60s for none_aug: explosion of loss to NaN  
