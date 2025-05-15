@@ -1,94 +1,16 @@
 import optax 
 import os
 import json
-import pandas as pd
 import wandb
-import statistics
 from networks import *
 from forecasters import *
-from utils import init_linear_weight, orthogonal_init
+from utils import init_linear_weight, orthogonal_init, compute_metric, save_loss_local, log_wandb
 from datasets import init_dataloaders
 from utils import Logger, save, make_basedir, log
-import numpy as np
+from loss import loss_fn, loss_Fa_prime, F
 
 # Pytorch seed
 #torch.manual_seed(1)
-
-def compute_metric(net, train_data):
-    metrics = {}
-    metrics['param_error'] = statistics.mean(abs(v1-float(v2))/v1 for v1, v2 in zip(train_data.dataset.params.values(), net.get_pde_params().values()))
-    metrics.update(net.get_pde_params())
-    metrics.update({f'{k}_real': v for k, v in train_data.dataset.params.items() if k in metrics})
-    return metrics
-
-def log_wandb(net, dataloader, _lambda, loss_dict, split, log_param_error=True):
-    if log_param_error:
-        metric = compute_metric(net, dataloader)
-        omega_error = abs(metric["omega0_square"] - metric["omega0_square_real"]) / metric["omega0_square_real"]
-        alpha_error = abs(metric["alpha"] - metric["alpha_real"]) / metric['alpha_real']
-        if split == 'train':
-            wandb.log({"Train loss": loss_dict["loss_traj"], "Lambda": _lambda, "Loss_Fa": loss_dict["loss_op"],
-                        "Param error": metric["param_error"], "Omega error":omega_error, "Alpha error":alpha_error,})
-        elif split == 'val':
-            wandb.log({"Test loss": loss_dict["loss_traj"], "Param error test": metric["param_error"]})
-    else:
-        if split == 'train':
-            wandb.log({"Train loss": loss_dict["loss_traj"], "Loss_Fa": loss_dict["loss_op"]})
-        elif split == 'val':
-            wandb.log({"Test loss": loss_dict["loss_traj"]})
-
-def save_loss_local(val_losses, train_losses, l_test, l_train, exp_path):
-    val_losses.append(l_test['loss_traj'].item())
-    train_losses.append(l_train['loss_traj'].item())
-    L = pd.DataFrame({'train_loss': train_losses, 'val_loss': val_losses})
-    L.to_csv(exp_path+'/loss.csv', index=False)
-
-# Losses
-def MSEjax(y_pred, y_true):
-    return ((y_pred - y_true)**2).mean()
-
-@eqx.filter_jit
-def loss_trajectory(model, y):
-    print('loss_trajectory')
-    x = y[:,:,0] # y0
-    y_pred = jax.vmap(model)(x)
-    return MSEjax(y_pred, y), y_pred
-
-@eqx.filter_jit
-def loss_Fa(model, y, min_op):
-    print('loss_Fa')
-    # TODO find better idea to deal, maybe with jax 
-    y_in = rearrange(y, 'b nc T -> (b T) nc')
-    #aug_deriv = jax.vmap(model.derivative_estimator.model_aug)(y_in)
-    aug_deriv = jax.vmap(model.model_aug)(y_in) 
-    aug_deriv = rearrange(aug_deriv, '(b T) nc -> b nc T', b=y.shape[0])
-    if min_op == 'l2_normalized':
-        loss_op = ((jnp.linalg.norm(aug_deriv, ord=2, axis=1) / (jnp.linalg.norm(y, ord=2, axis=1) + 1e-5)) ** 2).mean()
-    elif min_op == 'l2':
-        loss_op = (jnp.linalg.norm(aug_deriv, ord=2, axis=1) ** 2).mean()
-    else:
-        loss_op = jnp.array(0.0)  # Default to zero if min_op is not recognized
-    return loss_op
-
-@eqx.filter_value_and_grad(has_aux=True)
-@eqx.filter_jit
-def loss_fn(model, y, min_op, lambda_, model_phy_option: str, model_aug_option: bool):
-    print('loss_fn')
-    lossT, y_pred = loss_trajectory(model, y)
-    if model_phy_option == "none": # none_aug
-        loss_op = loss_Fa(model, y, min_op)
-        return lossT, (lossT, loss_op, y_pred)
-    elif model_phy_option == "true": # true
-        return lossT, (lossT, jnp.array(0.0), y_pred)
-    elif model_phy_option == 'incomplete_no_Fa':
-        loss_op = loss_Fa(model, y, min_op)
-        return lossT, (lossT, loss_op, y_pred)
-    else:
-        if model_aug_option: # complete_aug or incomplete_aug
-            loss_op = loss_Fa(model, y, min_op)
-            return lossT * lambda_ + loss_op, (lossT,loss_op, y_pred)
-        else: # complete_physics or incomplete_physics
-            return lossT, (lossT, jnp.array(0.0), y_pred)
           
 # Routine
 def training_routine(train, test, net, optimizer, min_op, _lambda,tau_1, tau_2, niter, path, device, dt_factor=1, nlog=1, nupdate=1, nepoch=10, name_project="Damped_Pendulum", log_param_error=True, duration=None):   
@@ -124,7 +46,7 @@ def training_routine(train, test, net, optimizer, min_op, _lambda,tau_1, tau_2, 
 
 
     # save hyperparameters and settings (in case wandb crash)
-    hyperparameters = {
+    hyperparameters_model = {
         'lambda0': _lambda,
         'tau_1': tau_1,
         'tau_2': tau_2,
@@ -137,7 +59,7 @@ def training_routine(train, test, net, optimizer, min_op, _lambda,tau_1, tau_2, 
         'dt': dt_factor * train.dataset.dt,
     }
     with open(os.path.join(exp_path, 'hyperparameters.json'), 'w') as f:
-        json.dump(hyperparameters, f)
+        json.dump(hyperparameters_model, f)
 
     # optimizer initialization
     opt_state = optimizer.init(eqx.filter(net, eqx.is_array))
@@ -145,31 +67,47 @@ def training_routine(train, test, net, optimizer, min_op, _lambda,tau_1, tau_2, 
     # in case of wandb crash 
     train_losses = []
     val_losses = []
+    # fix permanent variables
     loss_fn_grad = eqx.Partial(loss_fn, min_op=min_op, model_phy_option=model_phy_option, model_aug_option=model_aug_option) #, dt_factor=dt_factor)
+    # for loss_Fa_supervisedYX
+    bool_i = 0
+    bool_j = 0 
     for epoch in range(nepoch): 
-        loss_train = {'loss_traj': 0.0, 'loss_op': 0.0}
+        loss_train = {'loss_traj': 0.0, 'loss_op': 0.0, 'loss_Fa_prime': 0.0}
+        # curriculum
+        epoch_rollout_index = min(int(duration/hyperparameters_model["dt"]) + 1, int((duration/hyperparameters_model["dt"])*(epoch/nepoch)) + 2)
+        #print(f"epoch {epoch} / {nepoch}, rollout index {epoch_rollout_index}")
         for _ in range(niter): # APHYNITY
             for iteration, data in enumerate(train, 0):
                 ### TRAIN STEP
-                states = jnp.array(data['states'])[:,:,::dt_factor]
+                if bool_i == 0:
+                    states = jnp.array(data['states'])[:,:,::dt_factor]
+                    y_theta_in = rearrange(states, 'b nc T -> b (T) nc')
+                    true_deriv = jax.vmap(F)(y_theta_in)
+                    F_prime_true = jnp.abs(true_deriv[:,1:,:]-true_deriv[:,:-1,:]) / jnp.abs(y_theta_in[:,1:,:] - y_theta_in[:, :-1,:])
+                    bool_i += 1
+                states = jnp.array(data['states'])[:,:,:epoch_rollout_index:dt_factor]
                 t = jnp.array(data['t'][0])[::dt_factor]
-                (loss_total, (loss_val, loss_op, pred)), grads = loss_fn_grad(net, states, lambda_ = jnp.array(_lambda))
+
+                (loss_total, (loss_val, loss_op, pred)), grads = loss_fn_grad(net, states, lambda_ = jnp.array(_lambda), epoch_rollout_index=epoch_rollout_index, Fa_prime_true=F_prime_true)
+                loss_prime = loss_Fa_prime(net, states)
                 updates, opt_state = optimizer.update(
                     grads, opt_state, eqx.filter(net, eqx.is_array))
                 net = eqx.apply_updates(net, updates)
                 # accumulate loss
                 loss_train['loss_traj'] += loss_val
                 loss_train['loss_op'] += loss_op
+                loss_train['loss_Fa_prime'] += loss_prime
                 # pour voir si on train bien
                 if log_param_error:
                     metric = compute_metric(net, train)
                 else:
                     metric = {}
-                #print(metric)
 
         # average loss over train set
         loss_train['loss_traj'] /= (iteration + 1) * niter
         loss_train['loss_op'] /= (iteration + 1) * niter
+        loss_train['loss_Fa_prime'] /= (iteration + 1) * niter
         
         # update lambda
         _lambda = _lambda + tau_2 * loss_train['loss_traj'].item()
@@ -179,17 +117,23 @@ def training_routine(train, test, net, optimizer, min_op, _lambda,tau_1, tau_2, 
         if total_iteration % nlog == 0:
             log(train, epoch, iteration, loss_train | metric, nepoch)
         # log metrics to wandb 
-        log_wandb(net, train, _lambda, loss_train, 'train', log_param_error)
+        log_wandb(net, train, _lambda, loss_train, 'train', epoch_rollout_index, log_param_error)
         
         ### VALIDATION STEP
         if total_iteration % nupdate == 0:
             loss_test = {"loss_traj": 0.0, "loss_op": 0.0}
             for j, data_test in enumerate(test, 0):
+                if bool_j == 0:
+                    states = jnp.array(data['states'])[:,:,::dt_factor]
+                    y_theta_in = rearrange(states, 'b nc T -> b (T) nc')
+                    true_deriv = jax.vmap(F)(y_theta_in)
+                    F_prime_true_val = jnp.abs(true_deriv[:,1:,:]-true_deriv[:,:-1,:]) / jnp.abs(y_theta_in[:,1:,:] - y_theta_in[:, :-1,:])
+                    bool_j += 1
                 # no backpropagation
                 states = jnp.array(data_test['states'])[:,:,::dt_factor]
                 t = jnp.array(data_test['t'][0])[::dt_factor]
                 # _lambda should be an array for jit to not recompile when its value changes
-                (loss_total, (loss_val, loss_op, pred)), grads = loss_fn_grad(net, states, lambda_ = jnp.array(_lambda)) 
+                (loss_total, (loss_val, loss_op, pred)), grads = loss_fn_grad(net, states, lambda_ = jnp.array(_lambda), epoch_rollout_index=states.shape[2], Fa_prime_true=F_prime_true_val) 
                 # accumulate loss
                 loss_test['loss_traj'] += loss_val
                 loss_test['loss_op'] += loss_op
@@ -203,11 +147,11 @@ def training_routine(train, test, net, optimizer, min_op, _lambda,tau_1, tau_2, 
             log(train, epoch, iteration, loss_test | metric, nepoch)
             print('#' * 80)
             # log metrics to wandb
-            log_wandb(net, test, _lambda, loss_test, 'val', log_param_error)
+            log_wandb(net, test, _lambda, loss_test, 'val', epoch_rollout_index, log_param_error)
             # save epoch losses to csv file
             save_loss_local(val_losses, train_losses, loss_test, loss_train, exp_path)
             
-            # save model
+            # save model over loss_test
             if loss_test_min == None or loss_test_min > loss_test["loss_traj"].item():
                 loss_test_min = loss_test['loss_traj'].item()
                 # save model using equinox
@@ -218,13 +162,6 @@ def training_routine(train, test, net, optimizer, min_op, _lambda,tau_1, tau_2, 
                     "lambda": _lambda,
                     }
                 save(exp_path + f'/model_{loss_test_min:.3e}.eqx', hyperparameters, net)
-
-                # torch.save({
-                #     'epoch': epoch,
-                #     'model_state_dict': self.net.state_dict(),
-                #     'optimizer_state_dict': self.optimizer.state_dict(),
-                #     'loss': loss_test_min, 
-                # }, self.exp_path + f'/model_{loss_test_min:.3e}.pt')
 
       
 
@@ -249,7 +186,11 @@ def train_aphynity(dataset_name, model_phy_option, model_aug_option, path, devic
         # SC4
         elif model_phy_option == 'none_Fa':
             model_phy = PendulumParamPDE(is_damped=False) # mock model not trained
-        
+        elif model_phy_option == 'none_Fa_prime':
+            model_phy = PendulumParamPDE(is_damped=False) # mock model not trained
+        elif model_phy_option == "incomplete_Fa_prime":
+            model_phy = PendulumParamPDE(is_damped=False)
+
         mkey, ikey = jax.random.split(jax.random.PRNGKey(0))
         model_aug = MLP(key=mkey, state_c=2, hidden=200)
         model_aug = init_linear_weight(model_aug, orthogonal_init, key=ikey, init_gain=init_gain) #(dt_factor * train.dataset.dt)**2) 
@@ -266,7 +207,7 @@ def train_aphynity(dataset_name, model_phy_option, model_aug_option, path, devic
         tau_1 = 1e-3 # 1e-3 dans le git APHYNITY, 1 dans le papier
         niter = 5
         min_op = 'l2'
-        if model_phy_option == 'incomplete':
+        if model_phy_option == 'incomplete': # my parameters
             lambda_0 = 10.0
             tau_2 = 100.0
         elif model_phy_option == 'complete':
@@ -275,19 +216,25 @@ def train_aphynity(dataset_name, model_phy_option, model_aug_option, path, devic
         elif model_phy_option == 'none': # loss_traj only
             lambda_0 = 0.0 
             tau_2 = 0.0 
-            min_op = 'none' # loss_op=0, quicker evaluation
+            #min_op = 'none' # loss_op=0, quicker evaluation
         elif model_phy_option == 'incomplete_no_Fa': # loss_traj only
             lambda_0 = 1.0
             tau_2 = 10.0
-        elif model_phy_option == 'none_Fa':
-            lambda_0 = 1.0
+        elif model_phy_option == 'none_Fa': # paper parameters 
+            lambda_0 = 10.0
             tau_2 = 10.0
         elif model_phy_option == 'true': # loss_traj only
             lambda_0 = 0.0
             tau_2 = 0.0
+        elif model_phy_option == 'none_Fa_prime':
+            lambda_0 = 1000.0
+            tau_2 = 0.0
+        elif model_phy_option == 'incomplete_Fa_prime':
+            lambda_0 = 10.0
+            tau_2 = 100.0
         
         
-        nepoch = 400
+        nepoch = 1000
         nlog = 5
         nupdate = 5
         name_project ="Damped_Pendulum"
@@ -309,12 +256,12 @@ def train_aphynity(dataset_name, model_phy_option, model_aug_option, path, devic
         )
         
         tau_1 = 1e-3
-        niter = 1
-        nepoch = 400
+        niter = 5 
+        nepoch = 600
         nlog = 5
         nupdate = 5
-        lambda_0 = 0.0 
-        tau_2 = 0.0 
+        lambda_0 = 10.0 
+        tau_2 = 100.0 
         min_op = 'l2'
         name_project ="Lorenz"
         log_param_error = False
@@ -402,12 +349,23 @@ if __name__ == '__main__':
     ### Lipschitz
     # method = 'RK4' 
     # dataset_name = 'pendulum'
-    # model_phy_option = 'none'
+    # model_phy_option = 'none_Fa_prime'
     # model_aug_option = True
-    # path = 'data/lipschitz2'
+    # path = 'data/lipschitz_init'
     # device = 'cpu'
-    # duration = 5
-    # train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device, method, dt_factor = 1, duration=duration, init_gain=0.1)
+    # duration = 20
+    # train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device, method, dt_factor = 1, duration=duration, init_gain=0.2)
+
+    ### Lipschitz curriculum
+    method = 'RK4' 
+    dataset_name = 'pendulum'
+    model_phy_option = 'none_Fa_prime'
+    model_aug_option = True
+    path = 'data/lipschitz_curriculum'
+    device = 'cpu'
+    duration = 20
+    train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device, method, dt_factor = 1, duration=duration, init_gain=0.2)
+
 
     ### Correct numerical errors 
     # for dt_factor in [2,5]:
@@ -422,14 +380,14 @@ if __name__ == '__main__':
 
 
     ### Lorenz
-    method = 'RK4' 
-    dataset_name = 'lorenz'
-    model_phy_option = "none"
-    model_aug_option = True
-    path = 'data/lorenz'
-    device = 'cpu'
-    duration = 1
-    dt_num = 0.01
-    train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device, method, dt_factor = 1, duration=duration, init_gain=1., dt_num=dt_num)
+    # method = 'RK4' 
+    # dataset_name = 'lorenz'
+    # model_phy_option = "none_Fa_prime"
+    # model_aug_option = True
+    # path = 'data/lorenz'
+    # device = 'cpu'
+    # duration = 1.0
+    # dt_num = 0.01
+    # train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device, method, dt_factor = 1, duration=duration, init_gain=1., dt_num=dt_num)
 
 
