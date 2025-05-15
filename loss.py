@@ -52,7 +52,7 @@ def loss_Fa(model, y, min_op):
 
 @eqx.filter_jit
 def loss_Fa_primeX(model, y):
-    print('loss_Fa_prime')
+    print('loss_Fa_primeX')
     loss_prime = 0.0
     for k_batch in range(y.shape[0]):
         y_in = y[k_batch,:,:]
@@ -65,7 +65,7 @@ def loss_Fa_primeX(model, y):
 
 @eqx.filter_jit
 def loss_Fa_prime_supervisedX(model, y):
-    print('loss_Fa_prime_supervised')
+    print('loss_Fa_prime_supervisedX')
     loss_prime = 0.0
     for k_batch in range(y.shape[0]):
         y_in = y[k_batch,:,:]
@@ -81,7 +81,7 @@ def loss_Fa_prime_supervisedX(model, y):
 
 @eqx.filter_jit
 def loss_Fa_prime_supervisedYX(model, y, epoch_rollout_index, F_prime_true: jnp.ndarray):
-    print('loss_Fa_prime_supervised2')
+    print('loss_Fa_prime_supervisedYX')
     loss_prime = 0.0
     y_theta_in = jax.vmap(model)(y[:,:,0])
     y_theta_in = jax.lax.dynamic_slice(y_theta_in, (0, 0, 0), (y.shape[0], y.shape[1], epoch_rollout_index))
@@ -97,38 +97,79 @@ def loss_Fa_prime_supervisedYX(model, y, epoch_rollout_index, F_prime_true: jnp.
     return loss_prime
 
 
+
+
+
 ### Final loss function
+# @eqx.filter_value_and_grad(has_aux=True)
+# @eqx.filter_jit
+# def loss_fn(model, y, min_op, lambda_, epoch_rollout_index, model_phy_option: str, model_aug_option: bool, Fa_prime_true: jnp.ndarray = None):
+#     print('loss_fn')
+#     ### Trajectory loss
+#     lossT, y_pred = loss_trajectory(model, y, epoch_rollout_index)
+#     ### Regularization
+#     if model_phy_option == "none": # none_aug
+#         loss_op = loss_Fa(model, y, min_op)
+#         return lossT, (lossT, loss_op, y_pred)
+#     elif model_phy_option == "true": # true
+#         return lossT, (lossT, jnp.array(0.0), y_pred)
+#     elif model_phy_option == 'incomplete_no_Fa':
+#         loss_op = loss_Fa(model, y, min_op)
+#         return lossT, (lossT, loss_op, y_pred)
+#     elif model_phy_option == 'none_Fa':
+#         loss_op = loss_Fa(model, y, min_op)
+#         return lossT * lambda_ + loss_op, (lossT, loss_op, y_pred)
+#     elif model_phy_option == 'none_Fa_primeX':
+#         loss_op = loss_Fa(model, y, min_op)
+#         loss_prime = loss_Fa_primeX(model, y)
+#         return lossT * lambda_ + loss_prime, (lossT, loss_op, y_pred)
+#     elif model_phy_option == 'incomplete_Fa_prime':
+#         loss_op = loss_Fa(model, y, min_op)
+#         loss_prime = loss_Fa_primeX(model, y)
+#         return lossT * lambda_ + loss_prime, (lossT, loss_op, y_pred)
+#     elif model_phy_option == "none_Fa_prime_supYX":
+#         loss_op = loss_Fa(model, y, min_op)
+#         loss_prime = loss_Fa_prime_supervisedYX(model, y, epoch_rollout_index, Fa_prime_true)
+#         return lossT * lambda_ + loss_prime, (lossT, loss_op, y_pred)
+#     else:
+#         if model_aug_option: # complete_aug or incomplete_aug
+#             loss_op = loss_Fa(model, y, min_op)
+#             return lossT * lambda_ + loss_op, (lossT,loss_op, y_pred)
+#         else: # complete_physics or incomplete_physics
+#             return lossT, (lossT, jnp.array(0.0), y_pred)
+        
+
+### Compact 
+def init_jit_aux_loss(aux_loss_names, min_op):
+    """
+    Initialize and jit auxiliary loss functions based on the provided names.
+    """
+    aux_losses_dict = {}
+    for name in aux_loss_names:
+        if name == 'loss_Fa':
+            aux_losses_dict[name] = eqx.filter_jit(eqx.Partial(loss_Fa, min_op=min_op))
+        elif name == 'loss_Fa_primeX':
+            aux_losses_dict[name] = eqx.filter_jit(loss_Fa_primeX)
+        elif name == 'loss_Fa_prime_supervisedX':
+            aux_losses_dict[name] = eqx.filter_jit(loss_Fa_prime_supervisedX)
+        elif name == 'loss_Fa_prime_supervisedYX':
+            aux_losses_dict[name] = eqx.filter_jit(loss_Fa_prime_supervisedYX)
+        else:
+            raise ValueError(f"Unknown auxiliary loss function: {name}")
+    return aux_losses_dict
+
 @eqx.filter_value_and_grad(has_aux=True)
 @eqx.filter_jit
-def loss_fn(model, y, min_op, lambda_, epoch_rollout_index, model_phy_option: str, model_aug_option: bool, Fa_prime_true: jnp.ndarray = None):
+def loss_fn(model, y, reg_loss_name, aux_losses_dict, lambda_, epoch_rollout_index, Fa_prime_true):
     print('loss_fn')
     lossT, y_pred = loss_trajectory(model, y, epoch_rollout_index)
-    if model_phy_option == "none": # none_aug
-        loss_op = loss_Fa(model, y, min_op)
-        return lossT, (lossT, loss_op, y_pred)
-    elif model_phy_option == "true": # true
-        return lossT, (lossT, jnp.array(0.0), y_pred)
-    elif model_phy_option == 'incomplete_no_Fa':
-        loss_op = loss_Fa(model, y, min_op)
-        return lossT, (lossT, loss_op, y_pred)
-    elif model_phy_option == 'none_Fa':
-        loss_op = loss_Fa(model, y, min_op)
-        return lossT * lambda_ + loss_op, (lossT, loss_op, y_pred)
-    # elif model_phy_option == 'none_Fa_prime':
-    #     loss_op = loss_Fa(model, y, min_op)
-    #     loss_prime = loss_Fa_prime(model, y)
-    #     return lossT * lambda_ + loss_prime, (lossT, loss_op, y_pred)
-    elif model_phy_option == 'incomplete_Fa_prime':
-        loss_op = loss_Fa(model, y, min_op)
-        loss_prime = loss_Fa_primeX(model, y)
-        return lossT * lambda_ + loss_prime, (lossT, loss_op, y_pred)
-    elif model_phy_option == "none_Fa_prime":
-        loss_op = loss_Fa(model, y, min_op)
-        loss_prime = loss_Fa_prime_supervisedYX(model, y, epoch_rollout_index, Fa_prime_true)
-        return lossT * lambda_ + loss_prime, (lossT, loss_op, y_pred)
-    else:
-        if model_aug_option: # complete_aug or incomplete_aug
-            loss_op = loss_Fa(model, y, min_op)
-            return lossT * lambda_ + loss_op, (lossT,loss_op, y_pred)
-        else: # complete_physics or incomplete_physics
-            return lossT, (lossT, jnp.array(0.0), y_pred)
+    losses_values_dict = {}
+    for key, loss in aux_losses_dict.items():
+        if key == 'loss_Fa_prime_supervisedYX':
+            losses_values_dict[key] = loss(model, y, epoch_rollout_index, F_prime_true=Fa_prime_true)
+        else:
+            losses_values_dict[key] = loss(model, y)
+    loss_op = losses_values_dict[reg_loss_name]
+    losses_values_dict["loss_traj"] = lossT
+    loss_val = lossT * lambda_ + loss_op
+    return loss_val, (y_pred, losses_values_dict)
