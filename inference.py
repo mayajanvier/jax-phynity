@@ -8,12 +8,12 @@ import numpy as np
 from networks import *
 from forecasters import *
 from datasets import init_dataloaders
-from train_jaxphynity import loss_trajectory, loss_Fa #loss_fn
+from loss import loss_trajectory, loss_Fa #loss_fn
 
 @eqx.filter_value_and_grad(has_aux=True)
 @eqx.filter_jit
 def loss_fn(model, y, t, min_op, lambda_):
-    lossT, y_pred = loss_trajectory(model, y)
+    lossT, y_pred = loss_trajectory(model, y, y.shape[2])
     if model_aug_option:
         loss_op = loss_Fa(model, y, min_op)
         return lossT + lambda_ * loss_op, (lossT,loss_op, y_pred)
@@ -22,6 +22,7 @@ def loss_fn(model, y, t, min_op, lambda_):
 
 
 def inference(model_name,exp_name, data_path, model_phy_option, model_aug_option, dataset_name, integration_method, data_integration_method="RK4", dt_num=0.5, duration=20):
+    """Compute trajectory losses and Fa loss for a given model, on its duration of training data."""
     # load test data 
     _, _, test = init_dataloaders(dataset_name, data_integration_method, os.path.join(data_path, dataset_name+str(duration)), dt_num=dt_num, duration=duration)
 
@@ -35,21 +36,11 @@ def inference(model_name,exp_name, data_path, model_phy_option, model_aug_option
     dt_factor = int(dt/test.dataset.dt)
     print(dt, dt_factor)
     if dataset_name == 'pendulum':
-        if model_phy_option == 'incomplete':
-            model_phy = PendulumParamPDE(is_damped=False)
-        elif model_phy_option == 'complete':
+        if model_phy_option == 'true': # true damped pendulum
+            model_phy = PendulumParamPDE(is_damped=True, params=test.dataset.params, is_true=True)
+        elif model_phy_option == 'complete': # damped pendulum
             model_phy = PendulumParamPDE(is_damped=True)
-        elif model_phy_option == 'true':
-            model_phy = PendulumParamPDE(is_damped=True, params=test.dataset.params)
-        elif model_phy_option == 'none':
-            model_phy = PendulumParamPDE(is_damped=False) # mock model for eqx compatibility
-        elif model_phy_option == 'none_Fa':
-            model_phy = PendulumParamPDE(is_damped=False) # mock model for eqx compatibility
-        elif model_phy_option == 'incomplete_no_Fa':
-            model_phy = PendulumParamPDE(is_damped=False)
-        elif model_phy_option == 'none_Fa_prime':
-            model_phy = PendulumParamPDE(is_damped=False)
-        elif model_phy_option == 'incomplete_Fa_prime':
+        else: 
             model_phy = PendulumParamPDE(is_damped=False)
     
         with open(model_path, "rb") as f:
@@ -72,6 +63,7 @@ def inference(model_name,exp_name, data_path, model_phy_option, model_aug_option
     print(min_op, dt_factor)
 
     print(f"Final omega: {model.model_phy.omega0_square}, Final alpha: {model.model_phy.alpha}" )
+    # TODO: fix bug in omega, alpha 
     # alpha = model.model_phy.alpha
     # omega = model.model_phy.omega0_square
     # if type(alpha) == jnp.ndarray:
@@ -104,6 +96,83 @@ def inference(model_name,exp_name, data_path, model_phy_option, model_aug_option
     
     (loss_total, (loss_val, loss_op, pred)), _ = loss_fn(model, jnp.array(tot_states), t, min_op, _lambda) 
     print(f'Total loss_val: {loss_val}, loss_op: {loss_op}')
+
+def inference_longrun(model_name,exp_name, data_path, model_phy_option, model_aug_option, dataset_name, integration_method, data_integration_method="RK4", dt_num=0.5, duration=200):
+    """Compute trajectory losses and Fa loss for a given model, on long-term simulations."""
+    # load test data 
+    _, _, test = init_dataloaders(dataset_name, data_integration_method, os.path.join(data_path, dataset_name+str(duration)), dt_num=dt_num, duration=duration)
+
+    # load model
+    model_path = os.path.join(data_path, f"{exp_name}/{model_name}")
+    print(model_path)
+    with open(os.path.join(data_path, f'{exp_name}/hyperparameters.json'), 'r') as f:
+        hyperparameters_dict = json.load(f)
+    min_op = hyperparameters_dict['min_op']
+    dt = hyperparameters_dict["dt"]
+    dt_factor = int(dt/test.dataset.dt)
+    print(dt, dt_factor)
+    if dataset_name == 'pendulum':
+        if model_phy_option == 'true': # true damped pendulum
+            model_phy = PendulumParamPDE(is_damped=True, params=test.dataset.params, is_true=True)
+        elif model_phy_option == 'complete': # damped pendulum
+            model_phy = PendulumParamPDE(is_damped=True)
+        else: 
+            model_phy = PendulumParamPDE(is_damped=False)
+    
+        with open(model_path, "rb") as f:
+            hyperparams = json.loads(f.readline().decode())
+            mkey = jax.random.PRNGKey(0)
+            model_aug = MLP(key=mkey, state_c=2, hidden=200)
+            net = Forecaster(
+                model_phy=model_phy,
+                model_aug=model_aug,
+                is_augmented=model_aug_option,
+                is_phy=model_phy_option,
+                dt=dt,
+                num_steps=int(test.dataset.num_steps/dt_factor),
+                integration_method=integration_method, # error scheme exp
+            )
+            model = eqx.tree_deserialise_leaves(f, net)
+
+    _lambda = hyperparams['lambda']
+    
+    print(min_op, dt_factor)
+
+    print(f"Final omega: {model.model_phy.omega0_square}, Final alpha: {model.model_phy.alpha}" )
+    # TODO: fix bug in omega, alpha 
+    # alpha = model.model_phy.alpha
+    # omega = model.model_phy.omega0_square
+    # if type(alpha) == jnp.ndarray:
+    #     alpha = float(alpha.item())
+    # if type(omega) == jnp.ndarray:
+    #     omega = float(omega.item())
+    # # save omega and alpha in folder
+    # with open(os.path.join(data_path, f'{exp_name}/omega_alpha.json'), 'w') as f:
+    #     json.dump({"omega": omega.item(), "alpha": alpha.item()}, f)
+
+    # inference
+    results = {}
+    tot_states = []
+    for i, data in enumerate(test):
+        states = jnp.array(data['states'])[:,:,::dt_factor]
+        t = jnp.array(data['t'][0])[::dt_factor]
+        (loss_total, (loss_val, loss_op, pred)), _ = loss_fn(model, states, t, min_op, _lambda) 
+        pred_i = {
+            'y_true': np.array(states[0]).tolist(),
+            'y_pred': np.array(pred[0]).tolist(),
+            #'loss_traj': loss_val.item(),
+            #'loss_op': loss_op.item(),
+        }
+        results[i] = pred_i
+        print(f'Trajectory: {i}, loss_val: {loss_val}, loss_op: {loss_op}')
+        tot_states.append(states[0])
+        # write json file line after line
+    with open(os.path.join(data_path, f'{exp_name}/{model_name[:-4]}_longrun.json'), 'a') as f:
+        f.write(json.dumps(results) + '\n')
+    
+    (loss_total, (loss_val, loss_op, pred)), _ = loss_fn(model, jnp.array(tot_states), t, min_op, _lambda) 
+    print(f'Total loss_val: {loss_val}, loss_op: {loss_op}')
+
 
 def Fa_behaviour(model_name,exp_name, data_path, model_phy_option, model_aug_option, dataset_name, integration_method):
     # load test data 
@@ -259,21 +328,38 @@ if __name__ == '__main__':
     #     Fa_behaviour(model_name, exp_name, data_path, model_phy_option, model_aug_option, dataset_name, 'RK4')
 
     # Fa prime 
-    data_path = "data/lipschitz_init"
-    model_list = ["model_5.308e-01.eqx", "model_1.219e-02.eqx",  "model_1.364e-02.eqx"]
-    model_phy_options = ["none", "none_Fa", "none_Fa_prime"]
-    id_list = ["7_g5si31tr", "8_2ifdmo1z", "9_hsr8f7u5"]
-    model_aug_options = [True, True, True]
-    # model_phy_options = ["incomplete_Fa_prime", "incomplete"]
-    # model_list = ["model_1.006e-03.eqx","model_6.908e-04.eqx"]
-    # id_list = ["7_cs85eg71","9_xez0or7d"]
-    dataset_name = 'pendulum'
-    duration = 40
+    # data_path = "data/lipschitz_init"
+    # model_list = ["model_5.308e-01.eqx", "model_1.219e-02.eqx",  "model_1.364e-02.eqx"]
+    # model_phy_options = ["none", "none_Fa", "none_Fa_prime"]
+    # id_list = ["7_g5si31tr", "8_2ifdmo1z", "9_hsr8f7u5"]
+    # model_aug_options = [True, True, True]
+    # # model_phy_options = ["incomplete_Fa_prime", "incomplete"]
+    # # model_list = ["model_1.006e-03.eqx","model_6.908e-04.eqx"]
+    # # id_list = ["7_cs85eg71","9_xez0or7d"]
+    # dataset_name = 'pendulum'
+    # duration = 40
     
-    for k in range(3):
-        exp_name = f'{model_phy_options[k]}_aug_{duration}_{id_list[k]}'
-        model = model_list[k]
-        model_phy_option = model_phy_options[k]
-        model_aug_option = model_aug_options[k]
-        inference(model, exp_name, data_path, model_phy_option, model_aug_option, dataset_name, 'RK4', duration=duration)
+    # for k in range(3):
+    #     exp_name = f'{model_phy_options[k]}_aug_{duration}_{id_list[k]}'
+    #     model = model_list[k]
+    #     model_phy_option = model_phy_options[k]
+    #     model_aug_option = model_aug_options[k]
+    #     inference(model, exp_name, data_path, model_phy_option, model_aug_option, dataset_name, 'RK4', duration=duration)
         #Fa_behaviour(model, exp_name, data_path, model_phy_option, model_aug_option, dataset_name, 'RK4')
+
+
+    # new curr
+    data_path = "data/pendulum_curriculum"
+    # 10,15,20,25,30,35,40,50
+    model_list = ["model_4.474e-03.eqx", "model_8.605e-03.eqx", "model_7.232e-03.eqx", "model_5.600e-03.eqx", "model_4.379e-03.eqx", "model_3.710e-03.eqx", "model_3.301e-03.eqx", "model_2.637e-03.eqx"]
+    exp_names = ["none_aug_10_7_wni7d7vw", "none_aug_15_11_tuagzu2h", "none_aug_20_3_7r3pt5i6", "none_aug_25_15_mwuh5fu7", "none_aug_30_19_1px44q94", "none_aug_35_23_dvo9pd8k", "none_aug_40_30_2mrv9dnr", "none_aug_50_34_26unnadg"]
+    model_phy_option = "none"
+    model_aug_option = True
+    dataset_name = 'pendulum'
+    durations = [10,15,20,25,30,35,40,50]
+    for i, model_name in enumerate(model_list):
+        exp_name = exp_names[i]
+        duration = durations[i]
+        #inference(model_name, exp_name, data_path, model_phy_option, model_aug_option, dataset_name, 'RK4', duration=duration)
+        inference_longrun(model_name, exp_name, data_path, model_phy_option, model_aug_option, dataset_name, 'RK4')
+        break
