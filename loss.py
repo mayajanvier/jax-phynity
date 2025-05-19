@@ -169,7 +169,10 @@ def loss_fn(model, y, reg_loss_name, aux_losses_dict, lambda_, epoch_rollout_ind
             losses_values_dict[key] = loss(model, y, epoch_rollout_index, F_prime_true=Fa_prime_true)
         else:
             losses_values_dict[key] = loss(model, y)
-    loss_op = losses_values_dict[reg_loss_name]
+    if reg_loss_name=='none':
+        loss_op = 0.0
+    else:
+        loss_op = losses_values_dict[reg_loss_name]
     losses_values_dict["loss_traj"] = lossT
     loss_val = lossT * lambda_ + loss_op
     return loss_val, (y_pred, losses_values_dict)

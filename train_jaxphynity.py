@@ -10,14 +10,15 @@ from utils import Logger, save, make_basedir, log
 from loss import loss_fn, F, init_jit_aux_loss
           
 # Routine
-def training_routine(train, test, net, optimizer, min_op, _lambda,tau_1, tau_2, niter, path, device, dt_factor=1, nlog=1, nupdate=1, nepoch=10, name_project="Damped_Pendulum", log_param_error=True, duration=None):   
+def training_routine(train, test, net, optimizer, min_op, _lambda,tau_1, tau_2, niter, path, device, aux_loss_names=["loss_Fa", "loss_Fa_primeX"], reg_loss_name="none", dt_factor=1, nlog=1, nupdate=1, nepoch=10, name_project="Damped_Pendulum", log_param_error=True, duration=None):   
     # Setup to save logs 
     name_experiment = model_phy_option+"_"+("aug" if model_aug_option else "physics")+"_"+str(duration)
     
     # Weights and Biases
+    # TODO single config file
     wandb.init(
         project = name_project, # set the wandb project where this run will be logged
-        name = name_experiment,     #
+        name = name_experiment,     
         config={                    # track hyperparameters and run metadata
         "learning_rate": tau_1,
         "tau2": tau_2,
@@ -43,6 +44,7 @@ def training_routine(train, test, net, optimizer, min_op, _lambda,tau_1, tau_2, 
 
 
     # save hyperparameters and settings (in case wandb crash)
+    # TODO single config file 
     hyperparameters_model = {
         'lambda0': _lambda,
         'tau_1': tau_1,
@@ -65,8 +67,6 @@ def training_routine(train, test, net, optimizer, min_op, _lambda,tau_1, tau_2, 
     train_losses = []
     val_losses = []
     # fix permanent variables
-    aux_loss_names = ['loss_Fa', 'loss_Fa_primeX', 'loss_Fa_prime_supervisedX', 'loss_Fa_prime_supervisedYX']
-    reg_loss_name = 'loss_Fa_prime_supervisedYX' # loss_Fa_prime_supervisedYX
     aux_losses_dict = init_jit_aux_loss(aux_loss_names, min_op)
     loss_fn_grad = eqx.Partial(loss_fn, reg_loss_name=reg_loss_name, aux_losses_dict=aux_losses_dict) 
     # for loss_Fa_supervisedYX
@@ -90,16 +90,12 @@ def training_routine(train, test, net, optimizer, min_op, _lambda,tau_1, tau_2, 
                 states = jnp.array(data['states'])[:,:,:epoch_rollout_index:dt_factor]
                 t = jnp.array(data['t'][0])[::dt_factor]
                 (loss_total, (pred, losses_values_dict)), grads = loss_fn_grad(net, states, lambda_ = jnp.array(_lambda), epoch_rollout_index=epoch_rollout_index, Fa_prime_true=F_prime_true)
-                #loss_prime = loss_Fa_prime(net, states)
                 updates, opt_state = optimizer.update(
                     grads, opt_state, eqx.filter(net, eqx.is_array))
                 net = eqx.apply_updates(net, updates)
                 # accumulate loss
                 for losses_values_dict_key, losses_values_dict_value in losses_values_dict.items():
                     loss_train[losses_values_dict_key] += losses_values_dict_value
-                # loss_train['loss_traj'] += loss_val
-                # loss_train['loss_op'] += loss_op
-                # loss_train['loss_Fa_prime'] += loss_prime
                 # pour voir si on train bien
                 if log_param_error:
                     metric = compute_metric(net, train)
@@ -109,9 +105,6 @@ def training_routine(train, test, net, optimizer, min_op, _lambda,tau_1, tau_2, 
         # average loss over train set
         for losses_values_dict_key, losses_values_dict_value in losses_values_dict.items():
             loss_train[losses_values_dict_key] /= (iteration + 1) * niter
-        # loss_train['loss_traj'] /= (iteration + 1) * niter
-        # loss_train['loss_op'] /= (iteration + 1) * niter
-        # loss_train['loss_Fa_prime'] /= (iteration + 1) * niter
         
         # update lambda
         _lambda = _lambda + tau_2 * loss_train['loss_traj'].item()
@@ -142,14 +135,10 @@ def training_routine(train, test, net, optimizer, min_op, _lambda,tau_1, tau_2, 
                 # accumulate loss
                 for losses_values_dict_key, losses_values_dict_value in losses_values_dict.items():
                     loss_test[losses_values_dict_key] += losses_values_dict_value
-                # loss_test['loss_traj'] += loss_val
-                # loss_test['loss_op'] += loss_op
                 
             # average loss over test set
             for losses_values_dict_key, losses_values_dict_value in losses_values_dict.items():
                 loss_test[losses_values_dict_key] /= (j + 1)
-            # loss_test['loss_traj'] /= j + 1
-            # loss_test['loss_op'] /= j + 1
 
             ### LOGS
             print('#' * 80)

@@ -6,8 +6,11 @@ import equinox as eqx
 from time import sleep 
 from datetime import datetime
 import json
+import pandas as pd
+import statistics
+import wandb
 
-# pure python utils from APHYNITY
+# log utils 
 class Logger(object):
     "Lumberjack class - duplicates sys.stdout to a log file and it's okay"
     def __init__(self, filename, mode="a"):
@@ -70,6 +73,42 @@ def make_basedir(root, name_exp, timestamp=None, attempts=5):
         except:
             sleep(0.01)
     raise FileExistsError(root)
+
+def compute_metric(net, train_data):
+    metrics = {}
+    metrics['param_error'] = statistics.mean(abs(v1-float(v2))/v1 for v1, v2 in zip(train_data.dataset.params.values(), net.get_pde_params().values()))
+    metrics.update(net.get_pde_params())
+    metrics.update({f'{k}_real': v for k, v in train_data.dataset.params.items() if k in metrics})
+    return metrics
+
+def log_wandb(net, dataloader, _lambda, loss_dict, split, epoch_rollout_index, log_param_error=True):
+    if log_param_error:
+        metric = compute_metric(net, dataloader)
+        omega_error = abs(metric["omega0_square"] - metric["omega0_square_real"]) / metric["omega0_square_real"]
+        alpha_error = abs(metric["alpha"] - metric["alpha_real"]) / metric['alpha_real']
+        if split == 'train':
+            wandb.log({
+                    #"Train loss": loss_dict["loss_traj"],
+                       "Lambda": _lambda,
+                       #"Loss_Fa": loss_dict['loss_Fa'],
+                       "Param error": metric["param_error"],
+                       "Omega error":omega_error,
+                       "Alpha error":alpha_error,
+                       #"Train Fa_primeX": loss_dict["loss_Fa_primeX"],
+                        "Rollout index": epoch_rollout_index} | loss_dict)
+        elif split == 'val':
+            wandb.log({"Test loss": loss_dict["loss_traj"], "Param error test": metric["param_error"]})
+    else:
+        if split == 'train':
+            wandb.log(loss_dict)
+        elif split == 'val':
+            wandb.log({"Test loss": loss_dict["loss_traj"]})
+
+def save_loss_local(val_losses, train_losses, l_test, l_train, exp_path):
+    val_losses.append(l_test['loss_traj'].item())
+    train_losses.append(l_train['loss_traj'].item())
+    L = pd.DataFrame({'train_loss': train_losses, 'val_loss': val_losses})
+    L.to_csv(exp_path+'/loss.csv', index=False)
 
 # jax utils
 def save(filename, hyperparams, model):
