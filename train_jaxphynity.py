@@ -66,6 +66,11 @@ def training_routine(train, test, net, optimizer, min_op, _lambda,tau_1, tau_2, 
     # in case of wandb crash 
     train_losses = []
     val_losses = []
+    # curriculum
+    index_train_min = 10 # 10 steps minimum
+    index_train_max = int(duration / (dt_factor * train.dataset.dt))
+    epoch_rollout_index = index_train_min + 1 # index 0 is y0=x0
+    nepoch = int(index_train_max / index_train_min) * 100 + 400 # 400 epochs for the last part of the training at T_train_max
     # fix permanent variables
     aux_losses_dict = init_jit_aux_loss(aux_loss_names, min_op)
     loss_fn_grad = eqx.Partial(loss_fn, reg_loss_name=reg_loss_name, aux_losses_dict=aux_losses_dict) 
@@ -76,7 +81,9 @@ def training_routine(train, test, net, optimizer, min_op, _lambda,tau_1, tau_2, 
         loss_train = {aug_loss_name: 0.0 for aug_loss_name in aux_loss_names}
         loss_train['loss_traj'] = 0.0 
         # curriculum
-        epoch_rollout_index = min(int(duration/hyperparameters_model["dt"]) + 1, int((duration/hyperparameters_model["dt"])*(epoch/nepoch)) + 2)
+        if (epoch+1) % 100 == 0:
+            epoch_rollout_index = min(epoch_rollout_index+index_train_min, index_train_max+1)
+        #epoch_rollout_index = min(int(duration/hyperparameters_model["dt"]) + 1, int((duration/hyperparameters_model["dt"])*(epoch/nepoch)) + 2)
         #print(f"epoch {epoch} / {nepoch}, rollout index {epoch_rollout_index}")
         for _ in range(niter): # APHYNITY
             for iteration, data in enumerate(train, 0):
@@ -208,7 +215,7 @@ def train_aphynity(dataset_name, model_phy_option, model_aug_option, path, devic
             lambda_0 = 1000.0
             tau_2 = 100.0
         elif model_phy_option == 'none': # loss_traj only
-            lambda_0 = 0.0 
+            lambda_0 = 1.0 
             tau_2 = 0.0 
         elif model_phy_option == 'incomplete_no_Fa': # loss_traj only
             lambda_0 = 1.0
@@ -251,12 +258,12 @@ def train_aphynity(dataset_name, model_phy_option, model_aug_option, path, devic
         nupdate = 5
         min_op = 'l2'
         nepoch = 600
-        lambda_0 = 10.0 
-        tau_2 = 100.0 
+        lambda_0 = 1.0 
+        tau_2 = 0.0 
     
     # don't think we need a seed for optimizer initialization
     optimizer = optax.adam(learning_rate=tau_1, b1=0.9, b2=0.999)
-    training_routine(train, val, net, optimizer, min_op, lambda_0,tau_1, tau_2, niter, path, device, dt_factor, nlog, nupdate, nepoch, name_project=name_project, log_param_error=log_param_error, duration=duration)
+    training_routine(train, val, net, optimizer, min_op, lambda_0,tau_1, tau_2, niter, path, device, dt_factor=dt_factor, nlog=nlog, nupdate=nupdate, nepoch=nepoch, name_project=name_project, log_param_error=log_param_error, duration=duration)
 
 if __name__ == '__main__':
     wandb.login()
@@ -345,14 +352,14 @@ if __name__ == '__main__':
     # train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device, method, dt_factor = 1, duration=duration, init_gain=0.2)
 
     ### Lipschitz curriculum
-    method = 'RK4' 
-    dataset_name = 'pendulum'
-    model_phy_option = 'none_Fa_prime'
-    model_aug_option = True
-    path = 'data/debug'
-    device = 'cpu'
-    duration = 20
-    train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device, method, dt_factor = 1, duration=duration, init_gain=0.2)
+    # method = 'RK4' 
+    # dataset_name = 'pendulum'
+    # model_phy_option = 'none'
+    # model_aug_option = True
+    # path = 'data/pendulum_curriculum'
+    # device = 'cpu'
+    # duration = 50
+    # train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device, method, dt_factor = 1, duration=duration, init_gain=0.2)
 
 
     ### Correct numerical errors 
@@ -368,14 +375,14 @@ if __name__ == '__main__':
 
 
     ### Lorenz
-    # method = 'RK4' 
-    # dataset_name = 'lorenz'
-    # model_phy_option = "none_Fa_prime"
-    # model_aug_option = True
-    # path = 'data/lorenz'
-    # device = 'cpu'
-    # duration = 1.0
-    # dt_num = 0.01
-    # train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device, method, dt_factor = 1, duration=duration, init_gain=1., dt_num=dt_num)
+    method = 'RK4' 
+    dataset_name = 'lorenz'
+    model_phy_option = "none"
+    model_aug_option = True
+    path = 'data/lorenz_curriculum'
+    device = 'cpu'
+    duration = 1.0
+    dt_num = 0.01
+    train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device, method, dt_factor = 1, duration=duration, init_gain=1., dt_num=dt_num)
 
 
