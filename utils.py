@@ -100,7 +100,7 @@ def log_wandb(net, dataloader, _lambda, loss_dict, split, epoch_rollout_index, l
             wandb.log({"Test loss": loss_dict["loss_traj"], "Param error test": metric["param_error"]})
     else:
         if split == 'train':
-            wandb.log(loss_dict)
+            wandb.log({"Lambda": _lambda, "Rollout index": epoch_rollout_index} |loss_dict)
         elif split == 'val':
             wandb.log({"Test loss": loss_dict["loss_traj"]})
 
