@@ -53,6 +53,14 @@ class Lorenz(eqx.Module) :
         dydt = self.rho * x - y - x*z
         dzdt =  x*y - self.beta*z
         return jnp.array([dxdt, dydt, dzdt])
+
+class TwoBody(eqx.Module):
+    def __call__(self, t, s):
+        x, x_prime, y, y_prime = s
+        x_second = -x/ (x**2 + y**2)**(3/2)
+        y_second = -y/ (x**2 + y**2)**(3/2)
+        return jnp.array([x_prime, x_second, y_prime, y_second])
+
     
 ### Data driven model Fa    
 class MLP(eqx.Module):

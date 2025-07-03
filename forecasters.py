@@ -92,13 +92,12 @@ class Forecaster(eqx.Module):
     
     def derivative_estimator(self, state, t):
         # state of shape (nc,)
-        if self.is_phy == "none":
-            res_aug = self.model_aug(state)
-            return res_aug
-        elif self.is_phy == "none_Fa":
-            res_aug = self.model_aug(state)
-            return res_aug
-        elif self.is_phy == "none_Fa_prime":
+        if self.is_phy in["none",
+                          "none_Fa",
+                          "none_Fa_prime",
+                          "none_Fa_prime_supX",
+                          "none_Fa_prime_supX_direct",
+                          "none_Fa_prime_supYX"]:
             res_aug = self.model_aug(state)
             return res_aug
         else:

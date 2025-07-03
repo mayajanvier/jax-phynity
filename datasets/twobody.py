@@ -8,15 +8,10 @@ import jax.numpy as jnp
 from solvers.runge_kutta import RK_solver_fixed, RK_tableaux
 MAX = np.iinfo(np.int32).max # maximum int value
 
-# beta=8/3, sigma=10, rho=28
-
-class LorenzTrue():
+class TwoBody():
 
     def __init__(self, dt, num_steps, path, split, nb_traj, integration_method='RK4') :
         super().__init__()
-        self.beta = 8/3
-        self.sigma = 10.
-        self.rho = 28.
         self.dt = dt # time step
         self.num_steps = num_steps 
         self.nb_traj = nb_traj  
@@ -29,14 +24,10 @@ class LorenzTrue():
         return self.nb_traj
 
     def F(self, s, t):
-        """
-            x, y, z -> dxdt, dydt, dzdt
-        """
-        x, y, z = s
-        dxdt = self.sigma*(y - x )
-        dydt = self.rho * x - y - x*z
-        dzdt =  x*y - self.beta*z
-        return jnp.array([dxdt, dydt, dzdt])
+        x, x_prime, y, y_prime = s
+        x_second = -x/ (x**2 + y**2)**(3/2)
+        y_second = -y/ (x**2 + y**2)**(3/2)
+        return jnp.array([x_prime, x_second, y_prime, y_second])
     
     def _get_initial_condition(self, seed):
         if self.split == 'train':
@@ -46,13 +37,9 @@ class LorenzTrue():
         else: # test
             key = random.PRNGKey(MAX - seed)
 
-        keyX, keyY, keyZ = random.split(key, 3)
-        # before jax.random.norma(keyX) * 20.0
-        x_rand = jax.random.normal(keyX) * 20.0
-        y_rand = jax.random.normal(keyY) * 20.0
-        z_rand = jax.random.normal(keyZ) * 20.0 + 20.0
-        return jnp.array([x_rand, y_rand, z_rand]) 
-        #return jax.random.normal(key, 3) * 0.1 + jnp.array([0.0, 0.0, 25.0])
+        e = jax.random.uniform(key, shape=(), minval=0.5, maxval=0.7)  # eccentricity, ellipse
+        return jnp.array([1-e, 0.0, 0.0, jnp.sqrt((1+e)/(1-e))])  
+
     
     def __getitem__(self, index): 
         if self.data.get(str(index)) is None: # if trajectory is not saved
