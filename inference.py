@@ -12,7 +12,7 @@ from loss import loss_trajectory, loss_Fa #loss_fn
 
 @eqx.filter_value_and_grad(has_aux=True)
 @eqx.filter_jit
-def loss_fn(model, y, t, min_op, lambda_):
+def loss_fn(model, y, t, min_op, lambda_, model_aug_option=False):
     lossT, y_pred = loss_trajectory(model, y, y.shape[2])
     if model_aug_option:
         loss_op = loss_Fa(model, y, min_op)
@@ -55,6 +55,22 @@ def inference(model_name,exp_name, data_path, model_phy_option, model_aug_option
                 dt=dt,
                 num_steps=int(test.dataset.num_steps/dt_factor),
                 integration_method=integration_method, # error scheme exp
+            )
+            model = eqx.tree_deserialise_leaves(f, net)
+
+    elif dataset_name == "lorenz":
+        model_phy = None # Neural ODE 
+        with open(model_path, "rb") as f:
+            mkey, ikey = jax.random.split(jax.random.PRNGKey(0))
+            model_aug = MLP(key=mkey, state_c=3, hidden=200)
+            net = Forecaster(
+                model_phy=model_phy,
+                model_aug=model_aug,
+                is_augmented=model_aug_option,
+                is_phy=model_phy_option,
+                dt=dt_factor * test.dataset.dt, # enabling comparison with GT for error scheme experiment 
+                num_steps=int(test.dataset.num_steps / dt_factor), 
+                integration_method=integration_method, # RK2 for error scheme experiment
             )
             model = eqx.tree_deserialise_leaves(f, net)
 
@@ -110,7 +126,7 @@ def inference_longrun(model_name,exp_name, data_path, model_phy_option, model_au
     min_op = hyperparameters_dict['min_op']
     dt = hyperparameters_dict["dt"]
     dt_factor = int(dt/test.dataset.dt)
-    print(dt, dt_factor)
+    print(dt,test.dataset.dt, dt_factor)
     if dataset_name == 'pendulum':
         if model_phy_option == 'true': # true damped pendulum
             model_phy = PendulumParamPDE(is_damped=True, params=test.dataset.params, is_true=True)
@@ -134,21 +150,55 @@ def inference_longrun(model_name,exp_name, data_path, model_phy_option, model_au
             )
             model = eqx.tree_deserialise_leaves(f, net)
 
+    elif dataset_name == "lorenz":
+        model_phy = None # Neural ODE 
+        with open(model_path, "rb") as f:
+            hyperparams = json.loads(f.readline().decode())
+            mkey, ikey = jax.random.split(jax.random.PRNGKey(0))
+            model_aug = MLP(key=mkey, state_c=3, hidden=200)
+            net = Forecaster(
+                model_phy=model_phy,
+                model_aug=model_aug,
+                is_augmented=model_aug_option,
+                is_phy=model_phy_option,
+                dt=dt_factor * test.dataset.dt, # enabling comparison with GT for error scheme experiment 
+                num_steps=int(test.dataset.num_steps / dt_factor), 
+                integration_method=integration_method, # RK2 for error scheme experiment
+            )
+            model = eqx.tree_deserialise_leaves(f, net)
+    
+    elif dataset_name == "twobody":
+        model_phy = None # Neural ODE 
+        with open(model_path, "rb") as f:
+            hyperparams = json.loads(f.readline().decode())
+            mkey, ikey = jax.random.split(jax.random.PRNGKey(0))
+            model_aug = MLP(key=mkey, state_c=4, hidden=200)
+            net = Forecaster(
+                model_phy=model_phy,
+                model_aug=model_aug,
+                is_augmented=model_aug_option,
+                is_phy=model_phy_option,
+                dt=dt_factor * test.dataset.dt, # enabling comparison with GT for error scheme experiment 
+                num_steps=int(test.dataset.num_steps / dt_factor), 
+                integration_method=integration_method, # RK2 for error scheme experiment
+            )
+            model = eqx.tree_deserialise_leaves(f, net)
+
     _lambda = hyperparams['lambda']
     
     print(min_op, dt_factor)
-
-    print(f"Final omega: {model.model_phy.omega0_square}, Final alpha: {model.model_phy.alpha}" )
-    # TODO: fix bug in omega, alpha 
-    # alpha = model.model_phy.alpha
-    # omega = model.model_phy.omega0_square
-    # if type(alpha) == jnp.ndarray:
-    #     alpha = float(alpha.item())
-    # if type(omega) == jnp.ndarray:
-    #     omega = float(omega.item())
-    # # save omega and alpha in folder
-    # with open(os.path.join(data_path, f'{exp_name}/omega_alpha.json'), 'w') as f:
-    #     json.dump({"omega": omega.item(), "alpha": alpha.item()}, f)
+    if dataset_name == 'pendulum':
+        print(f"Final omega: {model.model_phy.omega0_square}, Final alpha: {model.model_phy.alpha}" )
+        # TODO: fix bug in omega, alpha 
+        # alpha = model.model_phy.alpha
+        # omega = model.model_phy.omega0_square
+        # if type(alpha) == jnp.ndarray:
+        #     alpha = float(alpha.item())
+        # if type(omega) == jnp.ndarray:
+        #     omega = float(omega.item())
+        # # save omega and alpha in folder
+        # with open(os.path.join(data_path, f'{exp_name}/omega_alpha.json'), 'w') as f:
+        #     json.dump({"omega": omega.item(), "alpha": alpha.item()}, f)
 
     # inference
     results = {}
@@ -156,7 +206,8 @@ def inference_longrun(model_name,exp_name, data_path, model_phy_option, model_au
     for i, data in enumerate(test):
         states = jnp.array(data['states'])[:,:,::dt_factor]
         t = jnp.array(data['t'][0])[::dt_factor]
-        (loss_total, (loss_val, loss_op, pred)), _ = loss_fn(model, states, t, min_op, _lambda) 
+        pred = jax.vmap(model)(states[:,:,0]) # states[:,:,0] is the initial condition for the trajectory
+        #(loss_total, (loss_val, loss_op, pred)), _ = loss_fn(model, states, t, min_op, _lambda, model_aug_option) 
         pred_i = {
             'y_true': np.array(states[0]).tolist(),
             'y_pred': np.array(pred[0]).tolist(),
@@ -164,14 +215,67 @@ def inference_longrun(model_name,exp_name, data_path, model_phy_option, model_au
             #'loss_op': loss_op.item(),
         }
         results[i] = pred_i
-        print(f'Trajectory: {i}, loss_val: {loss_val}, loss_op: {loss_op}')
+        #print(f'Trajectory: {i}')
+        #print(f'Trajectory: {i}, loss_val: {loss_val}, loss_op: {loss_op}')
         tot_states.append(states[0])
         # write json file line after line
-    with open(os.path.join(data_path, f'{exp_name}/{model_name[:-4]}_longrun.json'), 'a') as f:
+    with open(os.path.join(data_path, f'{exp_name}/{model_name[:-4]}_longrun_{duration}.json'), 'a') as f:
         f.write(json.dumps(results) + '\n')
     
-    (loss_total, (loss_val, loss_op, pred)), _ = loss_fn(model, jnp.array(tot_states), t, min_op, _lambda) 
-    print(f'Total loss_val: {loss_val}, loss_op: {loss_op}')
+    #(loss_total, (loss_val, loss_op, pred)), _ = loss_fn(model, jnp.array(tot_states), t, min_op, _lambda) 
+    #print(f'Total loss_val: {loss_val}, loss_op: {loss_op}')
+
+def inference_longrun_lorenz(model_name,exp_name, data_path, model_phy_option, model_aug_option, dataset_name, integration_method, data_integration_method="RK4", dt_num=0.5, duration=200):
+    _, _, test = init_dataloaders(dataset_name, data_integration_method, os.path.join(data_path, dataset_name+str(duration)), dt_num=dt_num, duration=duration)
+    print("dataset loaded")
+    # load model
+    model_path = os.path.join(data_path, f"{exp_name}/{model_name}")
+    print(model_path)
+    with open(os.path.join(data_path, f'{exp_name}/hyperparameters.json'), 'r') as f:
+        hyperparameters_dict = json.load(f)
+    min_op = hyperparameters_dict['min_op']
+    dt = hyperparameters_dict["dt"]
+    dt_factor = int(dt/test.dataset.dt)
+    print(dt,test.dataset.dt, dt_factor)
+    model_phy = None # Neural ODE 
+    with open(model_path, "rb") as f:
+        hyperparams = json.loads(f.readline().decode())
+        mkey, ikey = jax.random.split(jax.random.PRNGKey(0))
+        model_aug = MLP(key=mkey, state_c=3, hidden=200)
+        net = Forecaster(
+            model_phy=model_phy,
+            model_aug=model_aug,
+            is_augmented=model_aug_option,
+            is_phy=model_phy_option,
+            dt=dt_factor * test.dataset.dt, # enabling comparison with GT for error scheme experiment 
+            num_steps=int(test.dataset.num_steps / dt_factor), 
+            integration_method=integration_method, # RK2 for error scheme experiment
+        )
+        model = eqx.tree_deserialise_leaves(f, net)
+    print("model loaded")
+    # inference
+    results = {}
+    tot_states = []
+    for i, data in enumerate(test):
+        #if i !=7: # skip trajectory 7, it is too long
+        states = jnp.array(data['states'])[:,:,::dt_factor]
+        y0 = states[:,:,0]
+        #t = jnp.array(data['t'][0])[::dt_factor]
+        pred = model(y0)
+        #(loss_total, (loss_val, loss_op, pred)), _ = loss_fn(model, states, t, min_op, _lambda) 
+        pred_i = {
+            'y_true': np.array(states[0]).tolist(),
+            'y_pred': np.array(pred[0]).tolist(),
+            #'loss_traj': loss_val.item(),
+            #'loss_op': loss_op.item(),
+        }
+        results[i] = pred_i
+        print(f'Trajectory: {i}, pred shape: {pred.shape}')
+        #print(f'Trajectory: {i}, loss_val: {loss_val}, loss_op: {loss_op}')
+        tot_states.append(states[0])
+        # write json file line after line
+        with open(os.path.join(data_path, f'{exp_name}/{model_name[:-4]}_longrun_{duration}.json'), 'a') as f:
+            f.write(json.dumps(results) + '\n')
 
 
 def Fa_behaviour(model_name,exp_name, data_path, model_phy_option, model_aug_option, dataset_name, integration_method):
@@ -348,18 +452,80 @@ if __name__ == '__main__':
         #Fa_behaviour(model, exp_name, data_path, model_phy_option, model_aug_option, dataset_name, 'RK4')
 
 
-    # new curr
+    # PENDULUM CURRICULUM
     data_path = "data/pendulum_curriculum"
+    #dataset_name = 'pendulum'
     # 10,15,20,25,30,35,40,50
-    model_list = ["model_4.474e-03.eqx", "model_8.605e-03.eqx", "model_7.232e-03.eqx", "model_5.600e-03.eqx", "model_4.379e-03.eqx", "model_3.710e-03.eqx", "model_3.301e-03.eqx", "model_2.637e-03.eqx"]
-    exp_names = ["none_aug_10_7_wni7d7vw", "none_aug_15_11_tuagzu2h", "none_aug_20_3_7r3pt5i6", "none_aug_25_15_mwuh5fu7", "none_aug_30_19_1px44q94", "none_aug_35_23_dvo9pd8k", "none_aug_40_30_2mrv9dnr", "none_aug_50_34_26unnadg"]
-    model_phy_option = "none"
+    #model_list = ["model_4.474e-03.eqx", "model_8.605e-03.eqx", "model_7.232e-03.eqx", "model_5.600e-03.eqx", "model_4.379e-03.eqx", "model_3.710e-03.eqx", "model_3.301e-03.eqx", "model_2.637e-03.eqx"]
+    #exp_names = ["none_aug_10_7_wni7d7vw", "none_aug_15_11_tuagzu2h", "none_aug_20_3_7r3pt5i6", "none_aug_25_15_mwuh5fu7", "none_aug_30_19_1px44q94", "none_aug_35_23_dvo9pd8k", "none_aug_40_30_2mrv9dnr", "none_aug_50_34_26unnadg"]
+    # 10s modesl
+    #model_list = ["model_4.911e-03.eqx"]
+    #exp_names = ["none_Fa_prime_supX_aug_10_42_tuhrn6ch"]
+    # 20s models
+    #model_list = ["model_6.262e-03.eqx"]#,"model_3.211e-03.eqx"] #,"model_6.073e-03.eqx"]#,"model_3.826e-03.eqx"]#,"model_9.422e-03.eqx"]
+    #exp_names = ["none_Fa_prime_supX_aug_20_40_mji7rtrw"]#,"none_Fa_prime_supX_aug_20_38_e32f6kk3"]#,"none_Fa_prime_supX_aug_20_37_l71dirtf"] #,"none_Fa_prime_supX_aug_20_36_ddvssrzw"]#,"none_Fa_prime_supX_aug_20_35_stgfld1q"]
+    #model_list = ["model_3.839e-02.eqx","model_1.341e-02.eqx"]
+    #exp_names = ["none_Fa_aug_20_45_y2asmpno","none_Fa_aug_20_44_x5syrqwn"]
+    # 25s models
+    # model_list=["model_3.125e-03.eqx"]
+    # exp_names=["none_Fa_prime_supX_aug_25_43_l64do47n"]
+    # 30s models
+    #model_list =["model_2.338e-03.eqx"]
+    #exp_names = ["none_Fa_prime_supX_aug_30_41_azh5fjat"]
+    # 40s models
+    # model_list=["model_1.920e-02.eqx","model_4.090e-03.eqx","model_1.552e-03.eqx","model_4.450e-03.eqx","model_1.758e-03.eqx"]
+    # exp_names=["none_Fa_aug_40_49_vfcnhnan","none_Fa_prime_supX_aug_20_48_y401ldbf","none_Fa_prime_supX_aug_40_47_wuwh8czs","none_Fa_aug_40_46_msaprmil","none_Fa_prime_supX_aug_40_39_p089jjoy"]
+    # model_phy_option = "none_Fa" 
+    # model_aug_option = True
+    # dataset_name = 'pendulum'
+    #durations = [10,15,20,25,30,35,40,50]
+    # durations = [40]
+    # model_list = ["model_3.524e-02.eqx",'model_1.509e-03.eqx']
+    # exp_names = ["none_Fa_prime_supX_aug_5_55_p17tot2d",'none_aug_5_54_e0f4gs2q']
+    # model_phy_option = ["none_Fa_prime_supX","none"]
+    # model_aug_option = True
+    # durations = [5,5]
+    # for i, model_name in enumerate(model_list):
+    #     exp_name = exp_names[i]
+    #     duration = durations[i]
+    #     #inference(model_name, exp_name, data_path, model_phy_option, model_aug_option, dataset_name, 'RK4', duration=duration)
+    #     inference_longrun(model_name, exp_name, data_path, model_phy_option, model_aug_option, dataset_name, 'RK4')
+    #     break
+
+    # LORENZ CURRICULUM
+    # data_path = "data/lorenz_curriculum"
+    # model_list = ["model_6.805e+01.eqx","model_3.684e+01.eqx","model_4.397e+01.eqx", "model_4.449e+01.eqx", "model_4.073e+01.eqx"]
+    # exp_names = ["none_Fa_prime_supX_aug_0.5_38_6ip39mbt","none_Fa_aug_1.0_37_ynthb5uu","none_aug_1.0_1_lpirex33", "none_Fa_prime_supX_aug_1.0_20_ifl1kpia", "none_Fa_prime_supX_aug_1.0_36_u46i7ois"]
+    # model_phy_option = ["none_Fa_prime_supX","none_Fa", "none", "none_Fa_prime_supX", "none_Fa_prime_supX"]
+    # #model_list = ["/model_1.236e+02.eqx","model_7.111e+01.eqx","model_1.423e+02.eqx","model_6.016e+01.eqx","model_8.037e+01.eqx", "model_6.919e+01.eqx"]
+    # #exp_names = ["none_Fa_prime_supX_direct_aug_0.5_35_307wy485","none_Fa_prime_supX_direct_aug_0.5_33_twgwtlpy","none_Fa_prime_supX_direct_aug_0.5_31_xur5ddcr","none_Fa_prime_supX_aug_0.5_30_h4az6l6s","none_Fa_prime_supX_aug_0.5_23_bcaporpk", "none_Fa_aug_0.5_29_0aonngt2"]
+    # #model_phy_option = ["none_Fa_prime_supX_direct","none_Fa_prime_supX_direct","none_Fa_prime_supX_direct","none_Fa_prime_supX","none_Fa_prime_supX", "none_Fa"]
+    # #model_list = ["model_8.569e+01.eqx","model_7.108e+01.eqx","model_7.176e+01.eqx","model_8.037e+01.eqx","model_8.008e+01.eqx","model_4.768e+01.eqx","model_7.108e+01.eqx", "model_6.919e+01.eqx"]#"model_4.449e+01.eqx","model_4.611e+01.eqx",,"model_4.397e+01.eqx"]
+    # #exp_names = ["none_aug_0.5_12_h8nc71jn","none_aug_0.5_28_tf2kusqq","none_Fa_prime_supX_aug_0.5_27_16mx8mqy","none_Fa_prime_supX_aug_0.5_23_bcaporpk","none_Fa_aug_0.5_22_il3xfk60","none_Fa_prime_supX_aug_0.5_18_vzkua19c","none_aug_0.5_12_d7x29ou8", "none_Fa_aug_0.5_29_0aonngt2"] #"none_Fa_prime_supX_aug_1.0_20_ifl1kpia","none_aug_0.1_16_y4dgk7so",,"none_aug_1.0_1_lpirex33"]
+    # #model_phy_option = ["none","none","none_Fa_prime_supX", "none_Fa_prime_supX", "none_Fa", "none_Fa_prime_supX", "none","none_Fa"] #"none_Fa_prime_supX", "none", ,"none"]
+    # model_aug_option = True
+    # dataset_name = 'lorenz'
+    # #durations = [1.0]
+    # for i, model_name in enumerate(model_list):
+    #     exp_name = exp_names[i]
+    #     #duration = durations[i]
+    #     #inference(model_name, exp_name, data_path, model_phy_option, model_aug_option, dataset_name, 'RK4', duration=duration)
+    #     inference_longrun(model_name, exp_name, data_path, model_phy_option[i], model_aug_option, dataset_name, 'RK4', dt_num=0.01, duration=100)
+    #     break
+
+    ### TWO BODY CURRICULUM
+    data_path = "data/twobody_curriculum"
+    #model_list = ["model_8.838e-03.eqx","model_7.667e-04.eqx","model_8.666e-06.eqx", "model_1.873e-04.eqx"]
+    #exp_names = ["none_Fa_prime_supX_aug_5_13_eqe5cguq","none_aug_10_12_vfm4hxed","none_aug_1_5_sqjjkugz", "none_aug_5_9_nn7jwd9d"]
+    model_list = ["model_1.410e-05.eqx"]
+    exp_names = ["none_aug_1.0_1_gn2n5qyl"]
+    model_phy_option = ["none"]
     model_aug_option = True
-    dataset_name = 'pendulum'
-    durations = [10,15,20,25,30,35,40,50]
+    dataset_name = 'twobody'
+    durations = [1.0]
+    #durations = [5.0,10.0,1.0, 5.0]
+    dt_num = 0.01
     for i, model_name in enumerate(model_list):
         exp_name = exp_names[i]
-        duration = durations[i]
-        #inference(model_name, exp_name, data_path, model_phy_option, model_aug_option, dataset_name, 'RK4', duration=duration)
-        inference_longrun(model_name, exp_name, data_path, model_phy_option, model_aug_option, dataset_name, 'RK4')
-        break
+        inference_longrun(model_name, exp_name, data_path, model_phy_option[i], model_aug_option, dataset_name, 'RK4', dt_num=dt_num, duration=100)
+
