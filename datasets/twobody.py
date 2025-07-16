@@ -24,10 +24,10 @@ class TwoBody():
         return self.nb_traj
 
     def F(self, s, t):
-        x, x_prime, y, y_prime = s
+        x, y, x_prime, y_prime = s
         x_second = -x/ (x**2 + y**2)**(3/2)
         y_second = -y/ (x**2 + y**2)**(3/2)
-        return jnp.array([x_prime, x_second, y_prime, y_second])
+        return jnp.array([x_prime, y_prime, x_second, y_second])
     
     def _get_initial_condition(self, seed):
         if self.split == 'train':

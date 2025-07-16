@@ -17,10 +17,10 @@ def F_lorenz(var):
     return jnp.array([dxdt, dydt, dzdt])
 
 def F_twobody(s):
-    x, x_prime, y, y_prime = s
+    x, y, x_prime, y_prime = s
     x_second = -x / (x**2 + y**2)**(3/2)
     y_second = -y / (x**2 + y**2)**(3/2)
-    return jnp.array([x_prime, x_second, y_prime, y_second])
+    return jnp.array([x_prime, y_prime, x_second, y_second])
 
 ### Trajectory Losses
 def MSEjax(y_pred, y_true):
