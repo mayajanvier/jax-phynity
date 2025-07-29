@@ -1,6 +1,7 @@
 from .pendulum import DampedPendulum
 from .lorenz import LorenzTrue
 from .twobody import TwoBody
+from .wave import Wave
 from torch.utils.data import DataLoader 
 import torch
 import numpy as np
@@ -53,6 +54,12 @@ def param_dataset(buffer_filepath, integration_method, dataset_name="pendulum", 
         dataset_train = TwoBody(**dataset_train_params)
         dataset_val   = TwoBody(**dataset_val_params)
         dataset_test  = TwoBody(**dataset_test_params)
+    elif dataset_name == "wave":
+        dataset_val_params['nb_traj'] = 50
+        dataset_test_params['nb_traj'] = 50
+        dataset_train = Wave(**dataset_train_params)
+        dataset_val   = Wave(**dataset_val_params)
+        dataset_test  = Wave(**dataset_test_params)
 
     dataloader_train_params = {
         'dataset'    : dataset_train,
@@ -104,6 +111,9 @@ def init_dataloaders(dataset, integration_method, buffer_filepath=None, dt_num=0
     elif dataset == 'twobody': # from White paper
         batch_size = 40
         nb_traj = 40
+    elif dataset == 'wave':
+        batch_size = 64
+        nb_traj = 200
 
     return param_dataset(
         buffer_filepath,
@@ -116,5 +126,10 @@ def init_dataloaders(dataset, integration_method, buffer_filepath=None, dt_num=0
 
 
 if __name__ == '__main__':
-    buffer_filepath = 'data/lorenz'
-    dataloader_train, dataloader_val, dataloader_test = init_dataloaders('lorenz', integration_method="RK4", buffer_filepath=buffer_filepath)
+    buffer_filepath = 'data/wave'
+    dataloader_train, dataloader_val, dataloader_test = init_dataloaders(
+        dataset='wave',
+        dt_num=0.001,
+        duration=0.001*25, # 25 time steps
+        integration_method="RK4",
+        buffer_filepath=buffer_filepath)
