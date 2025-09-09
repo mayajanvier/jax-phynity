@@ -38,7 +38,7 @@ def param_dataset(buffer_filepath, integration_method, dataset_name="pendulum", 
 
     dataset_test_params = dict()
     dataset_test_params.update(dataset_train_params)
-    dataset_test_params['nb_traj'] = 200
+    dataset_test_params['nb_traj'] = nb_traj
     dataset_test_params['split'] = 'test'
     dataset_test_params['path'] = buffer_filepath+'_test'
 
@@ -47,6 +47,7 @@ def param_dataset(buffer_filepath, integration_method, dataset_name="pendulum", 
         dataset_val   = DampedPendulum(**dataset_val_params)
         dataset_test  = DampedPendulum(**dataset_test_params)
     elif dataset_name == "lorenz":
+        dataset_test_params['nb_traj'] = 200
         dataset_train = LorenzTrue(**dataset_train_params)
         dataset_val   = LorenzTrue(**dataset_val_params)
         dataset_test  = LorenzTrue(**dataset_test_params)
@@ -85,7 +86,7 @@ def param_dataset(buffer_filepath, integration_method, dataset_name="pendulum", 
 
     dataloader_test_params = {
         'dataset'    : dataset_test,
-        'batch_size' : 1,
+        'batch_size' : dataset_test_params['nb_traj'], # all test data in one batch for jax.vmap
         'num_workers': 0,
         'pin_memory' : True,
         'drop_last'  : False,
@@ -111,7 +112,7 @@ def init_dataloaders(dataset, integration_method, buffer_filepath=None, dt_num=0
     elif dataset == 'twobody': # from White paper
         batch_size = 40
         nb_traj = 40
-    elif dataset == 'wave':
+    elif dataset == 'wave': # from Yin paper 
         batch_size = 64
         nb_traj = 200
 
