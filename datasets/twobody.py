@@ -8,6 +8,9 @@ import jax.numpy as jnp
 from solvers.runge_kutta import RK_solver_fixed, RK_tableaux
 MAX = np.iinfo(np.int32).max # maximum int value
 
+# Enable 64-bit precision in JAX
+jax.config.update("jax_enable_x64", True)
+
 class TwoBody():
     """ To create original trajectories from which we later sample initial points on to create
     the 2body_init_*.npy files. Stored in data/twobody_curriculum """

@@ -8,6 +8,9 @@ import jax.numpy as jnp
 from solvers.runge_kutta import RK_solver_fixed, RK_tableaux
 MAX = np.iinfo(np.int32).max # maximum int value
 
+# Enable 64-bit precision in JAX
+jax.config.update("jax_enable_x64", True)
+
 # beta=8/3, sigma=10, rho=28
 
 class LorenzTrue():

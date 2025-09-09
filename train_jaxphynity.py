@@ -8,6 +8,9 @@ from utils import init_linear_weight, orthogonal_init, compute_metric, save_loss
 from datasets import init_dataloaders
 from utils import Logger, save, make_basedir, log
 from loss import loss_fn, F, init_jit_aux_loss, F_lorenz, F_twobody
+
+# Enable 64-bit precision in JAX
+jax.config.update("jax_enable_x64", True)
           
 # Routine
 def training_routine(train, test, net, optimizer, min_op, _lambda,tau_1, tau_2, niter, path, device, aux_loss_names=["loss_Fa", "loss_Fa_primeX"], reg_loss_name="none", dt_factor=1, nlog=1, nupdate=1, nepoch=10, name_project="Damped_Pendulum", log_param_error=True, duration=None, dataset_name="pendulum", model_phy_option="none", model_aug_option=False):   
@@ -112,6 +115,9 @@ def training_routine(train, test, net, optimizer, min_op, _lambda,tau_1, tau_2, 
                 states = jnp.array(data['states'])[:,:,:epoch_rollout_index*dt_factor:dt_factor]
                 t = jnp.array(data['t'][0])[::dt_factor]
                 (loss_total, (pred, losses_values_dict)), grads = loss_fn_grad(net, states, lambda_ = jnp.array(_lambda), epoch_rollout_index=epoch_rollout_index, Fa_prime_true=F_prime_true)
+                print(type(true_deriv[0,0,0]))
+                print(type(states[0,0,0]))
+                print(type(pred[0,0,0]))
                 updates, opt_state = optimizer.update(
                     grads, opt_state, eqx.filter(net, eqx.is_array))
                 net = eqx.apply_updates(net, updates)
@@ -507,11 +513,23 @@ if __name__ == '__main__':
     # train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device, method, dt_factor = 1, duration=duration, init_gain=1.0, dt_num=dt_num)
 
     ### Two Body
+    # method = 'RK4' 
+    # dataset_name = 'twobody'
+    # model_phy_option = "none_Fa_prime_supX" # "none_Fa_prime_supX" or "none_Fa"
+    # model_aug_option = True
+    # path = 'data/twobody_curriculum'
+    # device = 'cpu' 
+    # dt_num = 0.01
+    # dt_factor = 10
+    # for duration in [1.0]:
+    #     train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device, method, dt_factor = dt_factor, duration=duration, init_gain=1.0, dt_num=dt_num)
+
+    ### Test float64
     method = 'RK4' 
     dataset_name = 'twobody'
     model_phy_option = "none_Fa_prime_supX" # "none_Fa_prime_supX" or "none_Fa"
     model_aug_option = True
-    path = 'data/twobody_curriculum'
+    path = 'data/test_float64'
     device = 'cpu' 
     dt_num = 0.01
     dt_factor = 10

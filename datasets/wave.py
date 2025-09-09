@@ -11,6 +11,9 @@ c = 330.0  # wave speed
 dx = 1  # spatial step size
 MAX = np.iinfo(np.int32).max # maximum int value
 
+# Enable 64-bit precision in JAX
+jax.config.update("jax_enable_x64", True)
+
 class Wave() : 
     def __init__(self, dt, num_steps, path, split, nb_traj, integration_method='RK4') :
         super().__init__()

@@ -12,6 +12,9 @@ from solvers.runge_kutta import RK_solver_fixed, RK_tableaux
 # TF = 20
 MAX = np.iinfo(np.int32).max # maximum int value 
 
+# Enable 64-bit precision in JAX
+jax.config.update("jax_enable_x64", True)
+
 # JAX customate version 
 class DampedPendulum():
     parameters = OrderedDict(omega0_square=(2 * jnp.pi / 12) ** 2, alpha=0.2) # T0=12

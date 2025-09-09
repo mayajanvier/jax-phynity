@@ -3,6 +3,8 @@ import jax
 import jax.numpy as jnp
 from einops import rearrange
 
+# Enable 64-bit precision in JAX
+jax.config.update("jax_enable_x64", True)
 
 ### Physical model Fp
 omega0_square_org = 0.2
@@ -90,7 +92,7 @@ if __name__ == '__main__':
     print(input.shape)
     model_aug = MLP(jax.random.PRNGKey(0), 2, nb_neurons)
     print(model_aug)
-    output = model_aug.get_derivatives(input)
+    output = jax.vmap(model_aug)(input)
     print(output.shape)
 
     model_phy = PendulumParamPDE(is_complete=True, real_params=None) 
