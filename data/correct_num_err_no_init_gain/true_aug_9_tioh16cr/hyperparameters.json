@@ -1,1 +1,0 @@
-{"lambda0": 1000.0, "tau_1": 0.001, "tau_2": 100.0, "niter": 5, "min_op": "l2", "nepoch": 400, "nlog": 5, "nupdate": 5, "id": "tioh16cr", "dt": 0.1}
