@@ -3,7 +3,7 @@ import jax.numpy as jnp
 import equinox as eqx
 from einops import rearrange
 
-def F(x):
+def F_pendulum(x):
     return jnp.array([x[1], -((2*jnp.pi/12)**2)* jnp.sin(x[0]) - 0.2*x[1]])
 
 def F_lorenz(var):
@@ -80,6 +80,31 @@ def loss_Fa_primeX(model, y):
     return loss_prime
 
 @eqx.filter_jit
+def loss_Fa_prime_supervisedX_norm(model, y, dataset_name: str):
+    print('loss_Fa_prime_supervisedX_norm')
+    loss_prime = 0.0
+    for k_batch in range(y.shape[0]):
+        y_in = y[k_batch,:,:]
+        y_in = rearrange(y_in, 'nc T -> (T) nc')
+        aug_deriv = jax.vmap(model.model_aug)(y_in) 
+        if dataset_name == 'lorenz':
+            true_deriv = jax.vmap(F_lorenz)(y_in)
+        elif dataset_name == 'pendulum':
+            true_deriv = jax.vmap(F_pendulum)(y_in)
+        elif dataset_name == 'twobody':
+            true_deriv = jax.vmap(F_twobody)(y_in)
+        F_prime = jnp.abs(aug_deriv[1:,:]-aug_deriv[:-1,:]) / jnp.abs(y_in[1:,:] - y_in[:-1,:])
+        F_prime_true = jnp.abs(true_deriv[1:,:]-true_deriv[:-1,:]) / jnp.abs(y_in[1:,:] - y_in[:-1,:])
+        
+        # Normalize each dimension (axis 0 = time)
+        eps = 1e-8
+        std_per_dim = jnp.std(F_prime_true, axis=0) + eps  # avoid division by 0
+        F_prime = jnp.abs(F_prime - F_prime_true) /std_per_dim
+        loss_prime += jnp.mean(F_prime)
+    loss_prime /= y.shape[0]
+    return loss_prime
+
+@eqx.filter_jit
 def loss_Fa_prime_supervisedX(model, y, dataset_name: str):
     print('loss_Fa_prime_supervisedX')
     loss_prime = 0.0
@@ -90,12 +115,12 @@ def loss_Fa_prime_supervisedX(model, y, dataset_name: str):
         if dataset_name == 'lorenz':
             true_deriv = jax.vmap(F_lorenz)(y_in)
         elif dataset_name == 'pendulum':
-            true_deriv = jax.vmap(F)(y_in)
+            true_deriv = jax.vmap(F_pendulum)(y_in)
         elif dataset_name == 'twobody':
             true_deriv = jax.vmap(F_twobody)(y_in)
         F_prime = jnp.abs(aug_deriv[1:,:]-aug_deriv[:-1,:]) / jnp.abs(y_in[1:,:] - y_in[:-1,:])
         F_prime_true = jnp.abs(true_deriv[1:,:]-true_deriv[:-1,:]) / jnp.abs(y_in[1:,:] - y_in[:-1,:])
-        F_prime = jnp.abs(F_prime - F_prime_true)
+        F_prime = jnp.abs(F_prime - F_prime_true) 
         loss_prime += jnp.mean(F_prime)
     loss_prime /= y.shape[0]
     return loss_prime
@@ -111,7 +136,7 @@ def loss_Fa_prime_supervisedX_direct(model, y, dataset_name: str): # remove abso
         if dataset_name == 'lorenz':
             true_deriv = jax.vmap(F_lorenz)(y_in)
         elif dataset_name == 'pendulum':
-            true_deriv = jax.vmap(F)(y_in)
+            true_deriv = jax.vmap(F_pendulum)(y_in)
         elif dataset_name == 'twobody':
             true_deriv = jax.vmap(F_twobody)(y_in)
         F_prime = aug_deriv[1:,:]-aug_deriv[:-1,:] / jnp.abs(y_in[1:,:] - y_in[:-1,:])
@@ -138,49 +163,6 @@ def loss_Fa_prime_supervisedYX(model, y, epoch_rollout_index, F_prime_true: jnp.
     loss_prime /= y.shape[0]
     return loss_prime
 
-
-
-
-
-### Final loss function
-# @eqx.filter_value_and_grad(has_aux=True)
-# @eqx.filter_jit
-# def loss_fn(model, y, min_op, lambda_, epoch_rollout_index, model_phy_option: str, model_aug_option: bool, Fa_prime_true: jnp.ndarray = None):
-#     print('loss_fn')
-#     ### Trajectory loss
-#     lossT, y_pred = loss_trajectory(model, y, epoch_rollout_index)
-#     ### Regularization
-#     if model_phy_option == "none": # none_aug
-#         loss_op = loss_Fa(model, y, min_op)
-#         return lossT, (lossT, loss_op, y_pred)
-#     elif model_phy_option == "true": # true
-#         return lossT, (lossT, jnp.array(0.0), y_pred)
-#     elif model_phy_option == 'incomplete_no_Fa':
-#         loss_op = loss_Fa(model, y, min_op)
-#         return lossT, (lossT, loss_op, y_pred)
-#     elif model_phy_option == 'none_Fa':
-#         loss_op = loss_Fa(model, y, min_op)
-#         return lossT * lambda_ + loss_op, (lossT, loss_op, y_pred)
-#     elif model_phy_option == 'none_Fa_primeX':
-#         loss_op = loss_Fa(model, y, min_op)
-#         loss_prime = loss_Fa_primeX(model, y)
-#         return lossT * lambda_ + loss_prime, (lossT, loss_op, y_pred)
-#     elif model_phy_option == 'incomplete_Fa_prime':
-#         loss_op = loss_Fa(model, y, min_op)
-#         loss_prime = loss_Fa_primeX(model, y)
-#         return lossT * lambda_ + loss_prime, (lossT, loss_op, y_pred)
-#     elif model_phy_option == "none_Fa_prime_supYX":
-#         loss_op = loss_Fa(model, y, min_op)
-#         loss_prime = loss_Fa_prime_supervisedYX(model, y, epoch_rollout_index, Fa_prime_true)
-#         return lossT * lambda_ + loss_prime, (lossT, loss_op, y_pred)
-#     else:
-#         if model_aug_option: # complete_aug or incomplete_aug
-#             loss_op = loss_Fa(model, y, min_op)
-#             return lossT * lambda_ + loss_op, (lossT,loss_op, y_pred)
-#         else: # complete_physics or incomplete_physics
-#             return lossT, (lossT, jnp.array(0.0), y_pred)
-        
-
 ### Compact 
 def init_jit_aux_loss(aux_loss_names, min_op, dataset_name):
     """
@@ -194,6 +176,8 @@ def init_jit_aux_loss(aux_loss_names, min_op, dataset_name):
             aux_losses_dict[name] = eqx.filter_jit(loss_Fa_primeX)
         elif name == 'loss_Fa_prime_supervisedX':
             aux_losses_dict[name] = eqx.filter_jit(eqx.Partial(loss_Fa_prime_supervisedX, dataset_name=dataset_name))
+        elif name == 'loss_Fa_prime_supervisedX_norm':
+            aux_losses_dict[name] = eqx.filter_jit(eqx.Partial(loss_Fa_prime_supervisedX_norm, dataset_name=dataset_name))
         elif name == 'loss_Fa_prime_supervisedX_direct':
             aux_losses_dict[name] = eqx.filter_jit(eqx.Partial(loss_Fa_prime_supervisedX_direct, dataset_name=dataset_name))
         elif name == 'loss_Fa_prime_supervisedYX':

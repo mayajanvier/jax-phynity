@@ -347,7 +347,7 @@ def training_routine(train, test, net, optimizer, min_op, _lambda,tau_1, tau_2, 
                     if dataset_name == 'lorenz':
                         true_deriv = jax.vmap(F_lorenz)(x_in)
                     elif dataset_name == 'pendulum':
-                        true_deriv = jax.vmap(F)(x_in) # b nc T
+                        true_deriv = jax.vmap(F_pendulum)(x_in) # b nc T
                     elif dataset_name == 'twobody':
                         true_deriv = jax.vmap(F_twobody)(x_in)
                     # for loss_Fa_prime_supervisedYX
@@ -392,7 +392,7 @@ def training_routine(train, test, net, optimizer, min_op, _lambda,tau_1, tau_2, 
                     states = jnp.array(data['states'])[:,:,::dt_factor]
                     x_in = states
                     if dataset_name == "pendulum":
-                        true_deriv = jax.vmap(F)(x_in)
+                        true_deriv = jax.vmap(F_pendulum)(x_in)
                     elif dataset_name == "lorenz":
                         true_deriv = jax.vmap(F_lorenz)(x_in)
                     elif dataset_name == "twobody":
