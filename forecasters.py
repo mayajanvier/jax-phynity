@@ -96,6 +96,8 @@ class Forecaster(eqx.Module):
                           "none_Fa",
                           "none_Fa_prime",
                           "none_Fa_prime_supX",
+                          "none_Fa_prime_supX_norm",
+                          "none_Fa_prime_supX_l2",
                           "none_Fa_prime_supX_direct",
                           "none_Fa_prime_supYX"]:
             res_aug = self.model_aug(state)

@@ -144,8 +144,8 @@ def train(cfg, train_data, val_data, net, optimizer):
     # optimizer initialization
     opt_state = optimizer.init(eqx.filter(net, eqx.is_array))
     # Jitted loss
-    aux_losses_dict = init_jit_aux_loss(cfg.train.aux_loss_names, cfg.train.min_op, cfg.dataset.name)
-    loss_fn_grad = eqx.Partial(loss_fn, reg_loss_name=cfg.train.reg_loss_name, aux_losses_dict=aux_losses_dict)
+    aux_losses_dict = init_jit_aux_loss(cfg.train.aux_loss_names, cfg.train.min_op, cfg.dataset.name, cfg.train.opt_mode)
+    loss_fn_grad = eqx.Partial(loss_fn, reg_loss_name=cfg.train.reg_loss_name, aux_losses_dict=aux_losses_dict, opt_mode=cfg.train.opt_mode)
     # for model selection over val loss
     loss_test_min = None
     # curriculum
@@ -192,7 +192,10 @@ def train(cfg, train_data, val_data, net, optimizer):
             loss_train[losses_values_dict_key] /= (iteration + 1) * cfg.train.niter
         
         # update lambda
-        _lambda = _lambda + cfg.train.tau2 * loss_train['loss_traj'].item()
+        if cfg.train.opt_mode == "constraint":
+            _lambda = _lambda + cfg.train.tau2 * loss_train['loss_traj'].item()
+        elif cfg.train.opt_mode == "traj":
+            _lambda = _lambda + cfg.train.tau2 * loss_train[cfg.train.reg_loss_name].item()
 
         ### LOGS 
         total_iteration = epoch * (len(train_data)) + (iteration + 1)
