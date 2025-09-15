@@ -1,18 +1,260 @@
-import optax 
 import os
 import json
 import wandb
-from networks import *
-from forecasters import *
-from utils import init_linear_weight, orthogonal_init, compute_metric, save_loss_local, log_wandb
+import argparse
+from omegaconf import OmegaConf
+
+import jax
+import optax
+import equinox as eqx
+import jax.numpy as jnp
+from einops import rearrange
+
 from datasets import init_dataloaders
-from utils import Logger, save, make_basedir, log
-from loss import loss_fn, F, init_jit_aux_loss, F_lorenz, F_twobody
+from forecasters import Forecaster
+from networks import PendulumParamPDE, MLP
+from utils import init_linear_weight, orthogonal_init, Logger, save, make_basedir, log
+from utils import compute_metric, save_loss_local, log_wandb
+from loss import loss_fn, init_jit_aux_loss, F_pendulum, F_lorenz, F_twobody
 
 # Enable 64-bit precision in JAX
 jax.config.update("jax_enable_x64", True)
-          
-# Routine
+
+def get_datasets(cfg):
+    train, val, _ = init_dataloaders(
+        cfg.dataset.name,
+        cfg.dataset.integration_method,
+        os.path.join(cfg.experiment.path, cfg.dataset.name + str(cfg.dataset.duration)),
+        dt_num=cfg.dataset.dt_num,
+        duration=cfg.dataset.duration,
+    )
+    return train, val
+
+def get_model(cfg, train):
+    mkey, ikey = jax.random.split(jax.random.PRNGKey(0))
+
+    if cfg.dataset.name == "pendulum":  
+        if cfg.model.phy_option == "true": # true damped pendulum
+            model_phy = PendulumParamPDE(is_damped=True, params=train.dataset.params, is_true=True)
+        elif cfg.model.phy_option == "complete": # damped pendulum
+            model_phy = PendulumParamPDE(is_damped=True)
+        else:
+            model_phy = PendulumParamPDE(is_damped=False)
+        state_c = 2
+    elif cfg.dataset.name == "lorenz":
+        model_phy, state_c = None, 3
+    elif cfg.dataset.name == "twobody":
+        model_phy, state_c = None, 4
+    else:
+        raise ValueError(f"Unknown dataset: {cfg.dataset.name}")
+
+    model_aug = MLP(key=mkey, state_c=state_c, hidden=cfg.model.hidden)
+    model_aug = init_linear_weight(model_aug, orthogonal_init, key=ikey, init_gain=cfg.model.init_gain)
+
+    net = Forecaster(
+        model_phy=model_phy,
+        model_aug=model_aug,
+        is_augmented=cfg.model.aug_option,
+        is_phy=cfg.model.phy_option,
+        dt=cfg.dataset.dt_factor * train.dataset.dt,
+        num_steps=int(train.dataset.num_steps / cfg.dataset.dt_factor),
+        integration_method=cfg.model.integration_method,
+    )
+    return net
+
+def get_optimizer(cfg):
+    return optax.adam(learning_rate=cfg.train.lr, b1=0.9, b2=0.999)
+
+def get_Fa_prime_true(cfg, data):
+    states = jnp.array(data['states'])[:,:,::cfg.dataset.dt_factor]
+    x_in = states
+    if cfg.dataset.name == 'lorenz':
+        true_deriv = jax.vmap(F_lorenz)(x_in)
+    elif cfg.dataset.name == 'pendulum':
+        true_deriv = jax.vmap(F_pendulum)(x_in) # b nc T
+    elif cfg.dataset.name == 'twobody':
+        true_deriv = jax.vmap(F_twobody)(x_in)
+    F_prime_true = jnp.abs(true_deriv[:,:,1:]-true_deriv[:,:,:-1]) / jnp.abs(x_in[:,:,1:] - x_in[:,:,:-1])
+    F_prime_true = rearrange(F_prime_true, 'b nc T -> b (T) nc') 
+    return F_prime_true
+
+class CurriculumScheduler:
+    def __init__(self, cfg, train_data):
+        self.cfg = cfg
+        self.program = cfg.train.curriculum
+        self.index_train_min = 10  # 10 steps minimum
+        self.index_train_max = int(cfg.dataset.duration / (cfg.dataset.dt_factor * train_data.dataset.dt))
+
+        # training length heuristic
+        self.nepoch = int(self.index_train_max / self.index_train_min) * 100 + 400
+
+        # internal state
+        self.epoch_rollout_index = None
+        self.reset()
+
+        # TODO
+        # old curriculum (smoother)    
+        #epoch_rollout_index = min(int(duration/hyperparameters_model["dt"]) + 1, int((duration/hyperparameters_model["dt"])*(epoch/nepoch)) + 2)
+
+    def reset(self):
+        """Initialize rollout index at the beginning of training."""
+        if self.program == "curr":
+            self.epoch_rollout_index = self.index_train_min + 1
+        else:  # no_curr
+            self.epoch_rollout_index = self.index_train_max + 1
+
+    def step(self, epoch: int):
+        """Update rollout index given current epoch."""
+        if self.program == "curr":
+            if (epoch + 1) % 100 == 0:
+                self.epoch_rollout_index = min(
+                    self.epoch_rollout_index + self.index_train_min,
+                    self.index_train_max + 1,
+                )
+        elif self.program == "no_curr":
+            self.epoch_rollout_index = self.index_train_max + 1
+        else:
+            raise ValueError(f"Unknown curriculum program: {self.program}")
+
+        return self.epoch_rollout_index, self.nepoch
+
+def train(cfg, train_data, val_data, net, optimizer):
+    name_experiment = cfg.model.phy_option+"_"+("aug" if cfg.model.aug_option else "physics")+"_"+str(cfg.dataset.duration)
+    # Setup logging
+    wandb_run = None
+    if cfg.logging.use_wandb:
+        wandb_run = wandb.init(
+            project=cfg.logging.project,
+            name=name_experiment,
+            config=OmegaConf.to_container(cfg, resolve=True),
+        )
+        wandb_id = wandb.run.id
+        # save code in w&b
+        wandb.run.log_code("./")
+    else:
+        wandb_id = "no_wandb"
+    
+    exp_path = make_basedir(cfg.experiment.path, f"{name_experiment}_{wandb_id}")
+    logger = Logger(filename=os.path.join(exp_path, "log.txt"))
+
+    # Save config for reproducibility
+    with open(os.path.join(exp_path, "config.yaml"), "w") as f:
+        f.write(OmegaConf.to_yaml(cfg))
+
+    # optimizer initialization
+    opt_state = optimizer.init(eqx.filter(net, eqx.is_array))
+    # Jitted loss
+    aux_losses_dict = init_jit_aux_loss(cfg.train.aux_loss_names, cfg.train.min_op, cfg.dataset.name)
+    loss_fn_grad = eqx.Partial(loss_fn, reg_loss_name=cfg.train.reg_loss_name, aux_losses_dict=aux_losses_dict)
+    # for model selection over val loss
+    loss_test_min = None
+    # curriculum
+    scheduler = CurriculumScheduler(cfg, train_data)
+    _lambda = cfg.train.lambda0
+
+    for epoch in range(scheduler.nepoch): 
+        epoch_rollout_index, nepoch = scheduler.step(epoch)
+        #print(f"Epoch {epoch}, rollout index: {epoch_rollout_index}")
+
+        loss_train = {aug_loss_name: 0.0 for aug_loss_name in cfg.train.aux_loss_names}
+        loss_train['loss_traj'] = 0.0             
+
+        #print(f"epoch {epoch} / {nepoch}, rollout index {epoch_rollout_index}")
+        for _ in range(cfg.train.niter): # APHYNITY
+            for iteration, data in enumerate(train_data, 0):
+                # --------------------------
+                ### TRAIN STEP
+                # --------------------------
+                if cfg.model.phy_option == 'loss_Fa_prime_supervisedYX':
+                    # TODO: wrong if batch size != nb trajectories
+                    if iteration == 0: # get F_prime_true over train only once
+                        F_prime_true = get_Fa_prime_true(cfg, data)
+                else:
+                    F_prime_true = None
+
+                states = jnp.array(data['states'])[:,:,:epoch_rollout_index*cfg.dataset.dt_factor:cfg.dataset.dt_factor]
+                t = jnp.array(data['t'][0])[::cfg.dataset.dt_factor]
+                (loss_total, (pred, losses_values_dict)), grads = loss_fn_grad(net, states, lambda_ = jnp.array(_lambda), epoch_rollout_index=epoch_rollout_index, Fa_prime_true=F_prime_true)
+                updates, opt_state = optimizer.update(
+                    grads, opt_state, eqx.filter(net, eqx.is_array))
+                net = eqx.apply_updates(net, updates)
+                # accumulate loss
+                for losses_values_dict_key, losses_values_dict_value in losses_values_dict.items():
+                    loss_train[losses_values_dict_key] += losses_values_dict_value
+                # pour voir si on train bien
+                if cfg.train.log_param_error:
+                    metric = compute_metric(net, train_data)
+                else:
+                    metric = {}
+
+        # average loss over train set
+        for losses_values_dict_key, losses_values_dict_value in losses_values_dict.items():
+            loss_train[losses_values_dict_key] /= (iteration + 1) * cfg.train.niter
+        
+        # update lambda
+        _lambda = _lambda + cfg.train.tau2 * loss_train['loss_traj'].item()
+
+        ### LOGS 
+        total_iteration = epoch * (len(train_data)) + (iteration + 1)
+        if total_iteration % cfg.train.nlog == 0:
+            log(train_data, epoch, iteration, loss_train | metric, nepoch)
+        # log metrics to wandb 
+        log_wandb(net, train_data, _lambda, loss_train, 'train', epoch_rollout_index, cfg.train.log_param_error)
+        
+        # --------------------------
+        ### VALIDATION STEP
+        # --------------------------
+        if total_iteration % cfg.train.nval == 0:
+            loss_test = {aug_loss_name: 0.0 for aug_loss_name in cfg.train.aux_loss_names}
+            loss_test["loss_traj"] = 0.0 #{"loss_traj": 0.0, "loss_op": 0.0}
+            for j, data_test in enumerate(val_data, 0):
+                if cfg.model.phy_option == 'loss_Fa_prime_supervisedYX':
+                    if j == 0: # get F_prime_true over val only once
+                        F_prime_true_val = get_Fa_prime_true(cfg, data_test)
+                else:
+                    F_prime_true_val = None
+
+                # no backpropagation
+                states = jnp.array(data_test['states'])[:,:,::cfg.dataset.dt_factor]
+                t = jnp.array(data_test['t'][0])[::cfg.dataset.dt_factor]
+                (loss_total, (pred, losses_values_dict)), grads = loss_fn_grad(net, states, lambda_ = jnp.array(_lambda), epoch_rollout_index=states.shape[2], Fa_prime_true=F_prime_true_val) 
+                # accumulate loss
+                for losses_values_dict_key, losses_values_dict_value in losses_values_dict.items():
+                    loss_test[losses_values_dict_key] += losses_values_dict_value
+                
+            # average loss over test set
+            for losses_values_dict_key, losses_values_dict_value in losses_values_dict.items():
+                loss_test[losses_values_dict_key] /= (j + 1)
+
+            ### LOGS
+            print('#' * 80)
+            log(train_data, epoch, iteration, loss_test | metric, nepoch)
+            print('#' * 80)
+            # log metrics to wandb
+            log_wandb(net, val_data, _lambda, loss_test, 'val', epoch_rollout_index, cfg.train.log_param_error)
+            
+            # save model over loss_test
+            if loss_test_min == None or loss_test_min > loss_test["loss_traj"].item():
+                loss_test_min = loss_test['loss_traj'].item()
+                # save model using equinox
+                # TODO how to also save optimizer state?
+                hyperparameters = {
+                    "epoch": epoch,
+                    "loss": loss_test_min,
+                    "lambda": _lambda,
+                    }
+                save(exp_path + f'/model_{loss_test_min:.3e}.eqx', hyperparameters, net)
+
+    if wandb_run:
+        wandb_run.finish()
+
+def main(cfg):
+    train_data, val_data = get_datasets(cfg)
+    net = get_model(cfg, train_data)
+    optimizer = get_optimizer(cfg)
+    train(cfg, train_data, val_data, net, optimizer)
+
+### DEPRECATED
 def training_routine(train, test, net, optimizer, min_op, _lambda,tau_1, tau_2, niter, path, device, aux_loss_names=["loss_Fa", "loss_Fa_primeX"], reg_loss_name="none", dt_factor=1, nlog=1, nupdate=1, nepoch=10, name_project="Damped_Pendulum", log_param_error=True, duration=None, dataset_name="pendulum", model_phy_option="none", model_aug_option=False):   
     # Setup to save logs 
     name_experiment = model_phy_option+"_"+("aug" if model_aug_option else "physics")+"_"+str(duration)
@@ -115,9 +357,6 @@ def training_routine(train, test, net, optimizer, min_op, _lambda,tau_1, tau_2, 
                 states = jnp.array(data['states'])[:,:,:epoch_rollout_index*dt_factor:dt_factor]
                 t = jnp.array(data['t'][0])[::dt_factor]
                 (loss_total, (pred, losses_values_dict)), grads = loss_fn_grad(net, states, lambda_ = jnp.array(_lambda), epoch_rollout_index=epoch_rollout_index, Fa_prime_true=F_prime_true)
-                print(type(true_deriv[0,0,0]))
-                print(type(states[0,0,0]))
-                print(type(pred[0,0,0]))
                 updates, opt_state = optimizer.update(
                     grads, opt_state, eqx.filter(net, eqx.is_array))
                 net = eqx.apply_updates(net, updates)
@@ -195,10 +434,6 @@ def training_routine(train, test, net, optimizer, min_op, _lambda,tau_1, tau_2, 
                     }
                 save(exp_path + f'/model_{loss_test_min:.3e}.eqx', hyperparameters, net)
 
-      
-
-
-# Main
 def train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device, integration_method, data_integration_method="RK4", dt_factor=1, dt_num=0.5, duration=20, init_gain=0.2):
     train, val, _ = init_dataloaders(dataset_name, data_integration_method, os.path.join(path, dataset_name+str(duration)), dt_num=dt_num, duration=duration)
 
@@ -395,145 +630,20 @@ def train_aphynity(dataset_name, model_phy_option, model_aug_option, path, devic
 
 if __name__ == '__main__':
     wandb.login()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--config", type=str, default="config.yaml", help="Path to YAML config file")
+    parser.add_argument("overrides", nargs=argparse.REMAINDER, help="Override config values (e.g. dataset.name=lorenz)")
+    args = parser.parse_args()
 
-    ### SC1 - Train a model with complete physics
-    # method = 'RK4' 
-    # dataset_name = 'pendulum'
-    # model_phy_option = 'complete'
-    # model_aug_option = False 
-    # path = 'data/sanity_checks2'
-    # device = 'cpu'
-    # train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device, method)
+    base_cfg = OmegaConf.load(args.config)
+    cli_cfg = OmegaConf.from_dotlist(args.overrides)
+    cfg = OmegaConf.merge(base_cfg, cli_cfg)
 
-    ### SC2 - Train a model with incomplete physics and augmentation
-    # method = 'RK4' 
-    # dataset_name = 'pendulum'
-    # model_phy_option = 'incomplete'
-    # model_aug_option = True
-    # path = 'data/sanity_checks2'
-    # device = 'cpu'
-    # train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device, method)
+    if cfg.logging.use_wandb:
+        wandb.login()
 
-    ### SC2.2 - Train a model with incomplete physics and augmentation, only loss_traj
-    # method = 'RK4' 
-    # dataset_name = 'pendulum'
-    # model_phy_option = 'incomplete_no_Fa'
-    # model_aug_option = True
-    # path = 'data/sanity_checks2'
-    # device = 'cpu'
-    # train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device, method)
+    main(cfg)
 
-    ## SC3 - Neural ODE 
-    # method = 'RK4' 
-    # dataset_name = 'pendulum'
-    # model_phy_option = 'none'
-    # model_aug_option = True
-    # path = 'data/sanity_checks2'
-    # device = 'cpu'
-    # train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device, method)
-
-    ## SC4 - Neural ODE + penalisation Fa
-    # method = 'RK4' 
-    # dataset_name = 'pendulum'
-    # model_phy_option = 'none_Fa'
-    # model_aug_option = True
-    # path = 'data/lipschitz'
-    # device = 'cpu'
-    # train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device, method, dt_factor = 1) #, duration=duration)
-
-    ### debug
-    # method = 'RK4' 
-    # dataset_name = 'pendulum'
-    # model_phy_option = 'complete'
-    # model_aug_option = True
-    # path = 'data/tests'
-    # device = 'cpu'
-    # train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device, method)
-
-    ### Error scheme 1
-    # for dt_factor in [2,5,8,10,16,20,25]:
-    #     method = 'RK2' 
-    #     dataset_name = 'pendulum'
-    #     model_phy_option = 'complete'
-    #     model_aug_option = False 
-    #     path = 'data/error_scheme'
-    #     device = 'cpu'
-    #     train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device, method, data_integration_method="RK4", dt_factor=dt_factor, dt_num=0.05)
-
-    # for dt_factor in [2,8,16]:
-    #     method = 'RK2' 
-    #     dataset_name = 'pendulum'
-    #     model_phy_option = 'complete'
-    #     model_aug_option = False 
-    #     path = 'data/error_scheme2'
-    #     device = 'cpu'
-    #     train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device, method, data_integration_method="RK4", dt_factor=dt_factor, dt_num=0.05)
-
-    ### Lipschitz
-    # method = 'RK4' 
-    # dataset_name = 'pendulum'
-    # model_phy_option = 'none_Fa_prime'
-    # model_aug_option = True
-    # path = 'data/lipschitz_init'
-    # device = 'cpu'
-    # duration = 20
-    # train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device, method, dt_factor = 1, duration=duration, init_gain=0.2)
-
-
-    ### Correct numerical errors 
-    # for dt_factor in [2,5]:
-    #     method = 'RK2'
-    #     dataset_name = 'pendulum'
-    #     model_phy_option = 'true'
-    #     model_aug_option = True
-    #     path = 'data/correct_num_err'
-    #     device = 'cpu'
-    #     duration = 20
-    #     train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device, method, dt_factor = dt_factor, duration=duration, dt_num=0.05)
-
-    ### Lipschitz pendulum curriculum
-    # method = 'RK4' 
-    # dataset_name = 'pendulum'
-    # model_phy_option = 'none_Fa_prime_supX'
-    # model_aug_option = True
-    # path = 'data/pendulum_curriculum'
-    # device = 'cpu'
-    # duration = 5
-    # train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device, method, dt_factor = 1, duration=duration, init_gain=0.2)
-
-    ### Lorenz 
-    # method = 'RK4' 
-    # dataset_name = 'lorenz'
-    # model_phy_option = "none" # "none_Fa_prime_supX" or "none_Fa"
-    # model_aug_option = True
-    # path = 'data/lorenz_curriculum'
-    # device = 'cpu' 
-    # duration = 0.01
-    # dt_num = 0.01
-    # train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device, method, dt_factor = 1, duration=duration, init_gain=1.0, dt_num=dt_num)
-
-    ### Two Body
-    # method = 'RK4' 
-    # dataset_name = 'twobody'
-    # model_phy_option = "none_Fa_prime_supX" # "none_Fa_prime_supX" or "none_Fa"
-    # model_aug_option = True
-    # path = 'data/twobody_curriculum'
-    # device = 'cpu' 
-    # dt_num = 0.01
-    # dt_factor = 10
-    # for duration in [1.0]:
-    #     train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device, method, dt_factor = dt_factor, duration=duration, init_gain=1.0, dt_num=dt_num)
-
-    ### Test float64
-    method = 'RK4' 
-    dataset_name = 'twobody'
-    model_phy_option = "none_Fa_prime_supX" # "none_Fa_prime_supX" or "none_Fa"
-    model_aug_option = True
-    path = 'data/test_float64'
-    device = 'cpu' 
-    dt_num = 0.01
-    dt_factor = 10
-    for duration in [1.0]:
-        train_aphynity(dataset_name, model_phy_option, model_aug_option, path, device, method, dt_factor = dt_factor, duration=duration, init_gain=1.0, dt_num=dt_num)
+    # Example command to run: python train_jaxphynity.py --config config/config.yaml dataset.name=pendulum train.epochs=200
 
 
