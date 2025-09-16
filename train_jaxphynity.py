@@ -196,6 +196,7 @@ def train(cfg, train_data, val_data, net, optimizer):
             _lambda = _lambda + cfg.train.tau2 * loss_train['loss_traj'].item()
         elif cfg.train.opt_mode == "traj":
             _lambda = _lambda + cfg.train.tau2 * loss_train[cfg.train.reg_loss_name].item()
+            _lambda = max(0.0, _lambda)  # ensure lambda is non-negative
 
         ### LOGS 
         total_iteration = epoch * (len(train_data)) + (iteration + 1)
