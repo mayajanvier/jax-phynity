@@ -83,8 +83,28 @@ class MLP(eqx.Module):
         for layer in self.layers:
             x = layer(x)
         return x
-    
 
+class ConvNetEstimator(eqx.Module):
+    def __init__(self, key, state_c=2, hidden=16):
+        super().__init__()
+        key1, key2, key3 = jax.random.split(key, 3)
+        kernel_size = 3
+        padding = kernel_size // 2
+        self.state_c = state_c
+        self.layers = [
+            eqx.nn.Conv2d(state_c, hidden, kernel_size=kernel_size, padding=padding, use_bias=False, key=jax.random.PRNGKey(key1)),
+            eqx.nn.BatchNorm(hidden, axis_name='batch', use_running_average=False, momentum=0.9, eps=1e-5),
+            jax.nn.relu,
+            eqx.nn.Conv2d(hidden, hidden, kernel_size=kernel_size, padding=padding, use_bias=False, key=jax.random.PRNGKey(key2)),
+            eqx.nn.BatchNorm(hidden, axis_name='batch', use_running_average=False, momentum=0.9, eps=1e-5),
+            jax.nn.relu,
+            eqx.nn.Conv2d(hidden, state_c, kernel_size=kernel_size, padding=padding, use_bias=True, key=jax.random.PRNGKey(key3)),
+        ]
+
+    def __call__(self, x):
+        for layer in self.layers:
+            x = layer(x)
+        return x
 
 if __name__ == '__main__':
     nb_neurons = 200

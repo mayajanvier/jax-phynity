@@ -6,7 +6,7 @@ dataset:
   dt_factor: 1
 
 model:
-  phy_option: none_Fa_prime_supX
+  phy_option: none
   aug_option: true
   hidden: 200
   init_gain: 1.0
@@ -16,17 +16,18 @@ train:
   lr: 1e-3
   niter: 5
   min_op: l2
-  reg_loss_name: loss_Fa_primeX
-  lambda0: 1.0
+  reg_loss_name: none
+  lambda0: 0.0
   tau2: 0.0
   aux_loss_names: ["loss_Fa", "loss_Fa_primeX", "loss_Fa_prime_supervisedX"]
   log_param_error: false # when hybrid
   nlog: 5
   nval: 5 
   curriculum: curr
+  opt_mode: traj
 
 experiment:
-  path: data/test_float64
+  path: data/lorenz_gridsearch
 
 logging:
   use_wandb: true

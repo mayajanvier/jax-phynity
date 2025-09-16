@@ -67,7 +67,7 @@ class TwoBody():
 
 
 class TwoBody_init():
-
+    # To create trajectories from initial points stored in 2body_init_*.npy files
     def __init__(self, dt, num_steps, path, split, nb_traj, integration_method='RK4') :
         super().__init__()
         self.dt = dt # time step
