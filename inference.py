@@ -281,8 +281,8 @@ def inference_longrun_dt(model_name, exp_name, data_path, model_phy_option, mode
     # load model
     model_path = os.path.join(data_path, f"{exp_name}/{model_name}")
     print(model_path)
-    with open(os.path.join(data_path, f'{exp_name}/hyperparameters.json'), 'r') as f:
-        hyperparameters_dict = json.load(f)
+    #with open(os.path.join(data_path, f'{exp_name}/hyperparameters.json'), 'r') as f:
+    #    hyperparameters_dict = json.load(f)
     dt_factor = int(dt/test.dataset.dt)
     print({"dt":dt, "test data dt":test.dataset.dt, "dt factor":dt_factor})
 
@@ -377,7 +377,7 @@ def run_inference_longrun_dt_bestmodel(dt, experiment_path, dataset_name, integr
 
 if __name__ == '__main__':
     dt = 0.1
-    experiment_path = "/Users/mayajanvier/jax-phynity/data/test_float64/none_Fa_prime_supX_aug_1.0_7_y9m718id"
+    experiment_path = "/Users/mayajanvier/jax-phynity/data/test_float64/none_Fa_prime_supX_norm_aug_1.0_20_xd8dhys1"
     dataset_name = "twobody"
     integration_method = "RK4"
     data_integration_method = "RK4"
