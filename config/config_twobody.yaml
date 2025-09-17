@@ -1,7 +1,7 @@
 dataset:
   name: twobody
   integration_method: RK4
-  duration: 1.0
+  duration: 5.0
   dt_num: 0.01
   dt_factor: 10
 
@@ -17,14 +17,14 @@ train:
   niter: 5
   min_op: l2
   reg_loss_name: loss_Fa_prime_supervisedX_norm
-  lambda0: 10.0
-  tau2: 1000.0
+  lambda0: 1.0
+  tau2: 1.0
   aux_loss_names: ["loss_Fa", "loss_Fa_primeX", "loss_Fa_prime_supervisedX_norm"]
   log_param_error: false # when hybrid
   nlog: 5
   nval: 5 
-  curriculum: no_curr
-  opt_mode: constraint
+  curriculum: curr
+  opt_mode: traj
 
 experiment:
   path: data/test_float64
