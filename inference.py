@@ -11,6 +11,8 @@ from loss import loss_trajectory, loss_Fa #loss_fn
 
 # Enable 64-bit precision in JAX
 jax.config.update("jax_enable_x64", True)
+# Set device to gpu
+jax.config.update('jax_platform_name', 'gpu')
 
 @eqx.filter_value_and_grad(has_aux=True)
 @eqx.filter_jit

@@ -19,6 +19,8 @@ from loss import loss_fn, init_jit_aux_loss, F_pendulum, F_lorenz, F_twobody
 
 # Enable 64-bit precision in JAX
 jax.config.update("jax_enable_x64", True)
+# Set device to gpu
+jax.config.update('jax_platform_name', 'gpu')
 
 def get_datasets(cfg):
     train, val, _ = init_dataloaders(
