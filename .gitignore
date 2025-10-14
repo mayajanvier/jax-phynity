@@ -1,3 +1,6 @@
 __pycache__
 *data/
 *wandb
+*data_scai/
+*data_scai_cpu/
+*data_test/
