@@ -8,11 +8,13 @@ from networks import *
 from forecasters import *
 from datasets import init_dataloaders
 from loss import loss_trajectory, loss_Fa #loss_fn
+import argparse
+from omegaconf import OmegaConf
 
 # Enable 64-bit precision in JAX
-jax.config.update("jax_enable_x64", True)
-# Set device to gpu
-jax.config.update('jax_platform_name', 'gpu')
+#jax.config.update("jax_enable_x64", True)
+#jax.config.update("jax_platform_name", "cpu") # fails somehow on server
+#print(jax.devices())
 
 @eqx.filter_value_and_grad(has_aux=True)
 @eqx.filter_jit
@@ -329,15 +331,20 @@ def inference_longrun_dt(model_name, exp_name, data_path, model_phy_option, mode
     # inference
     results = {}
     for i, data in enumerate(test):
-        states = jnp.array(data['states'], dtype=jnp.float64)[:,:,::dt_factor] # float 64 for dt precision
+        states = jnp.array(data['states'])[:,:,::dt_factor] # float 64 for dt precision
         print(states.shape)
         t = jnp.array(data['t'][0])[::dt_factor]
         pred = jax.vmap(model)(states[:,:,0]) # states[:,:,0] is the initial condition for the trajectory
     for k in range(pred.shape[0]):
-        results[k] = {
-                        'y_true': np.array(states[k]).tolist(),
-                        'y_pred': np.array(pred[k]).tolist(),
-                    }
+        if model_phy_option == 'none':
+            results[k] = {
+                            'y_true': np.array(states[k]).tolist(),
+                            'y_pred': np.array(pred[k]).tolist(),
+                        }
+        else: # economize space
+            results[k] = {
+                'y_pred': np.array(pred[k]).tolist(),
+            }
     with open(os.path.join(data_path, f'{exp_name}/{model_name[:-4]}_longrun_dt_{duration}_{dt}.json'), 'a') as f:
         f.write(json.dumps(results) + '\n')
 
@@ -377,13 +384,40 @@ def run_inference_longrun_dt_bestmodel(dt, experiment_path, dataset_name, integr
         dt_num,
         duration)
 
+def main(cfg):
+    data_folder = cfg.data_folder
+    dt = cfg.dt
+    integration_method = cfg.integration_method
+    duration = cfg.dataset.duration
+    dataset_name = cfg.dataset.name
+    dt_num = cfg.dataset.dt_num
+    data_integration_method = cfg.dataset.integration_method
+
+    experiments = os.listdir(data_folder)
+    for exp in experiments:
+        experiment_path = os.path.join(data_folder, exp)
+        if os.path.isdir(experiment_path):
+            print(f"Processing experiment: {exp}")
+            run_inference_longrun_dt_bestmodel(dt, experiment_path, dataset_name, integration_method, data_integration_method, dt_num, duration)
+
 if __name__ == '__main__':
-    dt = 0.1
-    experiment_path = "/Users/mayajanvier/jax-phynity/data/test_float64/none_Fa_prime_supX_norm_aug_1.0_20_xd8dhys1"
-    dataset_name = "twobody"
-    integration_method = "RK4"
-    data_integration_method = "RK4"
-    dt_num = 0.01
-    duration = 100
-    run_inference_longrun_dt_bestmodel(dt, experiment_path, dataset_name, integration_method, data_integration_method, dt_num, duration)
+    # dt = 0.01
+    # experiment_path = "/Users/mayajanvier/jax-phynity/data_scai_cpu/lorenz_gridsearch/none_Fa_prime_supX_aug_0.5_20_660qoqcy"
+    # dataset_name = "lorenz"
+    # integration_method = "RK4"
+    # data_integration_method = "RK4"
+    # dt_num = 0.01
+    # duration = 100
+    # run_inference_longrun_dt_bestmodel(dt, experiment_path, dataset_name, integration_method, data_integration_method, dt_num, duration)
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--config", type=str, default="config.yaml", help="Path to YAML config file")
+    parser.add_argument("overrides", nargs=argparse.REMAINDER, help="Override config values (e.g. dataset.name=lorenz)")
+    args = parser.parse_args()
+
+    base_cfg = OmegaConf.load(args.config)
+    cli_cfg = OmegaConf.from_dotlist(args.overrides)
+    cfg = OmegaConf.merge(base_cfg, cli_cfg)
+
+    main(cfg)
 

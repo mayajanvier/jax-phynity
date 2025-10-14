@@ -17,15 +17,15 @@ train:
   niter: 5
   min_op: l2
   reg_loss_name: none
-  lambda0: 0.0
+  lambda0: 1.0
   tau2: 0.0
   aux_loss_names: ["loss_Fa", "loss_Fa_primeX", "loss_Fa_prime_supervisedX"]
   log_param_error: false # when hybrid
   nlog: 5
   nval: 5 
   curriculum: curr
-  opt_mode: traj
-
+  opt_mode: constraint 
+  
 experiment:
   path: data/lorenz_gridsearch
 
