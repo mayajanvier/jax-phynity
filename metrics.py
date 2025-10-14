@@ -7,10 +7,14 @@ import jax
 import jax.numpy as jnp
 from networks import * 
 from forecasters import Forecaster   
-
+from inference import *
+import yaml
+from collections import defaultdict
 
 ### PERFORMANCE METRICS
-def compute_metrics_lorenz(data):
+def compute_metrics_lorenz(data, data_true=None):
+    if data_true is not None:
+        data["y_true"] = data_true.values
     data["y_true"] = data["y_true"].apply(lambda x: np.array(x))
     data["y_pred"] = data["y_pred"].apply(lambda x: np.array(x))
     data["L2"] = data.apply(lambda x: np.mean(np.array((x["y_true"] - x["y_pred"])**2)), axis=1)
@@ -43,6 +47,34 @@ def compute_metrics_lorenz(data):
     data["KL_z"] = data.apply(lambda x: entropy(x["z_pdf_true"], x["z_pdf_pred"]), axis=1)
     return data
 
+def compute_metrics(data, data_true=None):
+    if data_true is not None:
+        data["y_true"] = data_true.values
+    data["y_true"] = data["y_true"].apply(lambda x: np.array(x))
+    data["y_pred"] = data["y_pred"].apply(lambda x: np.array(x))
+    data["L2"] = data.apply(lambda x: np.mean(np.array((x["y_true"] - x["y_pred"])**2)), axis=1)
+
+    # bins from true 
+    for i, key in enumerate(["x_min", "y_min"]):
+        data[key] = data.apply(lambda x: np.min(x["y_true"][i]), axis=1)
+    for i, key in enumerate(["x_max", "y_max"]):
+        data[key] = data.apply(lambda x: np.max(x["y_true"][i]), axis=1)
+
+    # compute pdf
+    data["x_pdf_true"] = data.apply(lambda x: np.histogram(x["y_true"][0], bins=50, range=(x["x_min"], x["x_max"]), density=True)[0], axis=1)
+    data["x_pdf_pred"] = data.apply(lambda x: np.histogram(x["y_pred"][0], bins=50, range=(x["x_min"], x["x_max"]), density=True)[0], axis=1)
+    data["y_pdf_true"] = data.apply(lambda x: np.histogram(x["y_true"][1], bins=50, range=(x["y_min"], x["y_max"]), density=True)[0], axis=1)
+    data["y_pdf_pred"] = data.apply(lambda x: np.histogram(x["y_pred"][1], bins=50, range=(x["y_min"], x["y_max"]), density=True)[0], axis=1)
+
+    # Add small epsilon to avoid log(0)
+    epsilon = 1e-10
+    for key in ["x_pdf_true", "x_pdf_pred", "y_pdf_true", "y_pdf_pred"]:
+        data[key] = data[key].apply(lambda x: x + epsilon)
+
+    # KL divergence
+    data["KL_x"] = data.apply(lambda x: entropy(x["x_pdf_true"], x["x_pdf_pred"]), axis=1)
+    data["KL_y"] = data.apply(lambda x: entropy(x["y_pdf_true"], x["y_pdf_pred"]), axis=1)
+    return data
 
 ### JACOBIAN METRICS
 
@@ -52,8 +84,6 @@ def load_model_dt(model_path, model_phy_option, model_aug_option, dataset_name, 
     # load model
     model_path = os.path.join(data_path, f"{exp_name}/{model_name}")
     print(model_path)
-    with open(os.path.join(data_path, f'{exp_name}/hyperparameters.json'), 'r') as f:
-        hyperparameters_dict = json.load(f)
     dt_factor = int(dt/dt_num)
     num_steps = int(duration/dt_num)
     print({"dt":dt, "test data dt":dt_num, "dt factor":dt_factor})
@@ -92,6 +122,52 @@ def load_model_dt(model_path, model_phy_option, model_aug_option, dataset_name, 
         )
         model = eqx.tree_deserialise_leaves(f, net)
     return model
+
+def load_best_model_dt(dt, experiment_path, dataset_name, integration_method, data_integration_method="RK4", dt_num=0.01, duration=100):
+    data_path, experiment_name = experiment_path.rsplit('/', 1)
+    model_name = get_best_model(experiment_path)
+    # model aug option
+    if "aug" in experiment_name: # augmented model
+        model_aug_option = True
+        # split before _aug
+        model_phy_option = experiment_name.split("_aug")[0]
+    else: # physical model
+        model_aug_option = False
+        # split before _physics
+        model_phy_option = experiment_name.split("_physics")[0]
+    
+    model_path = os.path.join(data_path, f"{experiment_name}/{model_name}")
+    model = load_model_dt(
+        model_path,
+        model_phy_option,
+        model_aug_option,
+        dataset_name,
+        integration_method,
+        dt,
+        dt_num,
+        duration
+        )
+    return model
+
+def load_model_dict_dt(data_folder, dt, dataset_name, integration_method, data_integration_method="RK4", dt_num=0.01, duration=100):
+    model_dict_Fa = defaultdict(lambda: defaultdict(dict))
+    model_dict_Fa_prime_supX = defaultdict(lambda: defaultdict(dict))
+    for experiment_name in os.listdir(data_folder):
+        experiment_path = os.path.join(data_folder, experiment_name)
+        if os.path.isdir(experiment_path):
+            try:
+                with open(os.path.join(experiment_path, "config.yaml"), "r") as f:
+                    cfg = yaml.safe_load(f)
+                _lambda = cfg["train"]["lambda0"]
+                tau2 = cfg["train"]["tau2"]
+                model = load_best_model_dt(dt, experiment_path, dataset_name, integration_method, data_integration_method, dt_num, duration)
+                if "Fa_prime_supX" in experiment_name:
+                    model_dict_Fa_prime_supX[_lambda][tau2] = model
+                else:
+                    model_dict_Fa[_lambda][tau2] = model
+            except Exception as e:
+                print(f"Could not load model for experiment {experiment_name}: {e}")
+    return model_dict_Fa, model_dict_Fa_prime_supX
 
 def make_jacobian_norm_fn(model):
     """Returns a batched, JIT-compiled function to compute Jacobian norms."""
