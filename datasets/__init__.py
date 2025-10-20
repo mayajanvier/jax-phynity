@@ -17,13 +17,14 @@ def seed_worker(worker_id):
 
 # Build our dataloaders
 
-def param_dataset(buffer_filepath, integration_method, dataset_name="pendulum", batch_size=25, dt_num=0.5, duration=20, nb_traj=25):
+def param_dataset(buffer_filepath, integration_method, dataset_name="pendulum", batch_size=25, dt_num=0.5, duration=20, nb_traj=25, num_steps_max=100):
     g = torch.Generator()
     g.manual_seed(0)
 
     dataset_train_params = {
         'nb_traj': nb_traj, 
-        'num_steps': int(duration/dt_num), 
+        'num_steps_max': num_steps_max,
+        'num_steps_rollout': int(duration/dt_num), 
         'dt': dt_num, # 0.05 for error scheme experiments
         'split': 'train',
         'path': buffer_filepath+'_train',
@@ -52,6 +53,7 @@ def param_dataset(buffer_filepath, integration_method, dataset_name="pendulum", 
         dataset_val   = LorenzTrue(**dataset_val_params)
         dataset_test  = LorenzTrue(**dataset_test_params)
     elif dataset_name == "twobody":
+        dataset_test_params['nb_traj'] = 100
         dataset_train = TwoBody(**dataset_train_params)
         dataset_val   = TwoBody(**dataset_val_params)
         dataset_test  = TwoBody(**dataset_test_params)
@@ -109,9 +111,11 @@ def init_dataloaders(dataset, integration_method, buffer_filepath=None, dt_num=0
     elif dataset == 'lorenz': 
         batch_size = 25
         nb_traj = 25
+        num_steps_max = 100
     elif dataset == 'twobody': # from White paper
         batch_size = 40
         nb_traj = 40
+        num_steps_max = 1000 # in dt_num units
     elif dataset == 'wave': # from Yin paper 
         batch_size = 64
         nb_traj = 200
@@ -122,6 +126,7 @@ def init_dataloaders(dataset, integration_method, buffer_filepath=None, dt_num=0
         dataset_name=dataset,
         batch_size=batch_size,
         dt_num=dt_num,
+        num_steps_max=num_steps_max,
         duration=duration,
         nb_traj=nb_traj)
 

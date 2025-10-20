@@ -5,6 +5,7 @@ import jax
 from jax import random
 import jax.numpy as jnp
 from collections import OrderedDict
+from einops import rearrange
 
 from solvers.runge_kutta import RK_solver_fixed, RK_tableaux
 
@@ -72,6 +73,7 @@ class DampedPendulum():
                 num_steps=self.num_steps,
                 tableau = RK_tableaux[self.integration_method],
                 )
+            states = rearrange(states, 'nc T -> T nc') 
             # save data as numpy array for Dataloader
             self.data[str(index)] = states
             self.data['t'] = t
