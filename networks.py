@@ -6,7 +6,7 @@ from einops import rearrange
 # Enable 64-bit precision in JAX
 jax.config.update("jax_enable_x64", True)
 # Set device to gpu
-jax.config.update('jax_platform_name', 'gpu')
+#jax.config.update('jax_platform_name', 'gpu')
 
 ### Physical model Fp
 omega0_square_org = 0.2
