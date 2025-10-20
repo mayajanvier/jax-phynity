@@ -4,3 +4,4 @@ __pycache__
 *data_scai/
 *data_scai_cpu/
 *data_test/
+*datasets/*.npy
