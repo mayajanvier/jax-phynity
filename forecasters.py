@@ -1,8 +1,12 @@
 from networks import *
 from solvers.runge_kutta import RK_solver_fixed, RK_tableaux, ButcherTableau
+import jax
 import jax.numpy as jnp
 import equinox as eqx 
+import diffrax
 from einops import rearrange
+from diffrax import diffeqsolve, ODETerm
+from solvers.diffrax import RK_tableaux_diffrax
 
 class DerivativeEstimator(eqx.Module):
     """ Returns the model with the augmented model
@@ -31,8 +35,70 @@ class DerivativeEstimator(eqx.Module):
             else:
                 return res_phy
 
+class ForecasterDiffrax(eqx.Module):
+    model_phy: eqx.Module
+    model_aug: eqx.Module
+    t: jax.Array
+    dt: float = eqx.static_field()
+    num_steps: int = eqx.static_field()
+    integration_method: str = eqx.static_field()
+    term: diffrax.ODETerm = eqx.static_field()
+    solver: diffrax.AbstractSolver = eqx.static_field()
+
+    is_phy: str = eqx.static_field()
+    is_augmented: bool = eqx.static_field()
+    int_: callable = eqx.static_field()
+
+    def __init__(self, model_phy, model_aug, is_augmented, is_phy, dt, num_steps, integration_method='DOPRI5'):
+        super().__init__()
+
+        self.model_phy = model_phy
+        self.model_aug = model_aug
+        self.is_augmented = is_augmented
+        self.is_phy = is_phy
+        self.dt = dt
+        self.num_steps = num_steps
+        self.integration_method = integration_method
+        self.int_ = diffrax.diffeqsolve
+        self.t = jnp.linspace(0, dt * num_steps, num_steps + 1)
+        self.term = diffrax.ODETerm(Forecaster.derivative_estimator)
+        self.solver = RK_tableaux_diffrax[self.integration_method]
+
+    @eqx.filter_jit
+    def __call__(self, y0):
+        res = self.int_(
+            self.term,
+            solver=self.solver,
+            t0=self.t[0],
+            t1=self.t[-1],
+            dt0=self.dt,
+            y0=y0,
+            args=(self.model_phy, self.model_aug, self.is_phy, self.is_augmented),  
+            saveat=diffrax.SaveAt(ts=self.t),
+        )
+        #res = rearrange(res.ys, 't nc -> nc t')  # (n_c, T)
+        return res.ys
+
+    @staticmethod
+    def derivative_estimator(t, y, args):
+        model_phy, model_aug, is_phy, is_augmented = args
+        if is_phy in [
+            "none", "none_Fa", "none_Fa_prime", "none_Fa_prime_supX",
+            "none_Fa_prime_supX_norm", "none_Fa_prime_supX_l2",
+            "none_Fa_prime_supX_direct", "none_Fa_prime_supYX",
+        ]:
+            return model_aug(y)
+        else:
+            res_phy = model_phy(y)
+            if is_augmented:
+                res_aug = model_aug(y)
+                return res_phy + res_aug
+            else:
+                return res_phy
+            
+
 class Forecaster(eqx.Module):
-    """ Integrates a trajectory using int_ method """
+    """ Integrates a trajectory using int_ method (RK_solver_fixed I wrote) """
     model_phy: eqx.Module
     model_aug: eqx.Module
     dt: float = eqx.static_field()
@@ -81,6 +147,7 @@ class Forecaster(eqx.Module):
         # y0:   (n_c,)
         # res:  (n_c, T) 
         res, _, _, _ = self.int_(self.derivative_estimator, y0=y0, dt=self.dt, num_steps=self.num_steps, tableau=RK_tableaux[self.integration_method]) 
+        res = rearrange(res, 'nc T -> T nc')  # (T, nc)
         return res 
     
     def get_pde_params(self):
@@ -93,6 +160,8 @@ class Forecaster(eqx.Module):
     def derivative_estimator(self, state, t):
         # state of shape (nc,)
         if self.is_phy in["none",
+                          "none_AD_sup",
+                          "none_FD_unsup",
                           "none_Fa",
                           "none_Fa_prime",
                           "none_Fa_prime_supX",
