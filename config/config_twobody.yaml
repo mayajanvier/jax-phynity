@@ -1,7 +1,7 @@
 dataset:
   name: twobody
   integration_method: RK4
-  duration: 5.0
+  duration: 1.0
   dt_num: 0.01
   dt_factor: 10
 
@@ -14,20 +14,21 @@ model:
 
 train:
   lr: 1e-3
-  niter: 5
+  niter: 1
   min_op: l2
   reg_loss_name: none
   lambda0: 1.0
   tau2: 0.0
-  aux_loss_names: ["loss_Fa", "loss_Fa_primeX", "loss_Fa_prime_supervisedX_norm"]
+  aux_loss_names: ["loss_AD_sup", "loss_FD_unsup"]
   log_param_error: false # when hybrid
   nlog: 5
   nval: 5 
   curriculum: no_curr
-  opt_mode: constraint
+  opt_mode: traj
+  finite_diff: forward
 
 experiment:
-  path: data/twobody_gridsearch
+  path: data_test/twobody_gridsearch
 
 logging:
   use_wandb: true
