@@ -20,7 +20,7 @@ from loss import loss_fn, init_jit_aux_loss, F_pendulum, F_lorenz, F_twobody
 # Enable 64-bit precision in JAX
 jax.config.update("jax_enable_x64", True)
 # Set device to gpu
-jax.config.update('jax_platform_name', 'gpu')
+#jax.config.update('jax_platform_name', 'gpu')
 
 def get_datasets(cfg):
     train, val, _ = init_dataloaders(
@@ -59,7 +59,7 @@ def get_model(cfg, train):
         is_augmented=cfg.model.aug_option,
         is_phy=cfg.model.phy_option,
         dt=cfg.dataset.dt_factor * train.dataset.dt,
-        num_steps=int(train.dataset.num_steps / cfg.dataset.dt_factor),
+        num_steps=int(train.dataset.num_steps_rollout / cfg.dataset.dt_factor),
         integration_method=cfg.model.integration_method,
     )
     return net
@@ -68,16 +68,16 @@ def get_optimizer(cfg):
     return optax.adam(learning_rate=cfg.train.lr, b1=0.9, b2=0.999)
 
 def get_Fa_prime_true(cfg, data):
-    states = jnp.array(data['states'])[:,:,::cfg.dataset.dt_factor]
-    x_in = states
+    states = jnp.array(data['states'])[:,::cfg.dataset.dt_factor,:]
+    x_in = rearrange(states, 'b T nc -> (b T) nc')
     if cfg.dataset.name == 'lorenz':
         true_deriv = jax.vmap(F_lorenz)(x_in)
     elif cfg.dataset.name == 'pendulum':
-        true_deriv = jax.vmap(F_pendulum)(x_in) # b nc T
+        true_deriv = jax.vmap(F_pendulum)(x_in) 
     elif cfg.dataset.name == 'twobody':
         true_deriv = jax.vmap(F_twobody)(x_in)
-    F_prime_true = jnp.abs(true_deriv[:,:,1:]-true_deriv[:,:,:-1]) / jnp.abs(x_in[:,:,1:] - x_in[:,:,:-1])
-    F_prime_true = rearrange(F_prime_true, 'b nc T -> b (T) nc') 
+    true_deriv = rearrange(true_deriv, '(b T) nc -> b T nc', b=states.shape[0])
+    F_prime_true = jnp.abs(true_deriv[:,1:,:]-true_deriv[:,:-1,:]) / jnp.abs(states[:,1:,:] - states[:,:-1,:])
     return F_prime_true
 
 class CurriculumScheduler:
@@ -146,7 +146,7 @@ def train(cfg, train_data, val_data, net, optimizer):
     # optimizer initialization
     opt_state = optimizer.init(eqx.filter(net, eqx.is_array))
     # Jitted loss
-    aux_losses_dict = init_jit_aux_loss(cfg.train.aux_loss_names, cfg.train.min_op, cfg.dataset.name, cfg.train.opt_mode)
+    aux_losses_dict = init_jit_aux_loss(cfg.train.aux_loss_names, cfg.train.min_op, cfg.dataset.name, cfg.train.finite_diff)
     loss_fn_grad = eqx.Partial(loss_fn, reg_loss_name=cfg.train.reg_loss_name, aux_losses_dict=aux_losses_dict, opt_mode=cfg.train.opt_mode)
     # for model selection over val loss
     loss_test_min = None
@@ -167,16 +167,16 @@ def train(cfg, train_data, val_data, net, optimizer):
                 # --------------------------
                 ### TRAIN STEP
                 # --------------------------
-                if cfg.model.phy_option == 'loss_Fa_prime_supervisedYX':
-                    # TODO: wrong if batch size != nb trajectories
-                    if iteration == 0: # get F_prime_true over train only once
-                        F_prime_true = get_Fa_prime_true(cfg, data)
-                else:
-                    F_prime_true = None
+                # if cfg.model.phy_option == 'loss_Fa_prime_supervisedYX':
+                #     # TODO: wrong if batch size != nb trajectories
+                #     if iteration == 0: # get F_prime_true over train only once
+                #         F_prime_true = get_Fa_prime_true(cfg, data)
+                # else:
+                #     F_prime_true = None
 
-                states = jnp.array(data['states'])[:,:,:epoch_rollout_index*cfg.dataset.dt_factor:cfg.dataset.dt_factor]
-                t = jnp.array(data['t'][0])[::cfg.dataset.dt_factor]
-                (loss_total, (pred, losses_values_dict)), grads = loss_fn_grad(net, states, lambda_ = jnp.array(_lambda), epoch_rollout_index=epoch_rollout_index, Fa_prime_true=F_prime_true)
+                states = jnp.array(data['states'])[:,:epoch_rollout_index*cfg.dataset.dt_factor:cfg.dataset.dt_factor,:] # bs, time, nc with diffrax, bs, nc, time with RK_solver_fixed
+                #t = jnp.array(data['t'][0])[::cfg.dataset.dt_factor]
+                (loss_total, (pred, losses_values_dict)), grads = loss_fn_grad(net, states, lambda_ = jnp.array(_lambda), epoch_rollout_index=epoch_rollout_index) #, Fa_prime_true=F_prime_true)
                 updates, opt_state = optimizer.update(
                     grads, opt_state, eqx.filter(net, eqx.is_array))
                 net = eqx.apply_updates(net, updates)
@@ -194,11 +194,14 @@ def train(cfg, train_data, val_data, net, optimizer):
             loss_train[losses_values_dict_key] /= (iteration + 1) * cfg.train.niter
         
         # update lambda
-        if cfg.train.opt_mode == "constraint":
-            _lambda = _lambda + cfg.train.tau2 * loss_train['loss_traj'].item()
-        elif cfg.train.opt_mode == "traj":
-            _lambda = _lambda + cfg.train.tau2 * loss_train[cfg.train.reg_loss_name].item()
-            _lambda = max(0.0, _lambda)  # ensure lambda is non-negative
+        if cfg.train.reg_loss_name == "none":
+            pass # _lambda stays constant
+        else:
+            if cfg.train.opt_mode == "constraint":
+                _lambda = _lambda + cfg.train.tau2 * loss_train['loss_traj'].item()
+            elif cfg.train.opt_mode == "traj":
+                _lambda = _lambda + cfg.train.tau2 * loss_train[cfg.train.reg_loss_name].item()
+                _lambda = max(0.0, _lambda)  # ensure lambda is non-negative
 
         ### LOGS 
         total_iteration = epoch * (len(train_data)) + (iteration + 1)
@@ -214,16 +217,16 @@ def train(cfg, train_data, val_data, net, optimizer):
             loss_test = {aug_loss_name: 0.0 for aug_loss_name in cfg.train.aux_loss_names}
             loss_test["loss_traj"] = 0.0 #{"loss_traj": 0.0, "loss_op": 0.0}
             for j, data_test in enumerate(val_data, 0):
-                if cfg.model.phy_option == 'loss_Fa_prime_supervisedYX':
-                    if j == 0: # get F_prime_true over val only once
-                        F_prime_true_val = get_Fa_prime_true(cfg, data_test)
-                else:
-                    F_prime_true_val = None
+                # if cfg.model.phy_option == 'loss_Fa_prime_supervisedYX':
+                #     if j == 0: # get F_prime_true over val only once
+                #         F_prime_true_val = get_Fa_prime_true(cfg, data_test)
+                # else:
+                #     F_prime_true_val = None
 
                 # no backpropagation
-                states = jnp.array(data_test['states'])[:,:,::cfg.dataset.dt_factor]
-                t = jnp.array(data_test['t'][0])[::cfg.dataset.dt_factor]
-                (loss_total, (pred, losses_values_dict)), grads = loss_fn_grad(net, states, lambda_ = jnp.array(_lambda), epoch_rollout_index=states.shape[2], Fa_prime_true=F_prime_true_val) 
+                states = jnp.array(data_test['states'])[:,::cfg.dataset.dt_factor,:] # bs, time, nc with diffrax
+                #t = jnp.array(data_test['t'][0])[::cfg.dataset.dt_factor]
+                (loss_total, (pred, losses_values_dict)), grads = loss_fn_grad(net, states, lambda_ = jnp.array(_lambda), epoch_rollout_index=states.shape[1]) #, Fa_prime_true=F_prime_true_val)
                 # accumulate loss
                 for losses_values_dict_key, losses_values_dict_value in losses_values_dict.items():
                     loss_test[losses_values_dict_key] += losses_values_dict_value
@@ -649,6 +652,9 @@ if __name__ == '__main__':
         wandb.login()
 
     main(cfg)
+
+    # cfg = OmegaConf.load("config/config_lorenz.yaml")
+    # main(cfg)
 
     # Example command to run: python train_jaxphynity.py --config config/config.yaml dataset.name=pendulum train.epochs=200
 
