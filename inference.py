@@ -319,7 +319,7 @@ def inference_longrun_dt(model_name, exp_name, data_path, model_phy_option, mode
             is_augmented=model_aug_option,
             is_phy=model_phy_option,
             dt=dt,
-            num_steps=int(test.dataset.num_steps/dt_factor),
+            num_steps=int(test.dataset.num_steps_rollout/dt_factor),
             integration_method=integration_method, # error scheme exp
         )
         model = eqx.tree_deserialise_leaves(f, net)
@@ -331,10 +331,10 @@ def inference_longrun_dt(model_name, exp_name, data_path, model_phy_option, mode
     # inference
     results = {}
     for i, data in enumerate(test):
-        states = jnp.array(data['states'])[:,:,::dt_factor] # float 64 for dt precision
+        states = jnp.array(data['states'])[:,::dt_factor,:] 
         print(states.shape)
-        t = jnp.array(data['t'][0])[::dt_factor]
-        pred = jax.vmap(model)(states[:,:,0]) # states[:,:,0] is the initial condition for the trajectory
+        #t = jnp.array(data['t'][0])[::dt_factor]
+        pred = jax.vmap(model)(states[:,0,:]) # states[:,:,0] is the initial condition for the trajectory
     for k in range(pred.shape[0]):
         if model_phy_option == 'none':
             results[k] = {
