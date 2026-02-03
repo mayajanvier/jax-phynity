@@ -51,29 +51,52 @@ def compute_metrics(data, data_true=None):
     if data_true is not None:
         data["y_true"] = data_true.values
     data["y_true"] = data["y_true"].apply(lambda x: np.array(x))
-    data["y_pred"] = data["y_pred"].apply(lambda x: np.array(x))
+    shape_true = data["y_true"][0].shape
+    data["y_pred"] = data["y_pred"].apply(lambda x: np.array(x)[:shape_true[0], :shape_true[1]])
     data["L2"] = data.apply(lambda x: np.mean(np.array((x["y_true"] - x["y_pred"])**2)), axis=1)
+    data["L2_relative_white"] = data.apply(lambda x: np.mean(np.sqrt(np.array((x["y_true"] - x["y_pred"])**2)/np.array(x["y_true"]**2))), axis=1)
+    data["L2_over_time"] = data.apply(lambda x: np.array((x["y_true"] - x["y_pred"])**2).mean(axis=1), axis=1)
+    data["L2_over_time_relative"] = data.apply(lambda x: x["L2_over_time"]/np.array(x["y_true"]**2).mean(axis=1), axis=1)
+    data["L2_over_time_relative_white"] = data.apply(lambda x: np.sqrt(((x["y_true"]-x["y_pred"])**2).mean(axis=1)/((x["y_true"])**2).mean(axis=1)), axis=1)
+    data["momentum_pred"] = data.apply(lambda x: np.array(x["y_pred"][:,0]*x["y_pred"][:,3] - x["y_pred"][:,1]*x["y_pred"][:,2]), axis=1)
+    data["momentum_true"] = data.apply(lambda x: np.array(x["y_true"][:,0]*x["y_true"][:,3] - x["y_true"][:,1]*x["y_true"][:,2]), axis=1)
+    data["momentum_over_time_relative_white"] = data.apply(lambda x: np.sqrt(((x["momentum_true"]-x["momentum_pred"])**2)/((x["momentum_true"])**2)), axis=1)
 
-    # bins from true 
-    for i, key in enumerate(["x_min", "y_min"]):
-        data[key] = data.apply(lambda x: np.min(x["y_true"][i]), axis=1)
-    for i, key in enumerate(["x_max", "y_max"]):
-        data[key] = data.apply(lambda x: np.max(x["y_true"][i]), axis=1)
+    return data
 
-    # compute pdf
-    data["x_pdf_true"] = data.apply(lambda x: np.histogram(x["y_true"][0], bins=50, range=(x["x_min"], x["x_max"]), density=True)[0], axis=1)
-    data["x_pdf_pred"] = data.apply(lambda x: np.histogram(x["y_pred"][0], bins=50, range=(x["x_min"], x["x_max"]), density=True)[0], axis=1)
-    data["y_pdf_true"] = data.apply(lambda x: np.histogram(x["y_true"][1], bins=50, range=(x["y_min"], x["y_max"]), density=True)[0], axis=1)
-    data["y_pdf_pred"] = data.apply(lambda x: np.histogram(x["y_pred"][1], bins=50, range=(x["y_min"], x["y_max"]), density=True)[0], axis=1)
 
-    # Add small epsilon to avoid log(0)
-    epsilon = 1e-10
-    for key in ["x_pdf_true", "x_pdf_pred", "y_pdf_true", "y_pdf_pred"]:
-        data[key] = data[key].apply(lambda x: x + epsilon)
+def compute_metrics_rigidbody(data, data_true=None):
+    if data_true is not None:
+        data["y_true"] = data_true.values
+    data["y_true"] = data["y_true"].apply(lambda x: np.array(x))
+    shape_true = data["y_true"][0].shape
+    data["y_pred"] = data["y_pred"].apply(lambda x: np.array(x)[:shape_true[0], :shape_true[1]])
+    data["L2"] = data.apply(lambda x: np.mean(np.array((x["y_true"] - x["y_pred"])**2)), axis=1)
+    data["L2_relative"] = data.apply(lambda x: x["L2"]/np.mean(np.array(x["y_true"]**2)), axis=1)
+    data["L2_over_time"] = data.apply(lambda x: np.array((x["y_true"] - x["y_pred"])**2).mean(axis=1), axis=1)
+    data["L2_over_time_relative"] = data.apply(lambda x: x["L2_over_time"]/np.array(x["y_true"]**2).mean(axis=1), axis=1)
+    data["L2_over_time_relative_white"] = data.apply(lambda x: np.sqrt(((x["y_true"]-x["y_pred"])**2).mean(axis=1)/((x["y_true"])**2).mean(axis=1)), axis=1)
+    data["holo_pred"] = data.apply(lambda x: np.array(x["y_pred"][:,0]**2+ x["y_pred"][:,1]**2 + x["y_pred"][:,2]**2), axis=1)
+    data["holo_true"] = data.apply(lambda x: np.array(x["y_true"][:,0]**2+ x["y_true"][:,1]**2 + x["y_true"][:,2]**2), axis=1)
+    data["holo_over_time_relative_white"] = data.apply(lambda x: np.sqrt(((x["holo_true"]-x["holo_pred"])**2)/((x["holo_true"])**2)), axis=1)
+    return data
 
-    # KL divergence
-    data["KL_x"] = data.apply(lambda x: entropy(x["x_pdf_true"], x["x_pdf_pred"]), axis=1)
-    data["KL_y"] = data.apply(lambda x: entropy(x["y_pdf_true"], x["y_pdf_pred"]), axis=1)
+def compute_metrics_ks(data, data_true=None):
+    if data_true is not None:
+        data["y_true"] = data_true.values
+    data["y_true"] = data["y_true"].apply(lambda x: np.array(x))
+    true_shape = data["y_true"][0].shape
+    data["y_pred"] = data["y_pred"].apply(lambda x: np.array(x)[:true_shape[0], :true_shape[1]])
+    data["L2"] = data.apply(lambda x: np.mean(np.array((x["y_true"] - x["y_pred"])**2)), axis=1)
+    data["L2_over_time"] = data.apply(lambda x: np.array((x["y_true"] - x["y_pred"])**2).mean(axis=1), axis=1)
+    data["L2_over_time_relative"] = data.apply(lambda x: x["L2_over_time"]/np.array(x["y_true"]**2).mean(axis=1), axis=1)
+    data["L2_over_time_relative_white"] = data.apply(lambda x: np.sqrt(((x["y_true"]-x["y_pred"])**2).mean(axis=1)/((x["y_true"])**2).mean(axis=1)), axis=1)
+    # conservation
+    data["sum_true"] = data.apply(lambda x: np.sum(x["y_true"], axis=1), axis=1)
+    data["sum_pred"] = data.apply(lambda x: np.sum(x["y_pred"], axis=1), axis=1)
+    data["sum_error"] = data.apply(lambda x: np.abs(x["sum_true"] - x["sum_pred"]), axis=1) # true very close to 0 initially
+    data["sum_error_mean"] = data.apply(lambda x: np.mean(x["sum_error"]), axis=1)
+    data["sum_over_time"] = data.apply(lambda x: np.sqrt(((x["sum_true"]-x["sum_pred"])**2)), axis=1)
     return data
 
 ### JACOBIAN METRICS
@@ -106,6 +129,18 @@ def load_model_dt(model_path, model_phy_option, model_aug_option, dataset_name, 
     elif dataset_name == 'twobody':
         model_phy = None # neural ODE
         input_size, hidden_size = 4, 200
+
+    elif dataset_name == 'rigidbody':
+        model_phy = None
+        input_size, hidden_size = 3, 200
+    
+    elif dataset_name == 'doublependulum':
+        model_phy = None
+        input_size, hidden_size = 4, 200
+    
+    elif dataset_name == 'ks':
+        model_phy = None
+        input_size, hidden_size = 256, 200
     
     with open(model_path, "rb") as f:
         hyperparams = json.loads(f.readline().decode())
@@ -185,3 +220,115 @@ def compute_jacobian_test(model, y, bool_true=False):
     else:
         jacobian_norms_fn = make_jacobian_norm_fn(model.model_aug)
     return jacobian_norms_fn(y)  # y shape: (N, features)
+
+def get_states(dataframe, type='lorenz', bool_true=True):
+    y_list = []
+    if type in ["lorenz", "twobody"]:
+        if bool_true:
+            states = dataframe['y_true']
+        else:
+            states = dataframe['y_pred']
+        for i in range(states.shape[0]):
+            for j in range(states[0].shape[0]):
+                y_list.append(states[i][j,:])
+    y_list = np.array(y_list)
+    print(y_list.shape, y_list[0].shape)
+    return np.array(y_list)
+
+
+### EIGENVALUES
+
+def plot_stability_domains(): # from PDE MOOC
+    # stability domains
+    nx = 100
+    ny = 100
+
+    x = np.linspace(-3.5, 1.5, nx)
+    y = np.linspace(-3.5, 3.5, ny)
+    X, Y = np.meshgrid(x, y)
+
+    # Go to the space of complex numbers.
+    Z = X + 1j*Y
+
+    # Terms remaining from Taylor expansion for
+    # the Euler scheme.
+    sigma1 = 1 + Z
+
+    # We compute the norm of sigma1.
+    norm1 = np.real(sigma1*sigma1.conj())
+
+    # Terms remaining from Taylor expansion for
+    # the RK2.
+    sigma2 = 1 + Z + Z**2/2.
+
+    norm2 = np.real(sigma2*sigma2.conj())
+
+    # Terms remaining from Taylor expansion for
+    # the RK4.
+    sigma4 = 1 + Z + Z**2/2. + Z**3/6. + Z**4/24.
+
+    norm4 = np.real(sigma4*sigma4.conj())
+
+    fig, ax = plt.subplots(figsize=(8,8))
+
+
+    ax.contour(X, Y, norm1, levels=[1], colors='r')
+    ax.contour(X, Y, norm2, levels=[1], colors='b')
+    ax.contour(X, Y, norm4, levels=[1], colors='g')
+
+    ax.spines['left'].set_position('zero')
+    ax.spines['bottom'].set_position('center')
+
+    ax.spines['right'].set_visible(False)
+    ax.spines['top'].set_visible(False)
+
+    xmin, xmax = -3.2, 1.4
+    ymin, ymax = -3.4, 3.4
+
+    ax.set_xlim(xmin ,xmax)
+    ax.set_ylim(ymin, ymax)
+
+    ax.arrow(xmin, 0., xmax-xmin, 0., fc='k', ec='k', lw=0.5,
+            head_width=1./20.*(ymax-ymin), head_length=1./20.*(xmax-xmin),
+            overhang = 0.3, length_includes_head= True, clip_on = False)
+
+    ax.arrow(0., ymin, 0., ymax-ymin, fc='k', ec='k', lw=0.5,
+            head_width=1./20.*(xmax-xmin), head_length=1./20.*(ymax-ymin),
+            overhang = 0.3, length_includes_head= True, clip_on = False)
+
+    ax.yaxis.set_label_coords(0.85, 0.95)
+    ax.xaxis.set_label_coords(1.05, 0.475)
+
+    ax.set_xticks((-3, -1, 1))
+    ax.set_yticks((-2, -1, 1, 2))
+
+    # Label contours
+    ax.text(-1, 1.1, r'Euler', fontsize=14, horizontalalignment='center')
+    ax.text(-1, 1.85, r'RK2', fontsize=14, horizontalalignment='center')
+    ax.text(-2.05, 2.05, r'RK4', fontsize=14, horizontalalignment='center')
+
+    # Axis labels
+    ax.set_xlabel(r'$\lambda_i dt$')
+    ax.xaxis.set_label_coords(0.8, 0.99)
+    ax.set_ylabel(r'$\lambda_r dt$', rotation=0)
+    ax.yaxis.set_label_coords(0.85, 0.5)
+
+    ax.set_aspect(1)
+
+    ax.set_title('Stability regions', x=0.7, y=1.01);
+
+    # fig.savefig('../figures/stabilityDomains.png', dpi=300)
+
+    # plot eigenvalues
+    #fig, ax = plt.subplots(figsize=(8,8))
+    ax.contour(X, Y, norm1, levels=[1], colors='r', alpha=0.3)
+    ax.contour(X, Y, norm2, levels=[1], colors='b', alpha=0.3)
+    ax.contour(X, Y, norm4, levels=[1], colors='g', alpha=0.3)
+    plt.legend()
+    return fig, ax
+
+def get_eigenvalues_jacobian(model, x):
+    """Compute eigenvalues of the Jacobian of the model at point x."""
+    J = jax.jacfwd(model)(x)
+    eigvals = jnp.linalg.eigvals(J)
+    return eigvals
