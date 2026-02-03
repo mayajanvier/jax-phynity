@@ -1,0 +1,9 @@
+dataset:
+  name: ks
+  integration_method: RK4
+  dt_num: 0.2
+  duration: 128.0
+
+dt: 0.2
+integration_method: RK4
+data_folder: data_exp/KS_inf
