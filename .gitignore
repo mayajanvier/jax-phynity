@@ -5,3 +5,6 @@ __pycache__
 *data_scai_cpu/
 *data_test/
 *datasets/*.npy
+*runs/
+*runs_old/
+*data_exp/
