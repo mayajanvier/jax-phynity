@@ -13,6 +13,7 @@ from collections import defaultdict
 import matplotlib.pyplot as plt
 from scipy.stats import pearsonr
 
+
 ### PERFORMANCE METRICS
 def compute_metrics_lorenz(data, data_true=None):
     if data_true is not None:
@@ -24,23 +25,19 @@ def compute_metrics_lorenz(data, data_true=None):
     data["L2_0.5s"] = data.apply(lambda x: np.mean(np.array((x["y_true"][:,:51] - x["y_pred"][:,:51])**2)), axis=1)
     data["L2_0.1s"] = data.apply(lambda x: np.mean(np.array((x["y_true"][:,:11] - x["y_pred"][:,:11])**2)), axis=1)
 
-    data["L2_state_time"] = data.apply(lambda x: np.array((x["y_true"] - x["y_pred"])**2)[:,:].mean(axis=1), axis=1)
-
-    # keep same bins for true and pred to be comparable, true as reference
+    # bins from true 
     for i, key in enumerate(["x_min", "y_min", "z_min"]):
-        data[key] = data.apply(lambda x: np.min(x["y_true"][:,i]), axis=1)
+        data[key] = data.apply(lambda x: np.min(x["y_true"][i]), axis=1)
     for i, key in enumerate(["x_max", "y_max", "z_max"]):
-        data[key] = data.apply(lambda x: np.max(x["y_true"][:,i]), axis=1)
+        data[key] = data.apply(lambda x: np.max(x["y_true"][i]), axis=1)
 
     # compute pdf
-    data["x_pdf_true"] = data.apply(lambda x: np.histogram(x["y_true"][:,0], bins=50, range=(x["x_min"], x["x_max"]), density=True)[0], axis=1)
-    data["x_pdf_pred"] = data.apply(lambda x: np.histogram(x["y_pred"][:,0], bins=50, range=(x["x_min"], x["x_max"]), density=True)[0],axis=1)
-    
-    data["y_pdf_true"] = data.apply(lambda x: np.histogram(x["y_true"][:,1], bins=50, range=(x["y_min"], x["y_max"]), density=True)[0], axis=1)
-    data["y_pdf_pred"] = data.apply(lambda x: np.histogram(x["y_pred"][:,1], bins=50, range=(x["y_min"], x["y_max"]), density=True)[0],axis=1)
-    
-    data["z_pdf_true"] = data.apply(lambda x: np.histogram(x["y_true"][:,2], bins=50, range=(x["z_min"], x["z_max"]), density=True)[0], axis=1)
-    data["z_pdf_pred"] = data.apply(lambda x: np.histogram(x["y_pred"][:,2], bins=50, range=(x["z_min"], x["z_max"]), density=True)[0],axis=1)
+    data["x_pdf_true"] = data.apply(lambda x: np.histogram(x["y_true"][0], bins=50, range=(x["x_min"], x["x_max"]), density=True)[0], axis=1)
+    data["x_pdf_pred"] = data.apply(lambda x: np.histogram(x["y_pred"][0], bins=50, range=(x["x_min"], x["x_max"]), density=True)[0], axis=1)
+    data["y_pdf_true"] = data.apply(lambda x: np.histogram(x["y_true"][1], bins=50, range=(x["y_min"], x["y_max"]), density=True)[0], axis=1)
+    data["y_pdf_pred"] = data.apply(lambda x: np.histogram(x["y_pred"][1], bins=50, range=(x["y_min"], x["y_max"]), density=True)[0], axis=1)
+    data["z_pdf_true"] = data.apply(lambda x: np.histogram(x["y_true"][2], bins=50, range=(x["z_min"], x["z_max"]), density=True)[0], axis=1)
+    data["z_pdf_pred"] = data.apply(lambda x: np.histogram(x["y_pred"][2], bins=50, range=(x["z_min"], x["z_max"]), density=True)[0], axis=1)
 
     # Add small epsilon to avoid log(0)
     epsilon = 1e-10
@@ -80,10 +77,10 @@ def compute_metrics(data, data_true=None):
         data[key] = data.apply(lambda x: np.max(x["y_true"][i]), axis=1)
 
     # compute pdf
-    data["x_pdf_true"] = data.apply(lambda x: np.histogram(x["y_true"][0], bins=50, density=True)[0], axis=1)
-    data["x_pdf_pred"] = data.apply(lambda x: np.histogram(x["y_pred"][0], bins=50, density=True)[0], axis=1)
-    data["y_pdf_true"] = data.apply(lambda x: np.histogram(x["y_true"][1], bins=50, density=True)[0], axis=1)
-    data["y_pdf_pred"] = data.apply(lambda x: np.histogram(x["y_pred"][1], bins=50, density=True)[0], axis=1)
+    data["x_pdf_true"] = data.apply(lambda x: np.histogram(x["y_true"][0], bins=50, range=(x["x_min"], x["x_max"]), density=True)[0], axis=1)
+    data["x_pdf_pred"] = data.apply(lambda x: np.histogram(x["y_pred"][0], bins=50, range=(x["x_min"], x["x_max"]), density=True)[0], axis=1)
+    data["y_pdf_true"] = data.apply(lambda x: np.histogram(x["y_true"][1], bins=50, range=(x["y_min"], x["y_max"]), density=True)[0], axis=1)
+    data["y_pdf_pred"] = data.apply(lambda x: np.histogram(x["y_pred"][1], bins=50, range=(x["y_min"], x["y_max"]), density=True)[0], axis=1)
 
     # Add small epsilon to avoid log(0)
     epsilon = 1e-10
@@ -185,7 +182,9 @@ def compute_metrics_pendulum(data, data_true=None):
     data["KL_theta2"] = data.apply(lambda x: entropy(x["theta2_pdf_true"], x["theta2_pdf_pred"]), axis=1)
     return data
 
+
 ### JACOBIAN METRICS
+
 def load_model_dt(model_path, model_phy_option, model_aug_option, dataset_name, integration_method, dt, dt_num, duration):
     experiment_path, model_name = model_path.rsplit('/', 1)
     data_path, exp_name = experiment_path.rsplit('/', 1)
@@ -305,116 +304,3 @@ def compute_jacobian_test(model, y, bool_true=False):
     else:
         jacobian_norms_fn = make_jacobian_norm_fn(model.model_aug)
     return jacobian_norms_fn(y)  # y shape: (N, features)
-
-def get_states(dataframe, type='lorenz', bool_true=True):
-    y_list = []
-    if type in ["lorenz", "twobody"]:
-        if bool_true:
-            states = dataframe['y_true']
-        else:
-            states = dataframe['y_pred']
-        for i in range(states.shape[0]):
-            for j in range(states[0].shape[0]):
-                y_list.append(states[i][j,:])
-    y_list = np.array(y_list)
-    print(y_list.shape, y_list[0].shape)
-    return np.array(y_list)
-
-
-### EIGENVALUES
-
-def plot_stability_domains(): # from PDE MOOC
-    # stability domains
-    nx = 100
-    ny = 100
-
-    x = np.linspace(-3.5, 1.5, nx)
-    y = np.linspace(-3.5, 3.5, ny)
-    X, Y = np.meshgrid(x, y)
-
-    # Go to the space of complex numbers.
-    Z = X + 1j*Y
-
-    # Terms remaining from Taylor expansion for
-    # the Euler scheme.
-    sigma1 = 1 + Z
-
-    # We compute the norm of sigma1.
-    norm1 = np.real(sigma1*sigma1.conj())
-
-    # Terms remaining from Taylor expansion for
-    # the RK2.
-    sigma2 = 1 + Z + Z**2/2.
-
-    norm2 = np.real(sigma2*sigma2.conj())
-
-    # Terms remaining from Taylor expansion for
-    # the RK4.
-    sigma4 = 1 + Z + Z**2/2. + Z**3/6. + Z**4/24.
-
-    norm4 = np.real(sigma4*sigma4.conj())
-
-    fig, ax = plt.subplots(figsize=(8,8))
-
-
-    ax.contour(X, Y, norm1, levels=[1], colors='r')
-    ax.contour(X, Y, norm2, levels=[1], colors='b')
-    ax.contour(X, Y, norm4, levels=[1], colors='g')
-
-    ax.spines['left'].set_position('zero')
-    ax.spines['bottom'].set_position('center')
-
-    ax.spines['right'].set_visible(False)
-    ax.spines['top'].set_visible(False)
-
-    xmin, xmax = -3.2, 1.4
-    ymin, ymax = -3.4, 3.4
-
-    ax.set_xlim(xmin ,xmax)
-    ax.set_ylim(ymin, ymax)
-
-    ax.arrow(xmin, 0., xmax-xmin, 0., fc='k', ec='k', lw=0.5,
-            head_width=1./20.*(ymax-ymin), head_length=1./20.*(xmax-xmin),
-            overhang = 0.3, length_includes_head= True, clip_on = False)
-
-    ax.arrow(0., ymin, 0., ymax-ymin, fc='k', ec='k', lw=0.5,
-            head_width=1./20.*(xmax-xmin), head_length=1./20.*(ymax-ymin),
-            overhang = 0.3, length_includes_head= True, clip_on = False)
-
-    ax.yaxis.set_label_coords(0.85, 0.95)
-    ax.xaxis.set_label_coords(1.05, 0.475)
-
-    ax.set_xticks((-3, -1, 1))
-    ax.set_yticks((-2, -1, 1, 2))
-
-    # Label contours
-    ax.text(-1, 1.1, r'Euler', fontsize=14, horizontalalignment='center')
-    ax.text(-1, 1.85, r'RK2', fontsize=14, horizontalalignment='center')
-    ax.text(-2.05, 2.05, r'RK4', fontsize=14, horizontalalignment='center')
-
-    # Axis labels
-    ax.set_xlabel(r'$\lambda_i dt$')
-    ax.xaxis.set_label_coords(0.8, 0.99)
-    ax.set_ylabel(r'$\lambda_r dt$', rotation=0)
-    ax.yaxis.set_label_coords(0.85, 0.5)
-
-    ax.set_aspect(1)
-
-    ax.set_title('Stability regions', x=0.7, y=1.01);
-
-    # fig.savefig('../figures/stabilityDomains.png', dpi=300)
-
-    # plot eigenvalues
-    #fig, ax = plt.subplots(figsize=(8,8))
-    ax.contour(X, Y, norm1, levels=[1], colors='r', alpha=0.3)
-    ax.contour(X, Y, norm2, levels=[1], colors='b', alpha=0.3)
-    ax.contour(X, Y, norm4, levels=[1], colors='g', alpha=0.3)
-    plt.legend()
-    return fig, ax
-
-def get_eigenvalues_jacobian(model, x):
-    """Compute eigenvalues of the Jacobian of the model at point x."""
-    J = jax.jacfwd(model)(x)
-    eigvals = jnp.linalg.eigvals(J)
-    return eigvals
-
