@@ -15,7 +15,7 @@ alpha_org = 0.1
 class PendulumParamPDE(eqx.Module):
     omega0_square: jax.Array # type makes it trainable
     alpha: jax.Array 
-    is_damped: bool = eqx.static_field()  # Static field (not JAX-traceable)
+    is_damped: bool = eqx.field(static=True)  # Static field (not JAX-traceable)
     """ Unified pendulum for generation and inference """
 
     def __init__(self, is_damped=False, params={"alpha": 0.1, "omega0_square": 0.2}, is_true=False):
@@ -86,6 +86,29 @@ class MLP(eqx.Module):
             x = layer(x)
         return x
 
+class MLPAngular(eqx.Module):
+    layers: list # we need to define the type of the attributes of the class in jax
+
+    def __init__(self, key, state_c, hidden, init_gain=0.2):
+        super().__init__()
+        key1, key2, key3 = jax.random.split(key, 3)
+        self.layers = [
+            eqx.nn.Linear(state_c, hidden, key=key1),
+            jax.nn.relu,
+            eqx.nn.Linear(hidden, hidden, key=key2),
+            jax.nn.relu,
+            eqx.nn.Linear(hidden, state_c, key=key3)]
+    
+    def __call__(self, x):
+        # shape (nc,)
+        # Wrap angles to [0, 2π]
+        x = x.at[0].set(jnp.mod(x[0], 2 * jnp.pi)) # theta1
+        x = x.at[1].set(jnp.mod(x[1], 2 * jnp.pi)) # theta2
+        for layer in self.layers:
+            x = layer(x)
+        return x
+
+# from APHYNITY turned into equinox
 class ConvNetEstimator(eqx.Module):
     def __init__(self, key, state_c=2, hidden=16):
         super().__init__()
@@ -94,13 +117,13 @@ class ConvNetEstimator(eqx.Module):
         padding = kernel_size // 2
         self.state_c = state_c
         self.layers = [
-            eqx.nn.Conv2d(state_c, hidden, kernel_size=kernel_size, padding=padding, use_bias=False, key=jax.random.PRNGKey(key1)),
+            eqx.nn.Conv2d(state_c, hidden, kernel_size=kernel_size, padding=padding, use_bias=False, key=key1),
             eqx.nn.BatchNorm(hidden, axis_name='batch', use_running_average=False, momentum=0.9, eps=1e-5),
             jax.nn.relu,
-            eqx.nn.Conv2d(hidden, hidden, kernel_size=kernel_size, padding=padding, use_bias=False, key=jax.random.PRNGKey(key2)),
+            eqx.nn.Conv2d(hidden, hidden, kernel_size=kernel_size, padding=padding, use_bias=False, key=key2),
             eqx.nn.BatchNorm(hidden, axis_name='batch', use_running_average=False, momentum=0.9, eps=1e-5),
             jax.nn.relu,
-            eqx.nn.Conv2d(hidden, state_c, kernel_size=kernel_size, padding=padding, use_bias=True, key=jax.random.PRNGKey(key3)),
+            eqx.nn.Conv2d(hidden, state_c, kernel_size=kernel_size, padding=padding, use_bias=True, key=key3),
         ]
 
     def __call__(self, x):
