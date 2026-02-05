@@ -1,0 +1,9 @@
+dataset:
+  name: lorenz
+  integration_method: RK4
+  dt_num: 0.01
+  duration: 200.0
+
+dt: 0.1
+integration_method: RK4
+data_folder: data_exp/lorenz_gridsearch_dtdiff

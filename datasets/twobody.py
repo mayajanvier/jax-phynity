@@ -9,7 +9,7 @@ import diffrax
 from diffrax import diffeqsolve, ODETerm
 
 from solvers.runge_kutta import RK_solver_fixed, RK_tableaux
-from solvers.diffrax import RK_tableaux_diffrax
+
 MAX = np.iinfo(np.int32).max # maximum int value
 
 # Enable 64-bit precision in JAX
@@ -47,10 +47,11 @@ class TwoBody:
         self.path = path
 
         # Full trajectories are saved to a single .npy file
-        self.data_path = f"/Users/mayajanvier/jax-phynity/datasets/2body_full_{split}.npy"
+        self.data_path = f"/home/meunier/jax-phynity/datasets/2body_full_{split}.npy"
+        self.states = self._load_dataset()
 
     def __len__(self):
-        return self.nb_traj
+        return len(self.states)
     
     def F(self, s, t): 
         x, y, x_prime, y_prime = s
@@ -74,10 +75,7 @@ class TwoBody:
         """Generate full trajectories and save them in one .npy file."""
         all_states = []
         all_t = None
-        if self.split == "test":
-            num_steps = self.num_steps_rollout
-        else:
-            num_steps = self.num_steps_max
+        num_steps = max(self.num_steps_rollout, self.num_steps_max) 
         for idx in range(self.nb_traj):
             y0 = self._get_initial_condition(idx)
             states, t, _, _ = RK_solver_fixed(
@@ -114,7 +112,7 @@ class TwoBody:
             for k in range(data['states'].shape[0]): 
                 traj = data['states'][k]
                 start, end = 0, self.num_steps_rollout+1
-                while end <= T+1:
+                while end < T+1:
                     print(start, end)
                     chunk = traj[start:end]
                     all_chunks.append(chunk)
@@ -139,8 +137,7 @@ class TwoBody:
 
     def __getitem__(self, index):
         """Get one trajectory."""
-        states = self._load_dataset()
-        return {"states": states[index]}
+        return {"states": self.states[index]}
 
 
 ### Shelve version to store trajectories on disk

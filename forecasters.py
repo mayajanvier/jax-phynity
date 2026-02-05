@@ -6,7 +6,6 @@ import equinox as eqx
 import diffrax
 from einops import rearrange
 from diffrax import diffeqsolve, ODETerm
-from solvers.diffrax import RK_tableaux_diffrax
 
 class DerivativeEstimator(eqx.Module):
     """ Returns the model with the augmented model
@@ -39,15 +38,15 @@ class ForecasterDiffrax(eqx.Module):
     model_phy: eqx.Module
     model_aug: eqx.Module
     t: jax.Array
-    dt: float = eqx.static_field()
-    num_steps: int = eqx.static_field()
-    integration_method: str = eqx.static_field()
-    term: diffrax.ODETerm = eqx.static_field()
-    solver: diffrax.AbstractSolver = eqx.static_field()
+    dt: float = eqx.field(static=True)
+    num_steps: int = eqx.field(static=True)
+    integration_method: str = eqx.field(static=True)
+    term: diffrax.ODETerm = eqx.field(static=True)
+    solver: diffrax.AbstractSolver = eqx.field(static=True)
 
-    is_phy: str = eqx.static_field()
-    is_augmented: bool = eqx.static_field()
-    int_: callable = eqx.static_field()
+    is_phy: str = eqx.field(static=True)
+    is_augmented: bool = eqx.field(static=True)
+    int_: callable = eqx.field(static=True)
 
     def __init__(self, model_phy, model_aug, is_augmented, is_phy, dt, num_steps, integration_method='DOPRI5'):
         super().__init__()
@@ -101,16 +100,16 @@ class Forecaster(eqx.Module):
     """ Integrates a trajectory using int_ method (RK_solver_fixed I wrote) """
     model_phy: eqx.Module
     model_aug: eqx.Module
-    dt: float = eqx.static_field()
-    num_steps: int = eqx.static_field()
-    integration_method: str = eqx.static_field()
+    dt: float = eqx.field(static=True)
+    num_steps: int = eqx.field(static=True)
+    integration_method: str = eqx.field(static=True)
 
     ### if we use external class
     #derivative_estimator: eqx.Module
 
     ### if we use internal function
-    is_phy: str = eqx.static_field()
-    is_augmented: bool = eqx.static_field()
+    is_phy: str = eqx.field(static=True)
+    is_augmented: bool = eqx.field(static=True)
 
     int_: callable 
     # TODO le fait de déclarer ButcherTableau en argument dans la classe crée une erreur avec eqx.filter_jit
@@ -149,6 +148,13 @@ class Forecaster(eqx.Module):
         res, _, _, _ = self.int_(self.derivative_estimator, y0=y0, dt=self.dt, num_steps=self.num_steps, tableau=RK_tableaux[self.integration_method]) 
         res = rearrange(res, 'nc T -> T nc')  # (T, nc)
         return res 
+    
+    def validation_call(self, y0, num_steps):
+        # y0:   (n_c,)
+        # res:  (n_c, T) 
+        res, _, _, _ = self.int_(self.derivative_estimator, y0=y0, dt=self.dt, num_steps=num_steps, tableau=RK_tableaux[self.integration_method]) 
+        res = rearrange(res, 'nc T -> T nc')
+        return res
     
     def get_pde_params(self):
         params = {

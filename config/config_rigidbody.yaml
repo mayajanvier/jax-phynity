@@ -1,12 +1,12 @@
 dataset:
-  name: twobody
+  name: rigidbody
   integration_method: RK4
-  duration: 0.05
+  duration: 0.5
   dt_num: 0.01
-  dt_factor: 1
+  dt_factor: 10
 
 model:
-  phy_option: none
+  phy_option: none_FD_unsup
   aug_option: true
   hidden: 200
   init_gain: 1.0
@@ -16,8 +16,8 @@ train:
   lr: 1e-3
   niter: 5
   min_op: l2
-  reg_loss_name: none
-  lambda0: 0.0
+  reg_loss_name: loss_FD_unsup
+  lambda0: 5e-4
   tau2: 0.0
   aux_loss_names: ["loss_AD_sup", "loss_FD_unsup"]
   log_param_error: false # when hybrid
@@ -29,7 +29,8 @@ train:
   nepoch: 900
 
 experiment:
-  path: data_exp/twobody_dt001_8s
+  path: data_exp/rigidbody
+
 logging:
   use_wandb: true
-  project: TwoBodyProblemICML4
+  project: RigidBodyICML

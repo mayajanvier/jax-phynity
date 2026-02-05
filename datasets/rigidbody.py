@@ -5,16 +5,26 @@ import jax
 from jax import random
 import jax.numpy as jnp
 from einops import rearrange
-import os
+import diffrax
+from diffrax import diffeqsolve, ODETerm
 
 from solvers.runge_kutta import RK_solver_fixed, RK_tableaux
+#from solvers.diffrax import RK_tableaux_diffrax
+
 MAX = np.iinfo(np.int32).max # maximum int value
 
 # Enable 64-bit precision in JAX
 jax.config.update("jax_enable_x64", True)
 
-# beta=8/3, sigma=10, rho=28
-class LorenzTrue:
+import os
+import numpy as np
+import jax
+import jax.numpy as jnp
+from einops import rearrange
+from jax import random
+
+# Assume RK_solver_fixed and RK_tableaux are defined elsewhere
+class RigidBodyTrue:
     """Two-body problem dataset generator using fixed-step RK solver."""
 
     def __init__(self, dt, num_steps_max, num_steps_rollout, path, split, nb_traj, integration_method='RK4'):
@@ -28,9 +38,6 @@ class LorenzTrue:
             integration_method: str, e.g. 'RK4', 'DOPRI5'
         """
         super().__init__()
-        self.beta = 8/3
-        self.sigma = 10.
-        self.rho = 28.
         self.dt = dt
         self.num_steps_max = num_steps_max
         self.num_steps_rollout = num_steps_rollout
@@ -38,43 +45,43 @@ class LorenzTrue:
         self.integration_method = integration_method
         self.split = split
         self.path = path
+        self.I = jnp.array([1.6, 1.0, 2 / 3]) # default White et al.
 
         # Full trajectories are saved to a single .npy file
-        self.data_path = f"/home/meunier/jax-phynity/datasets/lorenz_full_{split}.npy"
+        self.data_path = f"/home/meunier/jax-phynity/datasets/rigidbody_full_{split}.npy"
         self.states = self._load_dataset()
 
     def __len__(self):
         return len(self.states)
 
-    def F(self, s, t):
-        """
-            x, y, z -> dxdt, dydt, dzdt
-        """
-        x, y, z = s
-        dxdt = self.sigma*(y - x )
-        dydt = self.rho * x - y - x*z
-        dzdt =  x*y - self.beta*z
-        return jnp.array([dxdt, dydt, dzdt])
+    def F(self, s, t): 
+            y1, y2, y3 = s
+            mat = jnp.array([
+                [0, -y3, y2],
+                [y3, 0, -y1],
+                [-y2, y1, 0]])
+            vect = jnp.array([y1/self.I[0], y2/self.I[1], y3/self.I[2]])
+            dydt = mat @ vect
+            return dydt
     
     def _get_initial_condition(self, seed):
+        """Generate random initial conditions based on eccentricity."""
         if self.split == 'train':
             key = random.PRNGKey(seed)
         elif self.split == 'val':
-            key = random.PRNGKey(MAX//2 - seed)
-        else: # test
+            key = random.PRNGKey(MAX // 2 - seed)
+        else:  # test
             key = random.PRNGKey(MAX - seed)
 
-        keyX, keyY, keyZ = random.split(key, 3)
-        x_rand = jax.random.normal(keyX) * 20.0
-        y_rand = jax.random.normal(keyY) * 20.0
-        z_rand = jax.random.normal(keyZ) * 20.0 + 20.0
-        return jnp.array([x_rand, y_rand, z_rand]) 
+        phi = jax.random.uniform(key, shape=(), minval=0.5, maxval=1.5)  # initial angle
+        return jnp.array([jnp.cos(phi), 0, jnp.sin(phi)])  # initial angular velocity
+
     
     def _generate_and_save_dataset(self):
         """Generate full trajectories and save them in one .npy file."""
         all_states = []
         all_t = None
-        num_steps = max(self.num_steps_rollout, self.num_steps_max)
+        num_steps = max(self.num_steps_rollout, self.num_steps_max) 
         for idx in range(self.nb_traj):
             y0 = self._get_initial_condition(idx)
             states, t, _, _ = RK_solver_fixed(
@@ -101,7 +108,7 @@ class LorenzTrue:
             self._generate_and_save_dataset()
         data = np.load(self.data_path, allow_pickle=True).item()
         print(data["states"].shape, data["states"][0].shape)  # (nb_traj, T, nc)
-
+        
         if self.num_steps_rollout < self.num_steps_max: # needs chunking 
             # Create chunked dataset
             all_chunks = []
@@ -135,71 +142,5 @@ class LorenzTrue:
 
     def __getitem__(self, index):
         """Get one trajectory."""
+        #states = self._load_dataset()
         return {"states": self.states[index]}
-    
-
-class LorenzTrueShelve():
-
-    def __init__(self, dt, num_steps, path, split, nb_traj, integration_method='RK4') :
-        super().__init__()
-        self.beta = 8/3
-        self.sigma = 10.
-        self.rho = 28.
-        self.dt = dt # time step
-        self.num_steps = num_steps 
-        self.nb_traj = nb_traj  
-        self.integration_method = integration_method     
-        self.path = path # to save dataset
-        self.split = split # train, val or test
-        self.data = shelve.open(path) # to store trajectories
-
-    def __len__(self):
-        return self.nb_traj
-
-    def F(self, s, t):
-        """
-            x, y, z -> dxdt, dydt, dzdt
-        """
-        x, y, z = s
-        dxdt = self.sigma*(y - x )
-        dydt = self.rho * x - y - x*z
-        dzdt =  x*y - self.beta*z
-        return jnp.array([dxdt, dydt, dzdt])
-    
-    def _get_initial_condition(self, seed):
-        if self.split == 'train':
-            key = random.PRNGKey(seed)
-        elif self.split == 'val':
-            key = random.PRNGKey(MAX//2 - seed)
-        else: # test
-            key = random.PRNGKey(MAX - seed)
-
-        keyX, keyY, keyZ = random.split(key, 3)
-        # before jax.random.norma(keyX) * 20.0
-        x_rand = jax.random.normal(keyX) * 20.0
-        y_rand = jax.random.normal(keyY) * 20.0
-        z_rand = jax.random.normal(keyZ) * 20.0 + 20.0
-        return jnp.array([x_rand, y_rand, z_rand]) 
-        #return jax.random.normal(key, 3) * 0.1 + jnp.array([0.0, 0.0, 25.0])
-    
-    def __getitem__(self, index): 
-        if self.data.get(str(index)) is None: # if trajectory is not saved
-            #print("Generating trajectory ", index)
-            y0 = self._get_initial_condition(index)
-            states, t, global_err, err_list = RK_solver_fixed(
-                fun=self.F,
-                y0=y0,
-                dt=self.dt,
-                num_steps=self.num_steps,
-                tableau = RK_tableaux[self.integration_method],
-                )
-            # save data as numpy array for Dataloader
-            states = rearrange(states, 'nc T -> T nc') 
-            self.data[str(index)] = states
-            self.data['t'] = t
-        else:
-            #print("Loading trajectory ", index)
-            t = self.data['t']
-            states = self.data[str(index)] # get trajectory from shelve
-        return {'states': np.array(states), 't': np.array(t)}
-

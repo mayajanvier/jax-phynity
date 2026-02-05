@@ -12,15 +12,14 @@ from einops import rearrange
 
 from datasets import init_dataloaders
 from forecasters import Forecaster
-from networks import PendulumParamPDE, MLP
+from networks import PendulumParamPDE, MLP, MLPAngular, ConvNetEstimator
 from utils import init_linear_weight, orthogonal_init, Logger, save, make_basedir, log
 from utils import compute_metric, save_loss_local, log_wandb
 from loss import loss_fn, init_jit_aux_loss, F_pendulum, F_lorenz, F_twobody
+import numpy as np
 
 # Enable 64-bit precision in JAX
 jax.config.update("jax_enable_x64", True)
-# Set device to gpu
-#jax.config.update('jax_platform_name', 'gpu')
 
 def get_datasets(cfg):
     train, val, _ = init_dataloaders(
@@ -29,6 +28,7 @@ def get_datasets(cfg):
         os.path.join(cfg.experiment.path, cfg.dataset.name + str(cfg.dataset.duration)),
         dt_num=cfg.dataset.dt_num,
         duration=cfg.dataset.duration,
+        split="train",
     )
     return train, val
 
@@ -47,10 +47,19 @@ def get_model(cfg, train):
         model_phy, state_c = None, 3
     elif cfg.dataset.name == "twobody":
         model_phy, state_c = None, 4
+    elif cfg.dataset.name == "doublependulum":
+        model_phy, state_c = None, 4
+    elif cfg.dataset.name == "rigidbody":
+        model_phy, state_c = None, 3
+    elif cfg.dataset.name == "ks":
+        model_phy, state_c = None, 256
     else:
         raise ValueError(f"Unknown dataset: {cfg.dataset.name}")
 
-    model_aug = MLP(key=mkey, state_c=state_c, hidden=cfg.model.hidden)
+    if cfg.dataset.name == "doublependulum":
+        model_aug = MLPAngular(key=mkey, state_c=state_c, hidden=cfg.model.hidden)
+    else:
+        model_aug = MLP(key=mkey, state_c=state_c, hidden=cfg.model.hidden)
     model_aug = init_linear_weight(model_aug, orthogonal_init, key=ikey, init_gain=cfg.model.init_gain)
 
     net = Forecaster(
@@ -85,10 +94,15 @@ class CurriculumScheduler:
         self.cfg = cfg
         self.program = cfg.train.curriculum
         self.index_train_min = 10  # 10 steps minimum
-        self.index_train_max = int(cfg.dataset.duration / (cfg.dataset.dt_factor * train_data.dataset.dt))
+        self.dt = cfg.dataset.dt_factor * train_data.dataset.dt
+        self.index_train_max = int(cfg.dataset.duration / self.dt)
 
         # training length heuristic
-        self.nepoch = int(self.index_train_max / self.index_train_min) * 100 + 400
+        if self.program == "curr":
+            self.nepoch = int(self.index_train_max / self.index_train_min) * 100 + 400
+        else:
+            self.nepoch = cfg.train.nepoch #int(self.index_train_max / self.index_train_min) * 100 + 400
+
 
         # internal state
         self.epoch_rollout_index = None
@@ -101,7 +115,7 @@ class CurriculumScheduler:
     def reset(self):
         """Initialize rollout index at the beginning of training."""
         if self.program == "curr":
-            self.epoch_rollout_index = self.index_train_min + 1
+            self.epoch_rollout_index = min(self.index_train_min + 1, self.index_train_max) # if rollout smaller than 10 steps 
         else:  # no_curr
             self.epoch_rollout_index = self.index_train_max + 1
 
@@ -167,12 +181,6 @@ def train(cfg, train_data, val_data, net, optimizer):
                 # --------------------------
                 ### TRAIN STEP
                 # --------------------------
-                # if cfg.model.phy_option == 'loss_Fa_prime_supervisedYX':
-                #     # TODO: wrong if batch size != nb trajectories
-                #     if iteration == 0: # get F_prime_true over train only once
-                #         F_prime_true = get_Fa_prime_true(cfg, data)
-                # else:
-                #     F_prime_true = None
 
                 states = jnp.array(data['states'])[:,:epoch_rollout_index*cfg.dataset.dt_factor:cfg.dataset.dt_factor,:] # bs, time, nc with diffrax, bs, nc, time with RK_solver_fixed
                 #t = jnp.array(data['t'][0])[::cfg.dataset.dt_factor]
@@ -216,12 +224,8 @@ def train(cfg, train_data, val_data, net, optimizer):
         if total_iteration % cfg.train.nval == 0:
             loss_test = {aug_loss_name: 0.0 for aug_loss_name in cfg.train.aux_loss_names}
             loss_test["loss_traj"] = 0.0 #{"loss_traj": 0.0, "loss_op": 0.0}
+            #if cfg.model.phy_option != "none":
             for j, data_test in enumerate(val_data, 0):
-                # if cfg.model.phy_option == 'loss_Fa_prime_supervisedYX':
-                #     if j == 0: # get F_prime_true over val only once
-                #         F_prime_true_val = get_Fa_prime_true(cfg, data_test)
-                # else:
-                #     F_prime_true_val = None
 
                 # no backpropagation
                 states = jnp.array(data_test['states'])[:,::cfg.dataset.dt_factor,:] # bs, time, nc with diffrax
@@ -230,6 +234,7 @@ def train(cfg, train_data, val_data, net, optimizer):
                 # accumulate loss
                 for losses_values_dict_key, losses_values_dict_value in losses_values_dict.items():
                     loss_test[losses_values_dict_key] += losses_values_dict_value
+
                 
             # average loss over test set
             for losses_values_dict_key, losses_values_dict_value in losses_values_dict.items():
@@ -638,6 +643,7 @@ def train_aphynity(dataset_name, model_phy_option, model_aug_option, path, devic
                     model_aug_option=model_aug_option,)
 
 if __name__ == '__main__':
+    print(jax.devices())
     wandb.login()
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", type=str, default="config.yaml", help="Path to YAML config file")
@@ -648,14 +654,6 @@ if __name__ == '__main__':
     cli_cfg = OmegaConf.from_dotlist(args.overrides)
     cfg = OmegaConf.merge(base_cfg, cli_cfg)
 
-    if cfg.logging.use_wandb:
-        wandb.login()
-
     main(cfg)
-
-    # cfg = OmegaConf.load("config/config_lorenz.yaml")
-    # main(cfg)
-
-    # Example command to run: python train_jaxphynity.py --config config/config.yaml dataset.name=pendulum train.epochs=200
 
 

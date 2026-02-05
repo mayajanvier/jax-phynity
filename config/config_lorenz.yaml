@@ -3,7 +3,7 @@ dataset:
   integration_method: RK4
   duration: 0.5
   dt_num: 0.01
-  dt_factor: 1
+  dt_factor: 10
 
 model:
   phy_option: none
@@ -14,22 +14,23 @@ model:
 
 train:
   lr: 1e-3
-  niter: 1
+  niter: 5
   min_op: l2
   reg_loss_name: none
-  lambda0: 1.0
+  lambda0: 0.0
   tau2: 0.0
   aux_loss_names: ["loss_AD_sup", "loss_FD_unsup"]
   log_param_error: false # true when hybrid
   nlog: 5
   nval: 5 
-  curriculum: curr
+  curriculum: no_curr
   opt_mode: traj 
   finite_diff: forward
+  nepoch: 900
   
 experiment:
-  path: data_test/lorenz_gridsearch
+  path: data_exp/lorenz_gridsearch_dtdiff
 
 logging:
   use_wandb: true
-  project: Lorenz
+  project: LorenzICML

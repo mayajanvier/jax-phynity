@@ -1,12 +1,12 @@
 dataset:
-  name: twobody
+  name: ks
   integration_method: RK4
-  duration: 0.05
-  dt_num: 0.01
+  duration: 0.4
+  dt_num: 0.2
   dt_factor: 1
 
 model:
-  phy_option: none
+  phy_option: none_AD_sup
   aug_option: true
   hidden: 200
   init_gain: 1.0
@@ -14,22 +14,23 @@ model:
 
 train:
   lr: 1e-3
-  niter: 5
+  niter: 1
   min_op: l2
-  reg_loss_name: none
-  lambda0: 0.0
+  reg_loss_name: loss_AD_sup
+  lambda0: 5e-14
   tau2: 0.0
-  aux_loss_names: ["loss_AD_sup", "loss_FD_unsup"]
+  aux_loss_names: ["loss_AD_sup", "loss_FD_unsup"] # "loss_AD_sup",
   log_param_error: false # when hybrid
   nlog: 5
   nval: 5 
   curriculum: no_curr
   opt_mode: traj
   finite_diff: forward
-  nepoch: 900
+  nepoch: 1000
 
 experiment:
-  path: data_exp/twobody_dt001_8s
+  path: data_exp/KS_gridsearch
+
 logging:
   use_wandb: true
-  project: TwoBodyProblemICML4
+  project: ksICML

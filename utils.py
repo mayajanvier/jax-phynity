@@ -66,7 +66,7 @@ def make_basedir(root, name_exp, timestamp=None, attempts=5):
         basedir = root
         if timestamp is None:
             timestamp = datetime.now().strftime("%Y-%m-%d")
-            basedir = os.path.join(basedir, name_exp[:-8]+str(len(os.listdir(basedir)) + 1 -3)+"_"+name_exp[-8:]) # 3 data files 
+            basedir = os.path.join(basedir, name_exp[:-8]+str(len(os.listdir(basedir)))+"_"+name_exp[-8:]) 
         try:
             os.makedirs(basedir)
             return basedir
@@ -162,7 +162,145 @@ def init_linear_weight(model, init_fn, key, init_gain=0.2):
     new_model = eqx.tree_at(get_biases, new_model, new_biases)   
     return new_model
 
+# fft utils
 
+def fft_diff_jax(x, order=1, period=None):
+    """
+    JAX equivalent of scipy.fftpack.diff
+
+    Parameters
+    ----------
+    x : array_like
+        Periodic input sequence (1D).
+    order : int
+        Order of differentiation (negative = integration).
+    period : float, optional
+        Period of the signal. Default is 2*pi.
+
+    Returns
+    -------
+    y : array
+        Differentiated (or integrated) signal.
+    """
+    x = jnp.asarray(x)
+
+    if order == 0:
+        return x
+
+    n = x.shape[0]
+
+    # Handle complex input the same way SciPy does
+    if jnp.iscomplexobj(x):
+        return (
+            fft_diff_jax(x.real, order, period)
+            + 1j * fft_diff_jax(x.imag, order, period)
+        )
+
+    # Scaling constant
+    if period is not None:
+        c = 2 * jnp.pi / period
+    else:
+        c = 1.0
+
+    # Fourier frequencies (integer modes)
+    k = jnp.fft.fftfreq(n) * n
+
+    # Fourier transform
+    X = jnp.fft.fft(x)
+
+    # Multiplier (i * c * k)^order
+    ik = 1j * c * k
+
+    if order > 0:
+        multiplier = ik ** order
+    else:
+        # Integration: assume zero mean
+        multiplier = jnp.zeros_like(ik)
+        nonzero = k != 0
+        multiplier = multiplier.at[nonzero].set(ik[nonzero] ** order)
+
+    # Enforce y_0 = 0
+    multiplier = multiplier.at[0].set(0.0)
+
+    # Zero Nyquist mode for odd order & even n
+    if (n % 2 == 0) and (order % 2 == 1):
+        multiplier = multiplier.at[n // 2].set(0.0)
+
+    Y = X * multiplier
+
+    y = jnp.fft.ifft(Y)
+
+    # SciPy returns real if input was real
+    return y.real
+
+@eqx.filter_jit
+def fft_diff_jax_fast(x, order=1, period=2*jnp.pi):
+    """
+    JAX equivalent of scipy.fftpack.diff
+
+    Parameters
+    ----------
+    x : array_like
+        Periodic input sequence (1D).
+    order : int
+        Order of differentiation (negative = integration).
+    period : float, optional
+        Period of the signal. Default is 2*pi.
+
+    Returns
+    -------
+    y : array
+        Differentiated (or integrated) signal.
+    """
+
+    # if order == 0:
+    #     return x
+
+    n = x.shape[0]
+
+    # Hope we don't need it 
+    # Handle complex input the same way SciPy does
+    # if jnp.iscomplexobj(x):
+    #     print("complex")
+    #     return (
+    #         fft_diff_jax(x.real, order, period)
+    #         + 1j * fft_diff_jax(x.imag, order, period)
+    #     )
+
+    # Scaling constant
+    c = 2 * jnp.pi / period # default c=1.0
+
+    # Fourier frequencies (integer modes)
+    k = jnp.fft.fftfreq(n) * n
+
+    # Fourier transform
+    X = jnp.fft.fft(x)
+
+    # Multiplier (i * c * k)^order
+    ik = 1j * c * k
+
+    #if order > 0:
+    multiplier = ik ** order # we will only use order > 0 
+    # else:
+    #     # Integration: assume zero mean
+    #     multiplier = jnp.zeros_like(ik)
+    #     nonzero = k != 0
+    #     multiplier = multiplier.at[nonzero].set(ik[nonzero] ** order)
+
+    # Enforce y_0 = 0
+    multiplier = multiplier.at[0].set(0.0)
+
+    # Zero Nyquist mode for odd order & even n
+    if (n % 2 == 0) and (order % 2 == 1):
+        multiplier = multiplier.at[n // 2].set(0.0)
+
+    Y = X * multiplier
+
+    y = jnp.fft.ifft(Y)
+
+    # SciPy returns real if input was real
+    return y.real
+    
 if __name__ == '__main__':
     from networks import MLP
     # test weight initialization

@@ -1,12 +1,12 @@
 dataset:
-  name: twobody
+  name: doublependulum
   integration_method: RK4
-  duration: 0.05
+  duration: 0.1
   dt_num: 0.01
-  dt_factor: 1
+  dt_factor: 5
 
 model:
-  phy_option: none
+  phy_option: none_AD_sup
   aug_option: true
   hidden: 200
   init_gain: 1.0
@@ -16,8 +16,8 @@ train:
   lr: 1e-3
   niter: 5
   min_op: l2
-  reg_loss_name: none
-  lambda0: 0.0
+  reg_loss_name: loss_AD_sup
+  lambda0: 1e-8
   tau2: 0.0
   aux_loss_names: ["loss_AD_sup", "loss_FD_unsup"]
   log_param_error: false # when hybrid
@@ -29,7 +29,8 @@ train:
   nepoch: 900
 
 experiment:
-  path: data_exp/twobody_dt001_8s
+  path: data_exp/doublependulum_dt005
+
 logging:
   use_wandb: true
-  project: TwoBodyProblemICML4
+  project: DoublePendulumICML
