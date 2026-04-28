@@ -5,6 +5,10 @@ from dataclasses import dataclass, field # dataclass is a decorator that is used
 from typing import Optional, Tuple
 import equinox as eqx
 
+jax.config.update("jax_enable_x64", False)
+
+dtype = jnp.float32
+
 ### diffrax Butcher tableau class 
 @dataclass(frozen=True)
 class ButcherTableau:
@@ -97,14 +101,14 @@ Heun_tableau = ButcherTableau(
 # 3/8 rule in odeint used in APHYNITY (torchdiffeq)
 RK4_tableau = ButcherTableau(
     a_lower=(
-        jnp.array([1 / 3]),
-        jnp.array([-1 / 3, 1]),
-        jnp.array([1, -1, 1]),
+        jnp.array([1 / 3], dtype=dtype),
+        jnp.array([-1 / 3, 1], dtype=dtype),
+        jnp.array([1, -1, 1], dtype=dtype),
     ),
-    b_sol=jnp.array([1 / 8, 3 / 8, 3 / 8, 1 / 8]),
+    b_sol=jnp.array([1 / 8, 3 / 8, 3 / 8, 1 / 8], dtype=dtype),
     # TODO comment calculer une erreur pour RK4 ? 
-    b_error=jnp.array([0, 0, 0, 0]),
-    c =jnp.array([1 / 3, 2 / 3, 1]),
+    b_error=jnp.array([0, 0, 0, 0], dtype=dtype),
+    c =jnp.array([1 / 3, 2 / 3, 1], dtype=dtype),
 )
 
 dopri5_tableau = ButcherTableau(

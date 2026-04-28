@@ -7,6 +7,50 @@ import diffrax
 from einops import rearrange
 from diffrax import diffeqsolve, ODETerm
 
+
+### SNODE constraints
+def g_TB(s):
+    x, y, x_prime, y_prime = s
+    return x*y_prime - y*x_prime
+
+def g_RB(s):
+    y1, y2, y3 = s
+    return 0.5*(y1**2 + y2**2 + y3**2)
+
+def g_KS(s):
+    return jnp.sum(s)
+
+def g_BG(s):
+    return jnp.sum(s)
+
+def Jg_RB(s):
+    return s
+
+def Jg_TB(s):
+    x, y, x_prime, y_prime = s
+    return jnp.array([y_prime, -x_prime, -y, x])
+
+def Jg_KS(s):
+    return jnp.ones_like(s)
+
+def Jg_BG(s):
+    return jnp.ones_like(s)
+
+g_dict = {
+    "twobody": g_TB,
+    "rigidbody": g_RB,
+    "ks": g_KS,
+    "burgers": g_BG,
+}
+
+Jg_dict = {
+    "twobody": Jg_TB,
+    "rigidbody": Jg_RB,
+    "ks": Jg_KS,
+    "burgers": Jg_BG,
+}
+
+### Models 
 class DerivativeEstimator(eqx.Module):
     """ Returns the model with the augmented model
     if is_augmented is True """
@@ -94,7 +138,6 @@ class ForecasterDiffrax(eqx.Module):
                 return res_phy + res_aug
             else:
                 return res_phy
-            
 
 class Forecaster(eqx.Module):
     """ Integrates a trajectory using int_ method (RK_solver_fixed I wrote) """
@@ -146,14 +189,14 @@ class Forecaster(eqx.Module):
         # y0:   (n_c,)
         # res:  (n_c, T) 
         res, _, _, _ = self.int_(self.derivative_estimator, y0=y0, dt=self.dt, num_steps=self.num_steps, tableau=RK_tableaux[self.integration_method]) 
-        res = rearrange(res, 'nc T -> T nc')  # (T, nc)
+        res = rearrange(res, '... T -> T ...')  # (T, other dim)
         return res 
     
     def validation_call(self, y0, num_steps):
         # y0:   (n_c,)
         # res:  (n_c, T) 
         res, _, _, _ = self.int_(self.derivative_estimator, y0=y0, dt=self.dt, num_steps=num_steps, tableau=RK_tableaux[self.integration_method]) 
-        res = rearrange(res, 'nc T -> T nc')
+        res = rearrange(res, '... T -> T ...')
         return res
     
     def get_pde_params(self):
@@ -167,7 +210,14 @@ class Forecaster(eqx.Module):
         # state of shape (nc,)
         if self.is_phy in["none",
                           "none_AD_sup",
+                          "none_AD_sup_norm",
+                          "none_AD_sup_local",
+                          "none_AD_sup_local_norm",
+                          "none_AD_single",
+                          "none_AD_single_norm",
+                          "none_AD_local_GS",
                           "none_FD_unsup",
+                          "none_FD_unsup_local_norm",
                           "none_Fa",
                           "none_Fa_prime",
                           "none_Fa_prime_supX",
@@ -196,6 +246,66 @@ class Forecaster(eqx.Module):
         #         lambda s: self.model_phy(s), # false branch
         #         s),
         #     state)
+
+
+class SNODE(eqx.Module):
+    """ Integrates a trajectory using int_ method (RK_solver_fixed I wrote) """
+    model_phy: eqx.Module
+    model_aug: eqx.Module
+    dt: float = eqx.field(static=True)
+    num_steps: int = eqx.field(static=True)
+    integration_method: str = eqx.field(static=True)
+    is_phy: str = eqx.field(static=True)
+    is_augmented: bool = eqx.field(static=True)
+    gamma: float = eqx.field(static=True)
+    int_: callable 
+    dataset: str = eqx.field(static=True)
+    g: callable = eqx.field(static=True)
+    Jg: callable = eqx.field(static=True)
+
+    def __init__(self, model_phy, model_aug, is_augmented, is_phy, dt, num_steps, dataset, gamma, integration_method='RK4'):
+        super().__init__()
+
+        self.model_phy = model_phy
+        self.model_aug = model_aug
+        self.is_augmented = is_augmented
+        self.is_phy = is_phy 
+        self.dataset = dataset 
+        self.gamma = gamma
+        # solver
+        self.dt = dt
+        self.num_steps = num_steps
+        self.integration_method = integration_method
+        self.int_ = RK_solver_fixed # on definit dt et le tableau là #odeint 
+        self.g = g_dict[self.dataset]
+        self.Jg = Jg_dict[self.dataset]
+        
+    def __call__(self, y0):
+        # y0:   (n_c,)
+        # res:  (n_c, T) 
+        g0 = self.g(y0)
+
+        def deriv(state, t):
+            res_aug = self.model_aug(state)
+            g_diff = self.g(state) - g0 # scalar
+            Gplus = self.Gplus(state)
+            return res_aug - self.gamma * (Gplus * g_diff) 
+
+        res, _, _, _ = self.int_(deriv, y0=y0, dt=self.dt, num_steps=self.num_steps, tableau=RK_tableaux[self.integration_method]) 
+        res = rearrange(res, 'nc T -> T nc')  # (T, nc)
+        return res 
+    
+    # def derivative_estimator(self, state, t, g0):
+    #     # state of shape (nc,)
+    #     res_aug = self.model_aug(state)
+    #     g_diff = self.g(state) - g0
+    #     Gplus = self.Gplus(state)
+    #     return res_aug - self.gamma * Gplus @ g_diff
+    
+    def Gplus(self, s):
+        Jg = self.Jg(s)
+        JgT = jnp.transpose(Jg)
+        return JgT * jnp.matmul(Jg, JgT)**(-1) # second term is a scalar 
 
     
 if __name__ == '__main__':

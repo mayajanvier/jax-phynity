@@ -1,9 +1,11 @@
 from .pendulum import DampedPendulum, DoublePendulum
 from .lorenz import LorenzTrue
-from .twobody import TwoBody
+from .twobody import TwoBody, TwoBodyForcing
 from .wave import Wave
 from .rigidbody import RigidBodyTrue
 from .ks import KSTrue
+from .burgers import BurgersTrue
+from .ns_incomp import NavierStokesDataset
 from torch.utils.data import DataLoader 
 import torch
 import numpy as np
@@ -25,7 +27,7 @@ def param_dataset(buffer_filepath, integration_method, dataset_name="pendulum", 
 
     dataset_train_params = {
         'nb_traj': nb_traj, 
-        'num_steps_max': num_steps_max,
+        'num_steps_max': num_steps_max, # Ttrain/dt_num
         'num_steps_rollout': int(duration/dt_num), 
         'dt': dt_num, # 0.05 for error scheme experiments
         'split': 'train',
@@ -65,6 +67,13 @@ def param_dataset(buffer_filepath, integration_method, dataset_name="pendulum", 
         elif split == "test":
             dataset_test_params['nb_traj'] = 100
             dataset_test  = TwoBody(**dataset_test_params)
+    elif dataset_name == "twobody_forcing":
+        if split == "train":
+            dataset_train = TwoBodyForcing(**dataset_train_params)
+            dataset_val   = TwoBodyForcing(**dataset_val_params)
+        elif split == "test":
+            dataset_test_params['nb_traj'] = 100
+            dataset_test  = TwoBodyForcing(**dataset_test_params)
     elif dataset_name == "wave":
         if split == "train":
             dataset_val_params['nb_traj'] = 50
@@ -89,6 +98,14 @@ def param_dataset(buffer_filepath, integration_method, dataset_name="pendulum", 
         elif split == "test":
             dataset_test_params['nb_traj'] = 128
             dataset_test  = KSTrue(**dataset_test_params)
+    elif dataset_name == "burgers":
+        if split == "train":
+            dataset_val_params['nb_traj'] = 128
+            dataset_train = BurgersTrue(**dataset_train_params)
+            dataset_val   = BurgersTrue(**dataset_val_params)
+        elif split == "test":
+            dataset_test_params['nb_traj'] = 128
+            dataset_test  = BurgersTrue(**dataset_test_params)
     elif dataset_name == "doublependulum":
         if split == "train":
             dataset_train = DoublePendulum(**dataset_train_params)
@@ -96,6 +113,24 @@ def param_dataset(buffer_filepath, integration_method, dataset_name="pendulum", 
         elif split == "test":
             dataset_test_params['nb_traj'] = 100
             dataset_test  = DoublePendulum(**dataset_test_params)
+    
+    elif dataset_name == "ns_incomp":
+        size = 64 # grid
+        dataset_tr_params = {
+            "size": size, 
+            }
+        # merge dataset_train_params and dataset_tr_params
+        dataset_train_params.update(dataset_tr_params)
+        dataset_val_params.update(dataset_tr_params)
+        dataset_test_params.update(dataset_tr_params)
+        print(dataset_train_params)
+        if split == "train":
+            dataset_val_params['nb_traj'] = 128
+            dataset_train = NavierStokesDataset(**dataset_train_params)
+            dataset_val   = NavierStokesDataset(**dataset_val_params)
+        elif split == "test":
+            dataset_test_params['nb_traj'] = 128
+            dataset_test  = NavierStokesDataset(**dataset_test_params)
 
     if split == "train":
         dataloader_train_params = {
@@ -105,18 +140,20 @@ def param_dataset(buffer_filepath, integration_method, dataset_name="pendulum", 
                 'pin_memory' : True,
                 'drop_last'  : False,
                 'shuffle'    : True,
+                #'persistent_workers': True,
                 'worker_init_fn': seed_worker,
                 'generator':g,
             }
         dataloader_val_params = {
-            'dataset'    : dataset_val,
-            'batch_size' : batch_size,
-            'num_workers': 0,
-            'pin_memory' : True,
-            'drop_last'  : False,
-            'shuffle'    : False,
-            'worker_init_fn': seed_worker,
-            'generator':g,
+                'dataset'    : dataset_val,
+                'batch_size' : batch_size,
+                'num_workers': 0,
+                'pin_memory' : True,
+                'drop_last'  : False,
+                'shuffle'    : False,
+                #'persistent_workers': True,
+                'worker_init_fn': seed_worker,
+                'generator':g,
         }
         dataloader_train = DataLoader(**dataloader_train_params)
         dataloader_val   = DataLoader(**dataloader_val_params)
@@ -156,6 +193,10 @@ def init_dataloaders(dataset, integration_method, buffer_filepath=None, dt_num=0
         nb_traj = 40
         num_steps_max = 800 # 8s
         #num_steps_max = 500 # 5s
+    elif dataset == 'twobody_forcing':
+        batch_size = 40
+        nb_traj = 40
+        num_steps_max = 5000 # 50s 
         
     elif dataset == 'wave': # from Yin paper 
         batch_size = 64
@@ -172,6 +213,14 @@ def init_dataloaders(dataset, integration_method, buffer_filepath=None, dt_num=0
         batch_size = 128
         nb_traj = 512 # train, 128 val, 128 test
         num_steps_max = 140 # 28s / dt_num = 0.2
+    elif dataset == "burgers":
+        batch_size = 128
+        nb_traj = 512
+        num_steps_max = 20 # 0.2s / dt_num = 0.01
+    elif dataset == "ns_incomp":
+        batch_size = 64
+        nb_traj = 512 
+        num_steps_max = 20 # 20 / dt=1 (?) = t_horizon
 
     return param_dataset(
         buffer_filepath,
