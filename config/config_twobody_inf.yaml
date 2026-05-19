@@ -6,4 +6,4 @@ dataset:
   
 dt: 0.01
 integration_method: RK4
-data_folder: data_exp/twobody_dt001_8s
+data_folder: data_exp/twobody_inf

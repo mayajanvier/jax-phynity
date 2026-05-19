@@ -278,6 +278,7 @@ def inference_metrics(model_name, exp_name, data_path, model_phy_option, model_a
                 f.write(data[["L2_over_time_relative", "cons_over_time"]].to_json(orient="records") + '\n')
         
         # MODEL data
+        # TODO: adapt for KS 
         jac_data = {}
         y = rearrange(states, 'b T nc -> (b T) nc') 
         y_pred = rearrange(pred,'b T nc -> (b T) nc') 
