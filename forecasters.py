@@ -216,6 +216,7 @@ class Forecaster(eqx.Module):
                           "none_AD_single",
                           "none_AD_single_norm",
                           "none_AD_local_GS",
+                          "none_sup_accnorm",
                           "none_FD_unsup",
                           "none_FD_unsup_local_norm",
                           "none_Fa",

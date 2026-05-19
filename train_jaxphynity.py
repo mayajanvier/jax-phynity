@@ -729,7 +729,3 @@ if __name__ == '__main__':
     main(cfg)
 
 
-    #train, val, _ = init_dataloaders("ns_incomp", "None","/home/meunier/jax-phynity/data_exp/ns_incomp", dt_num=1, duration=10)
-    #_, _, test = init_dataloaders("ns_incomp", "None","/home/meunier/jax-phynity/data_exp/ns_incomp", dt_num=1, duration=100, split="test")
-
-

@@ -309,6 +309,54 @@ def loss_AD_sup_local_norm(model, y, dataset_name: str, lambda_hutch: float):
     return res
 
 @eqx.filter_jit
+def loss_sup_accnorm(model, y, dataset_name: str):
+    """
+    Computes || J_F(x)·F(x) - J_Fθ(x)·Fθ(x) ||² mean over (b, T).
+
+    J_F(x)·F(x)  = directional derivative of F  along F  (true acceleration)
+    J_Fθ(x)·Fθ(x) = directional derivative of Fθ along Fθ (learned acceleration)
+    """
+    b, T, nc = y.shape
+
+    funF      = F_dict[dataset_name]   # callable: (nc,) -> (nc,)
+    funFtheta = model.model_aug        # callable: (nc,) -> (nc,)
+
+    # --- Evaluate vector fields at every (b, T) point ---
+    # These become the tangent vectors for the JVP
+    y_flat = rearrange(y, 'b T nc -> (b T) nc')          # (b*T, nc)
+
+    v_F      = jax.vmap(funF)(y_flat)                     # F(x),  (b*T, nc)
+    v_Ftheta = jax.vmap(funFtheta)(y_flat)                # Fθ(x), (b*T, nc)
+
+    v_F      = rearrange(v_F,      '(b T) nc -> b T nc', b=b)   # (b, T, nc)
+    v_Ftheta = rearrange(v_Ftheta, '(b T) nc -> b T nc', b=b)   # (b, T, nc)
+
+    # --- Build batched JVP: J_fun(x)·v, vectorised over (b, T) ---
+    def make_jvp_batched(fun):
+        def jvp_single(x_i, v_i):
+            # x_i: (nc,), v_i: (nc,)  ->  tangent: (nc,)
+            _, tangent = jax.jvp(fun, (x_i,), (v_i,))
+            return tangent
+        return jax.vmap(jax.vmap(jvp_single))   # vmap over T, then over b
+
+    jvp_batched_F      = make_jvp_batched(funF)
+    jvp_batched_Ftheta = make_jvp_batched(funFtheta)
+
+    # --- Compute accelerations ---
+    acc_F      = jvp_batched_F(y, v_F)           # J_F(x)·F(x),   (b, T, nc)
+    acc_Ftheta = jvp_batched_Ftheta(y, v_Ftheta) # J_Fθ(x)·Fθ(x), (b, T, nc)
+
+    # --- Loss: mean squared difference of accelerations ---
+    diff = acc_F - acc_Ftheta                     # (b, T, nc)
+
+    if dataset_name == "ks":
+        res = jnp.mean(jnp.sum(diff**2, axis=-1))
+    else:
+        res = jnp.mean(jnp.linalg.norm(diff, ord=2, axis=-1)**2)
+
+    return res
+
+@eqx.filter_jit
 def loss_AD_local_GS(model, y, dataset_name: str):
     # TODO: check shapes, axis operations and define x and v here ? dataset ? 
     """
@@ -558,6 +606,8 @@ def init_jit_aux_loss(aux_loss_names, min_op, dataset_name, finite_diff, lambda_
             aux_losses_dict[name] = eqx.filter_jit(eqx.Partial(loss_AD_sup_local, dataset_name=dataset_name))
         elif name == 'loss_AD_sup_local_norm':
             aux_losses_dict[name] = eqx.filter_jit(eqx.Partial(loss_AD_sup_local_norm, dataset_name=dataset_name, lambda_hutch=lambda_hutch))
+        elif name == 'loss_sup_accnorm':
+            aux_losses_dict[name] = eqx.filter_jit(eqx.Partial(loss_sup_accnorm, dataset_name=dataset_name))
         elif name == 'loss_AD_single':
             aux_losses_dict[name] = eqx.filter_jit(eqx.Partial(loss_AD_single, dataset_name=dataset_name))
         elif name == 'loss_AD_single_norm':
