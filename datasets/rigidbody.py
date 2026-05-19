@@ -48,7 +48,7 @@ class RigidBodyTrue:
         self.I = jnp.array([1.6, 1.0, 2 / 3]) # default White et al.
 
         # Full trajectories are saved to a single .npy file
-        self.data_path = f"/home/meunier/jax-phynity/datasets/rigidbody_full_{split}.npy"
+        self.data_path = f"datasets/rigidbody_full_{split}.npy"
         self.states = self._load_dataset()
 
     def __len__(self):

@@ -47,7 +47,7 @@ class TwoBody:
         self.path = path
 
         # Full trajectories are saved to a single .npy file
-        self.data_path = f"/home/meunier/jax-phynity/datasets/2body_full_{split}.npy"
+        self.data_path = f"datasets/2body_full_{split}.npy"
         self.states = self._load_dataset()
 
     def __len__(self):
@@ -163,7 +163,7 @@ class TwoBodyForcing:
         self.path = path
 
         # Full trajectories are saved to a single .npy file
-        self.data_path = f"/home/meunier/jax-phynity/datasets/2bodyforcing_full_{split}.npy"
+        self.data_path = f"datasets/2bodyforcing_full_{split}.npy"
         self.states = self._load_dataset()
 
     def __len__(self):
@@ -387,7 +387,7 @@ class TwoBody_init():
         self.path = path # to save dataset
         self.split = split # train, val or test
         self.data = shelve.open(path) # to store trajectories
-        self.init_path = f"/Users/mayajanvier/jax-phynity/datasets/2body_init_{split}.npy"
+        self.init_path = f"datasets/2body_init_{split}.npy"
         self.inits = np.load(self.init_path)
 
     def __len__(self):

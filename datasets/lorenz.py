@@ -40,7 +40,7 @@ class LorenzTrue:
         self.path = path
 
         # Full trajectories are saved to a single .npy file
-        self.data_path = f"/home/meunier/jax-phynity/datasets/lorenz_full_{split}.npy"
+        self.data_path = f"datasets/lorenz_full_{split}.npy"
         self.states = self._load_dataset()
 
     def __len__(self):

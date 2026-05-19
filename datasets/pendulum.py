@@ -44,7 +44,7 @@ class DoublePendulum:
 
 
         # Full trajectories are saved to a single .npy file
-        self.data_path = f"/home/meunier/jax-phynity/datasets/doublependulum_full_{split}.npy"
+        self.data_path = f"datasets/doublependulum_full_{split}.npy"
         self.states = self._load_dataset()
 
     def __len__(self):
