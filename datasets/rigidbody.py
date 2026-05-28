@@ -91,7 +91,6 @@ class RigidBodyTrue:
                 num_steps=num_steps,
                 tableau=RK_tableaux[self.integration_method],
             )
-            states = rearrange(states, 'nc T -> T nc')
             all_states.append(np.array(states))
             if all_t is None:
                 all_t = np.array(t)

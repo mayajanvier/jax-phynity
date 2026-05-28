@@ -146,11 +146,6 @@ class Forecaster(eqx.Module):
     dt: float = eqx.field(static=True)
     num_steps: int = eqx.field(static=True)
     integration_method: str = eqx.field(static=True)
-
-    ### if we use external class
-    #derivative_estimator: eqx.Module
-
-    ### if we use internal function
     is_phy: str = eqx.field(static=True)
     is_augmented: bool = eqx.field(static=True)
 
@@ -187,16 +182,14 @@ class Forecaster(eqx.Module):
         
     def __call__(self, y0):
         # y0:   (n_c,)
-        # res:  (n_c, T) 
+        # res:  (T, nc) 
         res, _, _, _ = self.int_(self.derivative_estimator, y0=y0, dt=self.dt, num_steps=self.num_steps, tableau=RK_tableaux[self.integration_method]) 
-        res = rearrange(res, '... T -> T ...')  # (T, other dim)
         return res 
     
     def validation_call(self, y0, num_steps):
         # y0:   (n_c,)
-        # res:  (n_c, T) 
+        # res:  (T, nc) 
         res, _, _, _ = self.int_(self.derivative_estimator, y0=y0, dt=self.dt, num_steps=num_steps, tableau=RK_tableaux[self.integration_method]) 
-        res = rearrange(res, '... T -> T ...')
         return res
     
     def get_pde_params(self):
@@ -236,18 +229,6 @@ class Forecaster(eqx.Module):
             else:
                 return res_phy
 
-        # use lax.cond to switch between models
-        # conditions lax imbriquées trop lourd avec vmap
-        # return jax.lax.cond(
-        #     self.is_phy == "none",
-        #     lambda s: self.model_aug(s), # true branch
-        #     lambda s: jax.lax.cond(
-        #         self.is_augmented, 
-        #         lambda s: self.model_phy(s) + self.model_aug(s), # true branch
-        #         lambda s: self.model_phy(s), # false branch
-        #         s),
-        #     state)
-
 
 class SNODE(eqx.Module):
     """ Integrates a trajectory using int_ method (RK_solver_fixed I wrote) """
@@ -283,7 +264,7 @@ class SNODE(eqx.Module):
         
     def __call__(self, y0):
         # y0:   (n_c,)
-        # res:  (n_c, T) 
+        # res:  (T, nc) 
         g0 = self.g(y0)
 
         def deriv(state, t):
@@ -293,15 +274,7 @@ class SNODE(eqx.Module):
             return res_aug - self.gamma * (Gplus * g_diff) 
 
         res, _, _, _ = self.int_(deriv, y0=y0, dt=self.dt, num_steps=self.num_steps, tableau=RK_tableaux[self.integration_method]) 
-        res = rearrange(res, 'nc T -> T nc')  # (T, nc)
         return res 
-    
-    # def derivative_estimator(self, state, t, g0):
-    #     # state of shape (nc,)
-    #     res_aug = self.model_aug(state)
-    #     g_diff = self.g(state) - g0
-    #     Gplus = self.Gplus(state)
-    #     return res_aug - self.gamma * Gplus @ g_diff
     
     def Gplus(self, s):
         Jg = self.Jg(s)

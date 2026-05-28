@@ -84,7 +84,7 @@ class LorenzTrue:
                 num_steps=num_steps,
                 tableau=RK_tableaux[self.integration_method],
             )
-            states = rearrange(states, 'nc T -> T nc')
+            #states = rearrange(states, 'nc T -> T nc')
             all_states.append(np.array(states))
             if all_t is None:
                 all_t = np.array(t)
@@ -194,7 +194,6 @@ class LorenzTrueShelve():
                 tableau = RK_tableaux[self.integration_method],
                 )
             # save data as numpy array for Dataloader
-            states = rearrange(states, 'nc T -> T nc') 
             self.data[str(index)] = states
             self.data['t'] = t
         else:
