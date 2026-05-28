@@ -336,19 +336,24 @@ def compute_metrics_timeseries(data, data_true=None, dataset_name=None):
     shape_true = data["y_true"][0].shape
     data["y_pred"] = data["y_pred"].apply(lambda x: np.array(x)[:shape_true[0], :shape_true[1]]) # ensure consistent shapes
     # White paper metrics
-    data["L2_over_time_relative"] = data.apply(lambda x: np.sqrt(((x["y_true"]-x["y_pred"])**2).mean(axis=1)/((x["y_true"])**2).mean(axis=1)), axis=1)
     if dataset_name == "twobody":
+        data["L2_over_time_relative"] = data.apply(lambda x: np.sqrt(((x["y_true"]-x["y_pred"])**2).mean(axis=1)/((x["y_true"])**2).mean(axis=1)), axis=1)
         data["momentum_pred"] = data.apply(lambda x: np.array(x["y_pred"][:,0]*x["y_pred"][:,3] - x["y_pred"][:,1]*x["y_pred"][:,2]), axis=1)
         data["momentum_true"] = data.apply(lambda x: np.array(x["y_true"][:,0]*x["y_true"][:,3] - x["y_true"][:,1]*x["y_true"][:,2]), axis=1)
         data["cons_over_time"] = data.apply(lambda x: np.sqrt(((x["momentum_true"]-x["momentum_pred"])**2)/((x["momentum_true"])**2)), axis=1)
     elif dataset_name == "rigidbody":
+        data["L2_over_time_relative"] = data.apply(lambda x: np.sqrt(((x["y_true"]-x["y_pred"])**2).mean(axis=1)/((x["y_true"])**2).mean(axis=1)), axis=1)
         data["holo_pred"] = data.apply(lambda x: np.array(x["y_pred"][:,0]**2+ x["y_pred"][:,1]**2 + x["y_pred"][:,2]**2), axis=1)
         data["holo_true"] = data.apply(lambda x: np.array(x["y_true"][:,0]**2+ x["y_true"][:,1]**2 + x["y_true"][:,2]**2), axis=1)
         data["cons_over_time"] = data.apply(lambda x: np.sqrt(((x["holo_true"]-x["holo_pred"])**2)/((x["holo_true"])**2)), axis=1)
     elif dataset_name == "ks":
+
         data["sum_true"] = data.apply(lambda x: np.sum(x["y_true"], axis=1), axis=1)
         data["sum_pred"] = data.apply(lambda x: np.sum(x["y_pred"], axis=1), axis=1)
         data["cons_over_time"] = data.apply(lambda x: np.sqrt(((x["sum_true"]-x["sum_pred"])**2)), axis=1)
+    elif dataset_name == "ns_incomp":
+        data["L2_over_time_relative"] = data.apply(lambda x: np.sqrt(((x["y_true"]-x["y_pred"])**2).mean(axis=(1,2))/((x["y_true"])**2).mean(axis=(1,2))), axis=1)
+        data["cons_over_time"] = None
     
     return data
 
