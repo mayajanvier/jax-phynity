@@ -218,7 +218,7 @@ def init_dataloaders(dataset, integration_method, buffer_filepath=None, dt_num=0
         nb_traj = 512
         num_steps_max = 20 # 0.2s / dt_num = 0.01
     elif dataset == "ns_incomp":
-        batch_size = 64
+        batch_size = 16
         nb_traj = 512 
         num_steps_max = 20 # 20 / dt=1 (?) = t_horizon
 

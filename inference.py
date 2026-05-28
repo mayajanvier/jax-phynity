@@ -141,7 +141,7 @@ def inference_longrun_dt(model_name, exp_name, data_path, model_phy_option, mode
             states = jnp.asarray(data['states'][:,::dt_factor,:], dtype=jnp.float32) 
             print(states.shape)
             #t = jnp.array(data['t'][0])[::dt_factor]
-            pred = jax.vmap(model)(states[:,0,:]) # states[:,:,0] is the initial condition for the trajectory
+            pred = jax.vmap(model)(states[:,0]) # states[:,:,0] is the initial condition for the trajectory
         for k in range(pred.shape[0]):
             if model_phy_option == 'none':
                 results[k] = {
@@ -277,41 +277,41 @@ def inference_metrics(model_name, exp_name, data_path, model_phy_option, model_a
             with open(os.path.join(data_path, f'{exp_name}/{model_name[:-4]}_stats_{duration}_{dt}.json'), 'a') as f:
                 f.write(data[["L2_over_time_relative", "cons_over_time"]].to_json(orient="records") + '\n')
         
-        # MODEL data
-        # TODO: adapt for KS 
-        jac_data = {}
-        y = rearrange(states, 'b T nc -> (b T) nc') 
-        y_pred = rearrange(pred,'b T nc -> (b T) nc') 
-        trueF = F_dict[dataset_name]
-        jac_data["jacF"] = compute_jacobian_test(trueF, y, bool_true=True)
-        #jac_data["eigenF"] = get_eigenvalues_jacobian(trueF, y)
-        lip_trueF = jnp.max(jac_data["jacF"])
-        jac_data["jacFtheta"] = compute_jacobian_test(model, y, bool_true=False)
-        #jac_data["eigenFtheta"] = get_eigenvalues_jacobian(model.model_aug, y)
-        lip_model_x = jnp.max(jac_data["jacFtheta"])
-        jac_data["jacFtheta_pred"] = compute_jacobian_test(model, y_pred, bool_true=False)
-        #jac_data["eigenFtheta_pred"] = get_eigenvalues_jacobian_pred(model.model_aug, y_pred)
-        lip_model_xpred = jnp.max(jac_data["jacFtheta_pred"])
-        jac_data = pd.DataFrame(jac_data)
-        if not os.path.isfile(os.path.join(data_path, f'{exp_name}/{model_name[:-4]}_jacobian_{duration}_{dt}.json')):
-            with open(os.path.join(data_path, f'{exp_name}/{model_name[:-4]}_jacobian_{duration}_{dt}.json'), 'a') as f:
-                f.write(jac_data.to_json(orient="records") + '\n')
+        # # MODEL data
+        # # TODO: adapt for KS 
+        # jac_data = {}
+        # y = rearrange(states, 'b T nc -> (b T) nc') 
+        # y_pred = rearrange(pred,'b T nc -> (b T) nc') 
+        # trueF = F_dict[dataset_name]
+        # jac_data["jacF"] = compute_jacobian_test(trueF, y, bool_true=True)
+        # #jac_data["eigenF"] = get_eigenvalues_jacobian(trueF, y)
+        # lip_trueF = jnp.max(jac_data["jacF"])
+        # jac_data["jacFtheta"] = compute_jacobian_test(model, y, bool_true=False)
+        # #jac_data["eigenFtheta"] = get_eigenvalues_jacobian(model.model_aug, y)
+        # lip_model_x = jnp.max(jac_data["jacFtheta"])
+        # jac_data["jacFtheta_pred"] = compute_jacobian_test(model, y_pred, bool_true=False)
+        # #jac_data["eigenFtheta_pred"] = get_eigenvalues_jacobian_pred(model.model_aug, y_pred)
+        # lip_model_xpred = jnp.max(jac_data["jacFtheta_pred"])
+        # jac_data = pd.DataFrame(jac_data)
+        # if not os.path.isfile(os.path.join(data_path, f'{exp_name}/{model_name[:-4]}_jacobian_{duration}_{dt}.json')):
+        #     with open(os.path.join(data_path, f'{exp_name}/{model_name[:-4]}_jacobian_{duration}_{dt}.json'), 'a') as f:
+        #         f.write(jac_data.to_json(orient="records") + '\n')
 
-        if not os.path.isfile(os.path.join(data_path, f'{exp_name}/{model_name[:-4]}_stats_model_{duration}_{dt}.json')):
-            model_stats = {}
-            model_stats["lip_trueF"] = lip_trueF.item()
-            model_stats["lip_model_x"] = lip_model_x.item()
-            model_stats["lip_model_xpred"] = lip_model_xpred.item()
-            model_stats["offline_error"] = offline_error(model, trueF, y).item()
-            if dataset_name in ["twobody", "rigidbody"]:
-                model_stats["J_error"] = J_error(model, trueF, y).item()
-            B, dim = y.shape
-            master_key = jax.random.PRNGKey(42)
-            keys = jax.random.split(master_key, B)
-            model_stats["J_error_hutch"] = (J_error_hutch(model, trueF, y, keys) / dim**2).item()
-            print(model_stats)
-            with open(os.path.join(data_path, f'{exp_name}/{model_name[:-4]}_stats_model_{duration}_{dt}.json'), 'a') as f:
-                f.write(json.dumps(model_stats) + '\n')
+        # if not os.path.isfile(os.path.join(data_path, f'{exp_name}/{model_name[:-4]}_stats_model_{duration}_{dt}.json')):
+        #     model_stats = {}
+        #     model_stats["lip_trueF"] = lip_trueF.item()
+        #     model_stats["lip_model_x"] = lip_model_x.item()
+        #     model_stats["lip_model_xpred"] = lip_model_xpred.item()
+        #     model_stats["offline_error"] = offline_error(model, trueF, y).item()
+        #     if dataset_name in ["twobody", "rigidbody"]:
+        #         model_stats["J_error"] = J_error(model, trueF, y).item()
+        #     B, dim = y.shape
+        #     master_key = jax.random.PRNGKey(42)
+        #     keys = jax.random.split(master_key, B)
+        #     model_stats["J_error_hutch"] = (J_error_hutch(model, trueF, y, keys) / dim**2).item()
+        #     print(model_stats)
+        #     with open(os.path.join(data_path, f'{exp_name}/{model_name[:-4]}_stats_model_{duration}_{dt}.json'), 'a') as f:
+        #         f.write(json.dumps(model_stats) + '\n')
 
 
 def inference_longrun_dt_val(model_name, exp_name, data_path, model_phy_option, model_aug_option, dataset_name, integration_method, dt, data_integration_method="RK4", dt_num=0.5, duration=200, model_architecture='mlp', name="node", gamma=0.0):
@@ -609,5 +609,5 @@ if __name__ == '__main__':
     cli_cfg = OmegaConf.from_dotlist(args.overrides)
     cfg = OmegaConf.merge(base_cfg, cli_cfg)
 
-    main(cfg, "metrics")
+    main(cfg, "timeseries")
 
