@@ -11,17 +11,25 @@ import jax.numpy as jnp
 from einops import rearrange
 
 from datasets import init_dataloaders
-from forecasters import Forecaster
-from networks import PendulumParamPDE, MLP, MLPAngular, ConvNetEstimator
+from forecasters import Forecaster, SNODE
+from networks import PendulumParamPDE, MLP, MLPAngular, ConvNetEstimator1D, UNet1D, UNet2D, ConvNetEstimator2D
 from utils import init_linear_weight, orthogonal_init, Logger, save, make_basedir, log
 from utils import compute_metric, save_loss_local, log_wandb
 from loss import loss_fn, init_jit_aux_loss, F_pendulum, F_lorenz, F_twobody
 import numpy as np
+from solvers.runge_kutta import RK_tableaux
+
+DTYPE = jnp.float32
 
 # Enable 64-bit precision in JAX
-jax.config.update("jax_enable_x64", True)
+#jax.config.update("jax_enable_x64", True)
+# switch to gpu if available
+#jax.config.update('jax_platform_name', 'gpu')
+# JAX_TRACEBACK_FILTERING=off
+jax.config.update("jax_traceback_filtering", "off")
 
 def get_datasets(cfg):
+    print(f"Loading dataset {cfg.dataset.name} ...")
     train, val, _ = init_dataloaders(
         cfg.dataset.name,
         cfg.dataset.integration_method,
@@ -47,30 +55,59 @@ def get_model(cfg, train):
         model_phy, state_c = None, 3
     elif cfg.dataset.name == "twobody":
         model_phy, state_c = None, 4
+    elif cfg.dataset.name == "twobody_forcing":
+        model_phy, state_c = None, 5
     elif cfg.dataset.name == "doublependulum":
         model_phy, state_c = None, 4
     elif cfg.dataset.name == "rigidbody":
         model_phy, state_c = None, 3
     elif cfg.dataset.name == "ks":
         model_phy, state_c = None, 256
+    elif cfg.dataset.name == "burgers":
+        model_phy, state_c = None, 1024
+    elif cfg.dataset.name == "ns_incomp":
+        model_phy, state_c = None, cfg.model.dim_feat
     else:
         raise ValueError(f"Unknown dataset: {cfg.dataset.name}")
 
     if cfg.dataset.name == "doublependulum":
         model_aug = MLPAngular(key=mkey, state_c=state_c, hidden=cfg.model.hidden)
     else:
-        model_aug = MLP(key=mkey, state_c=state_c, hidden=cfg.model.hidden)
+        if cfg.model.architecture == "mlp":
+            model_aug = MLP(key=mkey, state_c=state_c, hidden=cfg.model.hidden)
+        elif cfg.model.architecture == "unet":
+            model_aug = UNet1D(key=mkey, hidden=cfg.model.hidden) 
+        elif cfg.model.architecture == "unet2d":
+            model_aug = UNet2D(in_channels=1, out_channels=1, init_features=state_c, key=mkey)
+        elif cfg.model.architecture == "convnet":
+            model_aug = ConvNetEstimator1D(key=mkey, hidden=cfg.model.hidden)
+        elif cfg.model.architecture == "convnet2d":
+            model_aug = ConvNetEstimator2D(key=mkey, hidden=cfg.model.hidden)
+
     model_aug = init_linear_weight(model_aug, orthogonal_init, key=ikey, init_gain=cfg.model.init_gain)
 
-    net = Forecaster(
-        model_phy=model_phy,
-        model_aug=model_aug,
-        is_augmented=cfg.model.aug_option,
-        is_phy=cfg.model.phy_option,
-        dt=cfg.dataset.dt_factor * train.dataset.dt,
-        num_steps=int(train.dataset.num_steps_rollout / cfg.dataset.dt_factor),
-        integration_method=cfg.model.integration_method,
-    )
+    if cfg.model.name == "snode":
+        net = SNODE(
+            model_phy=model_phy,
+            model_aug=model_aug,
+            is_augmented=cfg.model.aug_option,
+            is_phy=cfg.model.phy_option,
+            dt=cfg.dataset.dt_factor * train.dataset.dt,
+            num_steps=int(train.dataset.num_steps_rollout / cfg.dataset.dt_factor),
+            dataset=cfg.dataset.name,
+            gamma=cfg.model.gamma,
+            integration_method=cfg.model.integration_method,
+        )
+    else:
+        net = Forecaster(
+            model_phy=model_phy,
+            model_aug=model_aug,
+            is_augmented=cfg.model.aug_option,
+            is_phy=cfg.model.phy_option,
+            dt=cfg.dataset.dt_factor * train.dataset.dt,
+            num_steps=int(train.dataset.num_steps_rollout / cfg.dataset.dt_factor),
+            integration_method=cfg.model.integration_method,
+        )
     return net
 
 def get_optimizer(cfg):
@@ -135,6 +172,7 @@ class CurriculumScheduler:
         return self.epoch_rollout_index, self.nepoch
 
 def train(cfg, train_data, val_data, net, optimizer):
+    print("Training starting...")
     name_experiment = cfg.model.phy_option+"_"+("aug" if cfg.model.aug_option else "physics")+"_"+str(cfg.dataset.duration)
     # Setup logging
     wandb_run = None
@@ -160,8 +198,20 @@ def train(cfg, train_data, val_data, net, optimizer):
     # optimizer initialization
     opt_state = optimizer.init(eqx.filter(net, eqx.is_array))
     # Jitted loss
-    aux_losses_dict = init_jit_aux_loss(cfg.train.aux_loss_names, cfg.train.min_op, cfg.dataset.name, cfg.train.finite_diff)
-    loss_fn_grad = eqx.Partial(loss_fn, reg_loss_name=cfg.train.reg_loss_name, aux_losses_dict=aux_losses_dict, opt_mode=cfg.train.opt_mode)
+    print("Initializing loss function...")
+    aux_losses_dict = init_jit_aux_loss(cfg.train.aux_loss_names, cfg.train.min_op, cfg.dataset.name, cfg.train.finite_diff, cfg.train.lambda_hutch)
+    loss_fn_grad = eqx.filter_jit(
+        eqx.filter_value_and_grad(
+            eqx.Partial(loss_fn, 
+                reg_loss_name=cfg.train.reg_loss_name,
+                aux_losses_dict=aux_losses_dict,
+                opt_mode=cfg.train.opt_mode
+            ),
+            has_aux=True
+            )
+        )
+    #loss_fn_grad = eqx.Partial(loss_fn, reg_loss_name=cfg.train.reg_loss_name, aux_losses_dict=aux_losses_dict, opt_mode=cfg.train.opt_mode)
+    #loss_fn_grad = eqx.filter_jit(eqx.filter_value_and_grad(loss_fn_grad, has_aux=True))
     # for model selection over val loss
     loss_test_min = None
     # curriculum
@@ -169,6 +219,7 @@ def train(cfg, train_data, val_data, net, optimizer):
     _lambda = cfg.train.lambda0
 
     for epoch in range(scheduler.nepoch): 
+        print(f"Epoch {epoch+1}/{scheduler.nepoch}")
         epoch_rollout_index, nepoch = scheduler.step(epoch)
         #print(f"Epoch {epoch}, rollout index: {epoch_rollout_index}")
 
@@ -178,16 +229,20 @@ def train(cfg, train_data, val_data, net, optimizer):
         #print(f"epoch {epoch} / {nepoch}, rollout index {epoch_rollout_index}")
         for _ in range(cfg.train.niter): # APHYNITY
             for iteration, data in enumerate(train_data, 0):
+                print(f"Epoch {epoch+1}/{scheduler.nepoch}, Iteration {iteration+1}/{len(train_data)}", end="\r")
                 # --------------------------
                 ### TRAIN STEP
                 # --------------------------
 
-                states = jnp.array(data['states'])[:,:epoch_rollout_index*cfg.dataset.dt_factor:cfg.dataset.dt_factor,:] # bs, time, nc with diffrax, bs, nc, time with RK_solver_fixed
+                # use asarray to avoid creating new data
+                states = jnp.asarray(data['states'][:,:epoch_rollout_index*cfg.dataset.dt_factor:cfg.dataset.dt_factor,:], dtype="float32") # bs, time, nc with diffrax, bs, nc, time with RK_solver_fixed
+                #states = jax.device_put(states) # move data to GPU if available
                 #t = jnp.array(data['t'][0])[::cfg.dataset.dt_factor]
                 (loss_total, (pred, losses_values_dict)), grads = loss_fn_grad(net, states, lambda_ = jnp.array(_lambda), epoch_rollout_index=epoch_rollout_index) #, Fa_prime_true=F_prime_true)
                 updates, opt_state = optimizer.update(
                     grads, opt_state, eqx.filter(net, eqx.is_array))
                 net = eqx.apply_updates(net, updates)
+                #losses_dict_np = jax.tree_map(lambda x: float(x), losses_dict)
                 # accumulate loss
                 for losses_values_dict_key, losses_values_dict_value in losses_values_dict.items():
                     loss_train[losses_values_dict_key] += losses_values_dict_value
@@ -226,14 +281,24 @@ def train(cfg, train_data, val_data, net, optimizer):
             loss_test["loss_traj"] = 0.0 #{"loss_traj": 0.0, "loss_op": 0.0}
             #if cfg.model.phy_option != "none":
             for j, data_test in enumerate(val_data, 0):
-
                 # no backpropagation
-                states = jnp.array(data_test['states'])[:,::cfg.dataset.dt_factor,:] # bs, time, nc with diffrax
+                states = jnp.asarray(data_test['states'][:,::cfg.dataset.dt_factor,:], dtype="float32") # bs, time, nc with diffrax
+                #states = jax.device_put(states) # move data to GPU if available
                 #t = jnp.array(data_test['t'][0])[::cfg.dataset.dt_factor]
                 (loss_total, (pred, losses_values_dict)), grads = loss_fn_grad(net, states, lambda_ = jnp.array(_lambda), epoch_rollout_index=states.shape[1]) #, Fa_prime_true=F_prime_true_val)
                 # accumulate loss
                 for losses_values_dict_key, losses_values_dict_value in losses_values_dict.items():
                     loss_test[losses_values_dict_key] += losses_values_dict_value
+
+                # for long rollout evaluation
+                # states = jnp.array(data_test['states'])[:,::cfg.dataset.dt_factor,:] # bs, time, nc with diffrax
+                # #states = jnp.array(val_data['states'])[:,::cfg.dataset.dt_factor,:]
+                # # get model for long rollout
+                # T = states.shape[1]-1
+                # pred = jax.vmap(lambda y0: net.validation_call(y0, T))(states[:,0,:])
+                # print(pred.shape, states.shape)
+                # loss_test["loss_traj"] = jnp.mean((pred - states)**2)
+                # j = 0
 
                 
             # average loss over test set
@@ -422,7 +487,7 @@ def training_routine(train, test, net, optimizer, min_op, _lambda,tau_1, tau_2, 
                 # accumulate loss
                 for losses_values_dict_key, losses_values_dict_value in losses_values_dict.items():
                     loss_test[losses_values_dict_key] += losses_values_dict_value
-                
+
             # average loss over test set
             for losses_values_dict_key, losses_values_dict_value in losses_values_dict.items():
                 loss_test[losses_values_dict_key] /= (j + 1)
@@ -647,13 +712,20 @@ if __name__ == '__main__':
     wandb.login()
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", type=str, default="config.yaml", help="Path to YAML config file")
-    parser.add_argument("overrides", nargs=argparse.REMAINDER, help="Override config values (e.g. dataset.name=lorenz)")
-    args = parser.parse_args()
+    # parser.add_argument("overrides", nargs=argparse.REMAINDER, help="Override config values (e.g. dataset.name=lorenz)")
+    # args = parser.parse_args()
+    # base_cfg = OmegaConf.load(args.config)
+    # cli_cfg = OmegaConf.from_dotlist(args.overrides)
+    # cfg = OmegaConf.merge(base_cfg, cli_cfg)
 
+    # main(cfg)
+
+    args, unknown = parser.parse_known_args()
     base_cfg = OmegaConf.load(args.config)
-    cli_cfg = OmegaConf.from_dotlist(args.overrides)
+    # remove leading "--" from wandb args
+    dotlist = [arg.lstrip("--") for arg in unknown]
+    cli_cfg = OmegaConf.from_dotlist(dotlist)
     cfg = OmegaConf.merge(base_cfg, cli_cfg)
-
     main(cfg)
 
 

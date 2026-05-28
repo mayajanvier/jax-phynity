@@ -5,6 +5,10 @@ from dataclasses import dataclass, field # dataclass is a decorator that is used
 from typing import Optional, Tuple
 import equinox as eqx
 
+jax.config.update("jax_enable_x64", False)
+
+dtype = jnp.float32
+
 ### diffrax Butcher tableau class 
 @dataclass(frozen=True)
 class ButcherTableau:
@@ -97,14 +101,14 @@ Heun_tableau = ButcherTableau(
 # 3/8 rule in odeint used in APHYNITY (torchdiffeq)
 RK4_tableau = ButcherTableau(
     a_lower=(
-        jnp.array([1 / 3]),
-        jnp.array([-1 / 3, 1]),
-        jnp.array([1, -1, 1]),
+        jnp.array([1 / 3], dtype=dtype),
+        jnp.array([-1 / 3, 1], dtype=dtype),
+        jnp.array([1, -1, 1], dtype=dtype),
     ),
-    b_sol=jnp.array([1 / 8, 3 / 8, 3 / 8, 1 / 8]),
+    b_sol=jnp.array([1 / 8, 3 / 8, 3 / 8, 1 / 8], dtype=dtype),
     # TODO comment calculer une erreur pour RK4 ? 
-    b_error=jnp.array([0, 0, 0, 0]),
-    c =jnp.array([1 / 3, 2 / 3, 1]),
+    b_error=jnp.array([0, 0, 0, 0], dtype=dtype),
+    c =jnp.array([1 / 3, 2 / 3, 1], dtype=dtype),
 )
 
 dopri5_tableau = ButcherTableau(
@@ -336,16 +340,6 @@ def runge_kutta_step(
         k_last: Last stage derivative (for FSAL-enabled methods).
     """
     num_stages = tableau.num_stages
-
-    # jax.lax.scan function for building k 
-    # def step(carry, i):
-    #     k, y = carry
-    #     ti = t + tableau.c[i] * dt
-    #     yi = y + dt * jnp.tensordot(tableau.a_lower[i], k[:i+1], axes=1)
-    #     k_next = f(yi, ti)
-    #     k = k.at[i+1].set(k_next)
-    #     return (k,y), k_next
-    
     k = jnp.zeros((num_stages,) + y.shape, dtype=y.dtype) # shape (num_stages, y.shape)
     # explicit Runge-Kutta methods
     if not tableau.implicit: # a_diagonal is None
@@ -353,14 +347,6 @@ def runge_kutta_step(
             k = k.at[0].set(k_first) # k1 = k_first(n_step) = k_last(n_step-1)
         else: 
             k = k.at[0].set(f(y, t+ dt * tableau.c1)) # k1 = f(y, t + c1 * dt)
-
-        # loop over stages
-        # (final_k, _),_ = jax.lax.scan(step, (k,y), jnp.arange(num_stages-1))
-        # y_next = y + dt * jnp.tensordot(tableau.b_sol, final_k, axes=1)
-        # error = jnp.tensordot(tableau.b_error, final_k, axes=1)
-
-        # avoid loop
-        #tiVec = t + tableau.c * dt
         
         for i in range(tableau.num_stages-1):
             ti = t + tableau.c[i] * dt
@@ -412,45 +398,7 @@ def RK_solver_fixed(fun, y0, dt, num_steps, tableau):
     y_sol = jnp.vstack([y0[None, :], y_sol])
     global_error = jnp.sum(errors)
     
-    return y_sol.T, t_eval, global_error, errors
-
-
-# fixed step size
-# def RK_solver_fixed(fun, y0, dt, num_steps, tableau):
-#     """Solve an initial value problem using the Dormand--Prince 5 method.
-    
-#     Args:
-#         fun: The vector field function.
-#         y0: The initial state.
-#         dt: The step size.
-#         num_steps: The number of steps to take.
-#         tableau: The Butcher tableau of the Runge--Kutta method.
-    
-#     Returns:
-#         t_eval: time points of evaluation, (num_steps+1,)
-#         y: solution evaluated on t_eval points, (num_steps+1, y0.shape)
-#         global_error: global error of the method, float
-#         errors: list of errors at each time step, (num_steps,)
-#     """
-#     # initialize
-#     t_eval = jnp.arange(0, (num_steps+1) * dt, dt) # array of time points to evaluate
-#     y = jnp.zeros(y0.shape + (len(t_eval),), dtype=y0.dtype) 
-#     y = y.at[:,0].set(y0)
-#     global_error = 0.
-#     errors = []
-#     n_step = 0
-#     k_first = None
-
-#     for t_current in t_eval:
-#         if tableau.fsal:
-#             y_next, error, k_first = runge_kutta_step(fun, y[:,n_step], t_current, dt, tableau, k_first)
-#         else:
-#             y_next, error = runge_kutta_step(fun, y[:,n_step], t_current, dt, tableau)
-#         n_step += 1 
-#         y = y.at[:,n_step].set(y_next)
-#         global_error += error
-#         errors.append(error)
-#     return y, t_eval, global_error, errors
+    return y_sol, t_eval, global_error, errors
 
 
 ### equinox Integrator class

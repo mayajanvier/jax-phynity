@@ -44,7 +44,7 @@ class DoublePendulum:
 
 
         # Full trajectories are saved to a single .npy file
-        self.data_path = f"/home/meunier/jax-phynity/datasets/doublependulum_full_{split}.npy"
+        self.data_path = f"datasets/doublependulum_full_{split}.npy"
         self.states = self._load_dataset()
 
     def __len__(self):
@@ -103,7 +103,6 @@ class DoublePendulum:
                 num_steps=num_steps,
                 tableau=RK_tableaux[self.integration_method],
             )
-            states = rearrange(states, 'nc T -> T nc')
             all_states.append(np.array(states))
             if all_t is None:
                 all_t = np.array(t)
@@ -214,7 +213,6 @@ class DampedPendulum():
                 num_steps=self.num_steps,
                 tableau = RK_tableaux[self.integration_method],
                 )
-            states = rearrange(states, 'nc T -> T nc') 
             # save data as numpy array for Dataloader
             self.data[str(index)] = states
             self.data['t'] = t

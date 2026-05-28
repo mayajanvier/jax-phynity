@@ -329,6 +329,78 @@ def get_states(dataframe, type='lorenz', bool_true=True):
     print(y_list.shape, y_list[0].shape)
     return np.array(y_list)
 
+def compute_metrics_timeseries(data, data_true=None, dataset_name=None):
+    if data_true is not None:
+        data["y_true"] = data_true.values
+    data["y_true"] = data["y_true"].apply(lambda x: np.array(x))
+    shape_true = data["y_true"][0].shape
+    data["y_pred"] = data["y_pred"].apply(lambda x: np.array(x)[:shape_true[0], :shape_true[1]]) # ensure consistent shapes
+    # White paper metrics
+    if dataset_name == "twobody":
+        data["L2_over_time_relative"] = data.apply(lambda x: np.sqrt(((x["y_true"]-x["y_pred"])**2).mean(axis=1)/((x["y_true"])**2).mean(axis=1)), axis=1)
+        data["momentum_pred"] = data.apply(lambda x: np.array(x["y_pred"][:,0]*x["y_pred"][:,3] - x["y_pred"][:,1]*x["y_pred"][:,2]), axis=1)
+        data["momentum_true"] = data.apply(lambda x: np.array(x["y_true"][:,0]*x["y_true"][:,3] - x["y_true"][:,1]*x["y_true"][:,2]), axis=1)
+        data["cons_over_time"] = data.apply(lambda x: np.sqrt(((x["momentum_true"]-x["momentum_pred"])**2)/((x["momentum_true"])**2)), axis=1)
+    elif dataset_name == "rigidbody":
+        data["L2_over_time_relative"] = data.apply(lambda x: np.sqrt(((x["y_true"]-x["y_pred"])**2).mean(axis=1)/((x["y_true"])**2).mean(axis=1)), axis=1)
+        data["holo_pred"] = data.apply(lambda x: np.array(x["y_pred"][:,0]**2+ x["y_pred"][:,1]**2 + x["y_pred"][:,2]**2), axis=1)
+        data["holo_true"] = data.apply(lambda x: np.array(x["y_true"][:,0]**2+ x["y_true"][:,1]**2 + x["y_true"][:,2]**2), axis=1)
+        data["cons_over_time"] = data.apply(lambda x: np.sqrt(((x["holo_true"]-x["holo_pred"])**2)/((x["holo_true"])**2)), axis=1)
+    elif dataset_name == "ks":
+
+        data["sum_true"] = data.apply(lambda x: np.sum(x["y_true"], axis=1), axis=1)
+        data["sum_pred"] = data.apply(lambda x: np.sum(x["y_pred"], axis=1), axis=1)
+        data["cons_over_time"] = data.apply(lambda x: np.sqrt(((x["sum_true"]-x["sum_pred"])**2)), axis=1)
+    elif dataset_name == "ns_incomp":
+        data["L2_over_time_relative"] = data.apply(lambda x: np.sqrt(((x["y_true"]-x["y_pred"])**2).mean(axis=(1,2))/((x["y_true"])**2).mean(axis=(1,2))), axis=1)
+        data["cons_over_time"] = None
+    
+    return data
+
+def compute_jacobian(model_fn):
+    jac_single = jax.jacfwd(model_fn)
+    return jax.jit(jax.vmap(jac_single))
+
+def make_jacobian_sqnorm_fn(model, num_samples=4):
+    def jacobian_sqnorm(y0, key):
+        keys = jax.random.split(key, num_samples)
+
+        def single_estimate(k):
+            v = jax.random.normal(k, y0.shape)  
+            _, jvp = jax.jvp(model, (y0,), (v,))
+            return jnp.sum(jvp**2)
+
+        estimates = jax.vmap(single_estimate)(keys)
+
+        # Frobenius squared estimate
+        return jnp.mean(estimates)
+
+    return jax.jit(jax.vmap(jacobian_sqnorm))
+
+def offline_error(model, trueF, y):
+    """ Offline error Ftheta-F """
+    F_pred = jax.vmap(lambda x: model.model_aug(x))(y)
+    F_true = jax.vmap(lambda x: trueF(x))(y)
+    offlineE = np.mean((F_pred-F_true)**2)
+    return offlineE
+
+def J_error(model, trueF, y):
+    """ Exact Jacobian error """
+    jacob = compute_jacobian(model.model_aug)(y)
+    jacob_true = compute_jacobian(trueF)(y)
+    JE = jnp.mean((jacob-jacob_true)**2)
+    return JE 
+
+def J_error_hutch(model, trueF, y, keys):
+    """ Estimated Jacobian error using Hutchinson's method. """
+    # Difference operator
+    diff_fn = lambda x: model.model_aug(x) - trueF(x)
+
+    jac_diff_sq = make_jacobian_sqnorm_fn(diff_fn)(y, keys)
+
+    # Mean over batch (MSE style)
+    return jnp.mean(jac_diff_sq)
+
 
 ### EIGENVALUES
 

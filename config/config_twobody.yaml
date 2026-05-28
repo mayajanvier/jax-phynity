@@ -1,13 +1,16 @@
 dataset:
   name: twobody
   integration_method: RK4
-  duration: 0.05
+  duration: 0.02
   dt_num: 0.01
   dt_factor: 1
 
 model:
-  phy_option: none
+  name: node
+  gamma: 0.0
+  phy_option: none_sup_accnorm
   aug_option: true
+  architecture: "mlp"
   hidden: 200
   init_gain: 1.0
   integration_method: RK4
@@ -16,10 +19,11 @@ train:
   lr: 1e-3
   niter: 5
   min_op: l2
-  reg_loss_name: none
-  lambda0: 0.0
+  reg_loss_name: loss_sup_accnorm
+  lambda0: 1e-11
+  lambda_hutch: 0.0
   tau2: 0.0
-  aux_loss_names: ["loss_AD_sup", "loss_FD_unsup"]
+  aux_loss_names: ["loss_sup_accnorm"]
   log_param_error: false # when hybrid
   nlog: 5
   nval: 5 

@@ -6,8 +6,11 @@ dataset:
   dt_factor: 10
 
 model:
-  phy_option: none_FD_unsup
+  name: node
+  gamma: 0.1
+  phy_option: none_AD_single
   aug_option: true
+  architecture: "mlp"
   hidden: 200
   init_gain: 1.0
   integration_method: RK4
@@ -16,10 +19,11 @@ train:
   lr: 1e-3
   niter: 5
   min_op: l2
-  reg_loss_name: loss_FD_unsup
-  lambda0: 5e-4
+  reg_loss_name: loss_AD_single
+  lambda0: 1e-12
+  lambda_hutch: 1.0
   tau2: 0.0
-  aux_loss_names: ["loss_AD_sup", "loss_FD_unsup"]
+  aux_loss_names: ["loss_AD_single"]
   log_param_error: false # when hybrid
   nlog: 5
   nval: 5 

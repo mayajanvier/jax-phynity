@@ -40,7 +40,7 @@ class LorenzTrue:
         self.path = path
 
         # Full trajectories are saved to a single .npy file
-        self.data_path = f"/home/meunier/jax-phynity/datasets/lorenz_full_{split}.npy"
+        self.data_path = f"datasets/lorenz_full_{split}.npy"
         self.states = self._load_dataset()
 
     def __len__(self):
@@ -84,7 +84,7 @@ class LorenzTrue:
                 num_steps=num_steps,
                 tableau=RK_tableaux[self.integration_method],
             )
-            states = rearrange(states, 'nc T -> T nc')
+            #states = rearrange(states, 'nc T -> T nc')
             all_states.append(np.array(states))
             if all_t is None:
                 all_t = np.array(t)
@@ -194,7 +194,6 @@ class LorenzTrueShelve():
                 tableau = RK_tableaux[self.integration_method],
                 )
             # save data as numpy array for Dataloader
-            states = rearrange(states, 'nc T -> T nc') 
             self.data[str(index)] = states
             self.data['t'] = t
         else:

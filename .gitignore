@@ -8,3 +8,6 @@ __pycache__
 *runs/
 *runs_old/
 *data_exp/
+*pdearena/
+bash.sh
+agent_sweep*
