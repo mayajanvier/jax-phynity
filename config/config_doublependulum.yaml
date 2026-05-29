@@ -4,6 +4,10 @@ dataset:
   duration: 0.1
   dt_num: 0.01
   dt_factor: 5
+  batch_size: 40
+  nb_traj_train: 40
+  nb_traj_val: 40 # test 100
+  num_steps_max: 1000
 
 model:
   phy_option: none_AD_sup
