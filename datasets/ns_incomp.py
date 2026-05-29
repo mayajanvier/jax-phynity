@@ -7,9 +7,7 @@ from jax import random
 import h5py
 import torch 
 import math
-
-# Enable 64-bit precision in JAX
-#jax.config.update("jax_enable_x64", True)
+from datasets.base import BaseDataset
 
 MAX = np.iinfo(np.int32).max # maximum int value
 
@@ -27,11 +25,6 @@ def get_mgrid(sidelen, vmin=-1, vmax=1, dim=2):
         else:
             tensors = tuple([torch.linspace(vmin, vmax, steps=l) for l in sidelen])
     mgrid = torch.stack(torch.meshgrid(*tensors, indexing='ij'), dim=-1)
-    return mgrid
-
-
-def get_mgrid_from_tensors(tensors):
-    mgrid = torch.stack(torch.meshgrid(*tensors), dim=-1)
     return mgrid
 
 
@@ -75,13 +68,11 @@ class GaussianRF(object):
         return u
 
 
-class NavierStokesDataset:
+class NavierStokes(BaseDataset):
     def __init__(self, dt, num_steps_max, num_steps_rollout, path, split, nb_traj, size, integration_method='RK4', *args, **kwargs):
-        super().__init__()
         self.size = size
         self.sampler = GaussianRF(2, self.size, alpha=2.5, tau=7)
         self.dt_num = 1e-3
-        self.dt = dt
         self.visc = 1e-3
         self.coords = get_mgrid(self.size, vmin=0, vmax=0.5, dim=2)
         self.coord_dim = self.coords.shape[-1]
@@ -90,15 +81,26 @@ class NavierStokesDataset:
         X, Y = torch.meshgrid(tt, tt)
         self.f = 0.1 * (torch.sin(2 * math.pi * (X + Y)) + torch.cos(2 * math.pi * (X + Y)))
 
-        self.num_steps_max = num_steps_max
-        self.num_steps_rollout = num_steps_rollout
-        self.nb_traj = nb_traj
-        self.split = split
-        self.path = path
-
         # Full trajectories are saved to a single .npy file
-        self.data_path = f"datasets/ns_incomp_full_{split}.npy"
-        self.states = self._load_dataset()
+        self.data_path = f"data/ns_incomp_full_{split}.npy"
+        super().__init__(
+            dt,
+            num_steps_max,
+            num_steps_rollout,
+            path,
+            split,
+            nb_traj,
+            integration_method
+        )
+
+
+    def _chunk_source_dataset(self):
+        if not os.path.exists(self.data_path):
+            print(f"Generating {self.split} dataset...")
+            all_states = self._generate_and_save_dataset()
+        data = np.load(self.data_path, allow_pickle=True).item()
+        return data['states']
+        
 
     def navier_stokes_2d(self, w0, f, visc, T, delta_t, record_steps):
         # Grid size - must be power of 2
@@ -205,9 +207,8 @@ class NavierStokesDataset:
         return init_cond
 
     def _generate_and_save_dataset(self):
-        """Generate full trajectories and save them in one .npy file."""
+        """Generate full trajectories."""
         all_states = []
-        all_t = None
         num_steps = max(self.num_steps_rollout, self.num_steps_max) 
         for idx in range(self.nb_traj):
             with torch.no_grad():
@@ -218,56 +219,19 @@ class NavierStokesDataset:
                 
             states = rearrange(states[0,:,:,:,0], 's1 s2 T -> T s1 s2') #.permute(0, 4, 3, 1, 2)
             all_states.append(np.array(states))
-
         all_states = np.stack(all_states)  # shape (nb_traj, T, s1, s2)
-        print(all_states.shape)
-        np.save(self.data_path, dict(states=all_states, t=all_t))
+        np.save(self.data_path, dict(states=all_states))
         print(f"Saved {self.nb_traj} trajectories to {self.data_path}")
+        return all_states
 
-    
-    def __len__(self):
-        return len(self.states)
 
-    def _chunk_and_save_dataset(self):
-        """Get full trajectories and save new dataset of chunked trajectories of num_steps_rollout steps."""
-        # Load full trajectories
-        if not os.path.exists(self.data_path):
-            print(f"Generating {self.split} dataset...")
-            self._generate_and_save_dataset()
-        data = np.load(self.data_path, allow_pickle=True).item()
-        print(data["states"].shape, data["states"][0].shape)  # (nb traj, time, 64, 64)
-        
-        if self.num_steps_rollout < self.num_steps_max: # needs chunking 
-            # Create chunked dataset
-            all_chunks = []
-            T = data["states"][0].shape[0]
-            print(T)
-            for k in range(data['states'].shape[0]): 
-                traj = data['states'][k]
-                start, end = 0, self.num_steps_rollout+1
-                while end < T+1:
-                    print(start, end)
-                    chunk = traj[start:end]
-                    all_chunks.append(chunk)
-                    start += self.num_steps_rollout
-                    end = start + (self.num_steps_rollout+1)
-            print(all_chunks[0].shape) # (num_steps_rollout+1, nc)
-            all_chunks = np.stack(all_chunks)  # shape (num_chunks, num_steps_rollout, 64, 64)
-            print(all_chunks.shape)
-            np.save(self.path, dict(states=all_chunks))
-            print(f"Saved chunked dataset to {self.path}")
-        else: # chunk=full
-            np.save(self.path, dict(states=data['states']))
-            print(f"Copied full dataset to {self.path}")
 
-    def _load_dataset(self):
-        """Load chunked dataset, generate if not existing."""
-        if not os.path.exists(self.path+".npy"):
-            print(f"Chunked dataset not found at {self.path}. Generating...")
-            self._chunk_and_save_dataset()
-        data = np.load(f"{self.path}.npy", allow_pickle=True).item()
-        return data['states']
-
-    def __getitem__(self, index):
-        """Get one trajectory."""
-        return {"states": self.states[index]}
+if __name__ == '__main__':
+    dataset = NavierStokes(
+        dt=0.01,
+        num_steps_max=6,
+        num_steps_rollout=2,
+        path="data_test/ns",
+        split="train",
+        nb_traj=1,
+        size=64)
