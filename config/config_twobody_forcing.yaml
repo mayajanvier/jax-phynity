@@ -1,18 +1,18 @@
 dataset:
-  name: twobody
+  name: twobody_forcing
   integration_method: RK4
-  duration: 0.02
+  duration: 0.1
   dt_num: 0.01
   dt_factor: 1
   batch_size: 40
   nb_traj_train: 40
   nb_traj_val: 40
-  num_steps_max: 800
+  num_steps_max: 5000
 
 model:
   name: node
   gamma: 0.0
-  phy_option: none_sup_accnorm
+  phy_option: none_FD_unsup
   aug_option: true
   architecture: "mlp"
   hidden: 200
@@ -21,23 +21,22 @@ model:
 
 train:
   lr: 1e-3
-  niter: 5
+  niter: 1 #5
   min_op: l2
-  reg_loss_name: loss_sup_accnorm
-  lambda0: 1e-11
-  lambda_hutch: 0.0
+  reg_loss_name: loss_FD_unsup
+  lambda0: 1e-13
   tau2: 0.0
-  aux_loss_names: ["loss_sup_accnorm"]
+  aux_loss_names: ["loss_AD_sup", "loss_FD_unsup"]
   log_param_error: false # when hybrid
   nlog: 5
   nval: 5 
   curriculum: no_curr
   opt_mode: traj
   finite_diff: forward
-  nepoch: 900
+  nepoch: 1000 #900
 
 experiment:
-  path: data_exp/twobody_dt001_8s
+  path: data_exp/twobody_forcing
 logging:
   use_wandb: true
-  project: TwoBodyProblemICML4
+  project: TwoBodyForcingICML

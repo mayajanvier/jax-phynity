@@ -1,43 +1,45 @@
 dataset:
-  name: twobody
+  name: ns_incomp
   integration_method: RK4
-  duration: 0.02
-  dt_num: 0.01
+  duration: 5
+  dt_num: 1
   dt_factor: 1
-  batch_size: 40
-  nb_traj_train: 40
-  nb_traj_val: 40
-  num_steps_max: 800
+  batch_size: 16
+  nb_traj_train: 512
+  nb_traj_val: 128
+  num_steps_max: 20
+  size: 64
 
 model:
   name: node
   gamma: 0.0
-  phy_option: none_sup_accnorm
+  phy_option: none
   aug_option: true
-  architecture: "mlp"
-  hidden: 200
+  architecture: "unet2d"
+  hidden: 0
   init_gain: 1.0
   integration_method: RK4
+  dim_feat: 16 # for unet 
 
 train:
   lr: 1e-3
-  niter: 5
+  niter: 1
   min_op: l2
-  reg_loss_name: loss_sup_accnorm
-  lambda0: 1e-11
+  reg_loss_name: none
+  lambda0: 0.0
   lambda_hutch: 0.0
   tau2: 0.0
-  aux_loss_names: ["loss_sup_accnorm"]
+  aux_loss_names: ["loss_FD_unsup"]
   log_param_error: false # when hybrid
   nlog: 5
   nval: 5 
   curriculum: no_curr
   opt_mode: traj
   finite_diff: forward
-  nepoch: 900
+  nepoch: 1000
 
 experiment:
-  path: data_exp/twobody_dt001_8s
+  path: data_exp/ns_incomp
 logging:
   use_wandb: true
-  project: TwoBodyProblemICML4
+  project: ns_incompICML

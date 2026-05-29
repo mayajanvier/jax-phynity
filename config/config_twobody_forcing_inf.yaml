@@ -1,5 +1,5 @@
 dataset:
-  name: twobody
+  name: twobody_forcing
   integration_method: RK4
   dt_num: 0.01
   duration: 100.0
@@ -7,4 +7,4 @@ dataset:
   
 dt: 0.01
 integration_method: RK4
-data_folder: data_exp/twobody_inf
+data_folder: data_exp/twobody_forcing_inf

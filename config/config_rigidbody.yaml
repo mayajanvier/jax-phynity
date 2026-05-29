@@ -4,6 +4,10 @@ dataset:
   duration: 0.5
   dt_num: 0.01
   dt_factor: 10
+  batch_size: 40
+  nb_traj_train: 40
+  nb_traj_val: 40
+  num_steps_max: 1500
 
 model:
   name: node

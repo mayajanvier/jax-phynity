@@ -1,0 +1,10 @@
+dataset:
+  name: burgers
+  integration_method: RK4
+  dt_num: 0.01
+  duration: 2.0
+  nb_traj_test: 128
+
+dt: 0.01
+integration_method: RK4
+data_folder: data_exp/burgers_2048
