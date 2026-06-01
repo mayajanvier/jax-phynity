@@ -36,7 +36,7 @@ class BaseDataset(abc.ABC):
         self.nb_traj = nb_traj
         self.integration_method = integration_method
         self.split = split
-        self.chunk_path = path
+        self.chunk_path = path+'_'+split
         self.states = self._load_dataset()
 
     @abc.abstractmethod
