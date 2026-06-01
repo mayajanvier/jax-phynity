@@ -69,7 +69,7 @@ class GaussianRF(object):
 
 
 class NavierStokes(BaseDataset):
-    def __init__(self, dt, num_steps_max, num_steps_rollout, path, split, nb_traj, size, integration_method='RK4', *args, **kwargs):
+    def __init__(self, dt_num, num_steps_max, num_steps_rollout, path, split, nb_traj, size, integration_method='RK4', *args, **kwargs):
         self.size = size
         self.sampler = GaussianRF(2, self.size, alpha=2.5, tau=7)
         self.dt_num = 1e-3

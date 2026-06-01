@@ -10,7 +10,8 @@ import equinox as eqx
 import jax.numpy as jnp
 from einops import rearrange
 
-from datasets import init_dataloaders
+from datasets import *
+from torch.utils.data import DataLoader 
 from forecasters import Forecaster, SNODE
 from networks import PendulumParamPDE, MLP, MLPAngular, ConvNetEstimator1D, UNet1D, UNet2D, ConvNetEstimator2D
 from utils import init_linear_weight, orthogonal_init, Logger, save, make_basedir, log
@@ -28,17 +29,53 @@ DTYPE = jnp.float32
 # JAX_TRACEBACK_FILTERING=off
 jax.config.update("jax_traceback_filtering", "off")
 
+g = torch.Generator()
+g.manual_seed(0)
+
 def get_datasets(cfg):
     print(f"Loading dataset {cfg.dataset.name} ...")
-    train, val, _ = init_dataloaders(
-        cfg.dataset.name,
-        cfg.dataset.integration_method,
-        os.path.join(cfg.experiment.path, cfg.dataset.name + str(cfg.dataset.duration)),
-        dt_num=cfg.dataset.dt_num,
-        duration=cfg.dataset.duration,
+    # define datasets 
+    path = os.path.join(cfg.experiment.path, cfg.dataset.name + str(cfg.dataset.duration))
+    num_steps_rollout = int(cfg.dataset.duration/cfg.dataset.dt_num)
+    dataset_train = DATASET_REGISTRY[cfg.dataset.name](
+        nb_traj=cfg.dataset.nb_traj_train,
+        num_steps_rollout=num_steps_rollout, 
+        path=path,
         split="train",
-    )
-    return train, val
+        **cfg.dataset)
+    dataset_val   = DATASET_REGISTRY[cfg.dataset.name](
+        nb_traj=cfg.dataset.nb_traj_val,
+        num_steps_rollout=num_steps_rollout, 
+        path=path,
+        split="val",
+        **cfg.dataset)
+
+    # define dataloaders
+    dataloader_train_params = {
+                'dataset'    : dataset_train,
+                'batch_size' : cfg.dataset.batch_size,
+                'num_workers': 0,
+                'pin_memory' : True,
+                'drop_last'  : False,
+                'shuffle'    : True,
+                #'persistent_workers': True,
+                'worker_init_fn': seed_worker,
+                'generator':g,
+            }
+    dataloader_val_params = {
+                'dataset'    : dataset_val,
+                'batch_size' : cfg.dataset.batch_size,
+                'num_workers': 0,
+                'pin_memory' : True,
+                'drop_last'  : False,
+                'shuffle'    : False,
+                #'persistent_workers': True,
+                'worker_init_fn': seed_worker,
+                'generator':g,
+        }
+    dataloader_train = DataLoader(**dataloader_train_params)
+    dataloader_val   = DataLoader(**dataloader_val_params)
+    return dataloader_train, dataloader_val
 
 def get_model(cfg, train):
     mkey, ikey = jax.random.split(jax.random.PRNGKey(0))
@@ -726,6 +763,14 @@ if __name__ == '__main__':
     dotlist = [arg.lstrip("--") for arg in unknown]
     cli_cfg = OmegaConf.from_dotlist(dotlist)
     cfg = OmegaConf.merge(base_cfg, cli_cfg)
-    main(cfg)
+    #main(cfg)
+    train_data, val_data = get_datasets(cfg)
+    for iteration, data in enumerate(train_data, 0):
+        print(data["states"].shape)
+        break
+    for iteration, data in enumerate(val_data, 0):
+        print(data["states"].shape)
+        break
+    
 
 

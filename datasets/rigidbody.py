@@ -16,11 +16,11 @@ jax.config.update("jax_enable_x64", True)
 class RigidBody(ODEDataset):
     """Rigidbody problem dataset generator using fixed-step RK solver."""
 
-    def __init__(self, dt, num_steps_max, num_steps_rollout,
-                 path, split, nb_traj, integration_method='RK4'):
+    def __init__(self, dt_num, num_steps_max, num_steps_rollout,
+                 path, split, nb_traj, integration_method='RK4', **kwargs):
         super().__init__(
-            dataset_name='rigidbody',
-            dt=dt,
+            name='rigidbody',
+            dt_num=dt_num,
             num_steps_max=num_steps_max,
             num_steps_rollout=num_steps_rollout,
             path=path,

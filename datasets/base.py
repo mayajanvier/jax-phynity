@@ -17,8 +17,8 @@ class BaseDataset(abc.ABC):
     """
     VALID_SPLITS = ('train', 'val', 'test')
 
-    def __init__(self, dt, num_steps_max, num_steps_rollout,
-                 path, split, nb_traj, integration_method='RK4'):
+    def __init__(self, dt_num, num_steps_max, num_steps_rollout,
+                 path, split, nb_traj, integration_method='RK4', *args, **kwargs):
         """
         Args:
             dt: float, time step
@@ -30,7 +30,7 @@ class BaseDataset(abc.ABC):
             integration_method: str, e.g. 'RK4', 'DOPRI5'
         """
         assert split in self.VALID_SPLITS, f"split must be one of {self.VALID_SPLITS}"
-        self.dt = dt
+        self.dt = dt_num
         self.num_steps_max = num_steps_max
         self.num_steps_rollout = num_steps_rollout
         self.nb_traj = nb_traj
@@ -81,9 +81,9 @@ class BaseDataset(abc.ABC):
 
 class ODEDataset(BaseDataset):
     """ Datasets when trajectories are generated """
-    def __init__(self, dataset_name, *args, **kwargs):
+    def __init__(self, name, *args, **kwargs):
         # full trajectories 
-        self.data_path = f"data/{dataset_name}_full_{kwargs['split']}.npy"
+        self.data_path = f"data/{name}_full_{kwargs['split']}.npy"
         super().__init__(*args,**kwargs)
 
     def F(self, s, t): 

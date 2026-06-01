@@ -16,11 +16,11 @@ jax.config.update("jax_enable_x64", True)
 class TwoBody(ODEDataset):
     """Two-body problem dataset generator using fixed-step RK solver."""
 
-    def __init__(self, dt, num_steps_max, num_steps_rollout,
-                 path, split, nb_traj, integration_method='RK4'):
+    def __init__(self, dt_num, num_steps_max, num_steps_rollout,
+                 path, split, nb_traj, integration_method='RK4', **kwargs):
         super().__init__(
-            dataset_name='twobody',
-            dt=dt,
+            name='twobody',
+            dt_num=dt_num,
             num_steps_max=num_steps_max,
             num_steps_rollout=num_steps_rollout,
             path=path,
@@ -49,11 +49,11 @@ class TwoBody(ODEDataset):
 class TwoBodyForcing(ODEDataset):
     """Two-body problem + forcing dataset generator using fixed-step RK solver."""
 
-    def __init__(self, dt, num_steps_max, num_steps_rollout,
-                 path, split, nb_traj, integration_method='RK4'):
+    def __init__(self, dt_num, num_steps_max, num_steps_rollout,
+                 path, split, nb_traj, integration_method='RK4', **kwargs):
         super().__init__(
-            dataset_name='twobody_forcing',
-            dt=dt,
+            name='twobody_forcing',
+            dt=dt_num,
             num_steps_max=num_steps_max,
             num_steps_rollout=num_steps_rollout,
             path=path,

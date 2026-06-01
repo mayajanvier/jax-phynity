@@ -16,11 +16,11 @@ jax.config.update("jax_enable_x64", True)
 class Lorenz(ODEDataset):
     """Lorenz dataset generator using fixed-step RK solver."""
 
-    def __init__(self, dt, num_steps_max, num_steps_rollout,
-                 path, split, nb_traj, integration_method='RK4'):
+    def __init__(self, dt_num, num_steps_max, num_steps_rollout,
+                 path, split, nb_traj, integration_method='RK4', **kwargs):
         super().__init__(
-            dataset_name='lorenz',
-            dt=dt,
+            name='lorenz',
+            dt_num=dt_num,
             num_steps_max=num_steps_max,
             num_steps_rollout=num_steps_rollout,
             path=path,
@@ -37,9 +37,9 @@ class Lorenz(ODEDataset):
         sigma = 10.
         rho = 28.
         x, y, z = s
-        dxdt = self.sigma*(y - x )
-        dydt = self.rho * x - y - x*z
-        dzdt =  x*y - self.beta*z
+        dxdt = sigma*(y - x )
+        dydt = rho * x - y - x*z
+        dzdt =  x*y - beta*z
         return jnp.array([dxdt, dydt, dzdt])
     
     def _get_initial_condition(self, seed):
