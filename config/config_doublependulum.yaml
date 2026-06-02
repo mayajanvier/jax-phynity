@@ -12,9 +12,11 @@ dataset:
 model:
   phy_option: none_AD_sup
   aug_option: true
+  architecture: mlp_angular
   hidden: 200
   init_gain: 1.0
   integration_method: RK4
+  dim_state: 4
 
 train:
   lr: 1e-3

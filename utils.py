@@ -163,7 +163,6 @@ def init_linear_weight(model, init_fn, key, init_gain=0.2):
     return new_model
 
 # fft utils
-
 def fft_diff_jax(x, order=1, period=None):
     """
     JAX equivalent of scipy.fftpack.diff

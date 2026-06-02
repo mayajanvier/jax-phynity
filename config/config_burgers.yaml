@@ -14,10 +14,11 @@ model:
   gamma: 0.0
   phy_option: none
   aug_option: true
-  architecture: "convnet"
+  architecture: "convnet1d"
   hidden: 64
   init_gain: 1.0
   integration_method: RK4
+  dim_state: 1024
 
 train:
   lr: 1e-3

@@ -84,7 +84,7 @@ class NavierStokes(BaseDataset):
         # Full trajectories are saved to a single .npy file
         self.data_path = f"data/ns_incomp_full_{split}.npy"
         super().__init__(
-            dt,
+            dt_num,
             num_steps_max,
             num_steps_rollout,
             path,

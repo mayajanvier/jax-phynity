@@ -19,7 +19,7 @@ model:
   hidden: 0
   init_gain: 1.0
   integration_method: RK4
-  dim_feat: 16 # for unet 
+  dim_state: 16 
 
 train:
   lr: 1e-3
