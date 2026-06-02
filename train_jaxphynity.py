@@ -10,15 +10,16 @@ import equinox as eqx
 import jax.numpy as jnp
 from einops import rearrange
 
+# do not change order of import, otherwise breaks cuda with diffusion env
 from datasets import *
-from torch.utils.data import DataLoader 
-from forecasters import Forecaster, SNODE
-from networks import PendulumParamPDE, MLP, MLPAngular, ConvNetEstimator1D, UNet1D, UNet2D, ConvNetEstimator2D
+from forecasters import *
+from networks import *
 from utils import init_linear_weight, orthogonal_init, Logger, save, make_basedir, log
 from utils import compute_metric, save_loss_local, log_wandb
 from loss import loss_fn, init_jit_aux_loss, F_pendulum, F_lorenz, F_twobody
-import numpy as np
+
 from solvers.runge_kutta import RK_tableaux
+from torch.utils.data import DataLoader 
 
 DTYPE = jnp.float32
 
@@ -80,72 +81,33 @@ def get_datasets(cfg):
 def get_model(cfg, train):
     mkey, ikey = jax.random.split(jax.random.PRNGKey(0))
 
-    if cfg.dataset.name == "pendulum":  
-        if cfg.model.phy_option == "true": # true damped pendulum
-            model_phy = PendulumParamPDE(is_damped=True, params=train.dataset.params, is_true=True)
-        elif cfg.model.phy_option == "complete": # damped pendulum
-            model_phy = PendulumParamPDE(is_damped=True)
-        else:
-            model_phy = PendulumParamPDE(is_damped=False)
-        state_c = 2
-    elif cfg.dataset.name == "lorenz":
-        model_phy, state_c = None, 3
-    elif cfg.dataset.name == "twobody":
-        model_phy, state_c = None, 4
-    elif cfg.dataset.name == "twobody_forcing":
-        model_phy, state_c = None, 5
-    elif cfg.dataset.name == "doublependulum":
-        model_phy, state_c = None, 4
-    elif cfg.dataset.name == "rigidbody":
-        model_phy, state_c = None, 3
-    elif cfg.dataset.name == "ks":
-        model_phy, state_c = None, 256
-    elif cfg.dataset.name == "burgers":
-        model_phy, state_c = None, 1024
-    elif cfg.dataset.name == "ns_incomp":
-        model_phy, state_c = None, cfg.model.dim_feat
+    # model definition
+    if cfg.model.name == "hybrid":
+        # TODO: finish later for hybrid experiments compatibility
+        model_phy = PHYSIC_MODEL_REGISTRY[cfg.dataset.name](cfg.model.phy_params)
+        is_augmented = cfg.model.is_augmented
     else:
-        raise ValueError(f"Unknown dataset: {cfg.dataset.name}")
+        model_phy, is_augmented = None, None
 
-    if cfg.dataset.name == "doublependulum":
-        model_aug = MLPAngular(key=mkey, state_c=state_c, hidden=cfg.model.hidden)
-    else:
-        if cfg.model.architecture == "mlp":
-            model_aug = MLP(key=mkey, state_c=state_c, hidden=cfg.model.hidden)
-        elif cfg.model.architecture == "unet":
-            model_aug = UNet1D(key=mkey, hidden=cfg.model.hidden) 
-        elif cfg.model.architecture == "unet2d":
-            model_aug = UNet2D(in_channels=1, out_channels=1, init_features=state_c, key=mkey)
-        elif cfg.model.architecture == "convnet":
-            model_aug = ConvNetEstimator1D(key=mkey, hidden=cfg.model.hidden)
-        elif cfg.model.architecture == "convnet2d":
-            model_aug = ConvNetEstimator2D(key=mkey, hidden=cfg.model.hidden)
-
+    model_aug = AUG_MODEL_REGISTRY[cfg.model.architecture](
+        key=mkey,
+        dim_state=cfg.model.dim_state,
+        hidden=cfg.model.hidden,
+        )
     model_aug = init_linear_weight(model_aug, orthogonal_init, key=ikey, init_gain=cfg.model.init_gain)
 
-    if cfg.model.name == "snode":
-        net = SNODE(
-            model_phy=model_phy,
-            model_aug=model_aug,
-            is_augmented=cfg.model.aug_option,
-            is_phy=cfg.model.phy_option,
-            dt=cfg.dataset.dt_factor * train.dataset.dt,
-            num_steps=int(train.dataset.num_steps_rollout / cfg.dataset.dt_factor),
-            dataset=cfg.dataset.name,
-            gamma=cfg.model.gamma,
-            integration_method=cfg.model.integration_method,
-        )
-    else:
-        net = Forecaster(
-            model_phy=model_phy,
-            model_aug=model_aug,
-            is_augmented=cfg.model.aug_option,
-            is_phy=cfg.model.phy_option,
-            dt=cfg.dataset.dt_factor * train.dataset.dt,
-            num_steps=int(train.dataset.num_steps_rollout / cfg.dataset.dt_factor),
-            integration_method=cfg.model.integration_method,
-        )
-    return net
+    # forecasting method
+    net = FORECASTER_REGISTRY[cfg.model.name](
+        model_aug=model_aug,
+        dt=cfg.dataset.dt_factor * train.dataset.dt,
+        num_steps=int(train.dataset.num_steps_rollout / cfg.dataset.dt_factor),
+        integration_method=cfg.model.integration_method,
+        dataset=cfg.dataset.name,
+        gamma=cfg.model.gamma, 
+        model_phy=model_phy,
+        is_augmented=is_augmented
+    )
+    return net 
 
 def get_optimizer(cfg):
     return optax.adam(learning_rate=cfg.train.lr, b1=0.9, b2=0.999)
@@ -765,12 +727,8 @@ if __name__ == '__main__':
     cfg = OmegaConf.merge(base_cfg, cli_cfg)
     #main(cfg)
     train_data, val_data = get_datasets(cfg)
-    for iteration, data in enumerate(train_data, 0):
-        print(data["states"].shape)
-        break
-    for iteration, data in enumerate(val_data, 0):
-        print(data["states"].shape)
-        break
+    model = get_model(cfg, train_data)
+    print(model)
     
 
 
