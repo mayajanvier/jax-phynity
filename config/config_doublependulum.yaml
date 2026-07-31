@@ -23,6 +23,7 @@ train:
   niter: 5
   min_op: l2
   reg_loss_name: loss_AD_sup
+  norm: False
   lambda0: 1e-8
   tau2: 0.0
   aux_loss_names: ["loss_AD_sup", "loss_FD_unsup"]

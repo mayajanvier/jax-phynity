@@ -25,6 +25,7 @@ train:
   niter: 1
   min_op: l2
   reg_loss_name: loss_sup_accnorm
+  norm: False
   lambda0: 1e-3
   lambda_hutch: 1.0
   tau2: 0.0
