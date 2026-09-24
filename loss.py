@@ -5,6 +5,8 @@ from einops import rearrange
 from utils import fft_diff_jax, fft_diff_jax_fast
 import numpy as np
 
+np.random.seed(42)
+
 ### CONSTANTS
 I = jnp.array([1.6, 1.0, 2 / 3]) # rigid body
 m1, m2, l1, l2, g = 1.0, 1.0, 1.0, 1.0, 9.81 # double pendulum
@@ -451,6 +453,36 @@ def loss_AD_single(model, y, dataset_name: str):
 
 
 @eqx.filter_jit
+def loss_AD_single_rand(model, y):
+    """
+    x are the primals i.e. points where we want to evaluate the JVP (on true trajectories),
+    and v are the tangents i.e. the directions of the directional derivatives
+    of the JVP (10 fixed random directions)
+    """
+    #print('loss AD single')
+    y_shape = y.shape
+    b, T, nc = y_shape[0], y_shape[1], y_shape[2]
+    fun = lambda x: model.model_aug(x) 
+    nrand = np.random.randint(10000)
+    key = jax.random.PRNGKey(nrand)
+    v = jax.random.normal(key, (10,nc))
+    v_batched = jnp.broadcast_to(v[:, None, None, ...], (v.shape[0], b, T, *v.shape[1:]))
+    # Define single-point JVP
+    def jvp_single(x_i, v_i):
+        primals, tangents = jax.jvp(fun, (x_i,), (v_i,))
+        return primals, tangents
+    # Vectorize over (batch, time)
+    jvp_batched = jax.vmap(jax.vmap(jvp_single, in_axes=(0, 0)), in_axes=(0, 0))
+    # Vectorize over directions
+    jvp_multi = jax.vmap(jvp_batched, in_axes=(None, 0)) 
+
+    primals, tangents = jvp_multi(y, v_batched) # (num_directions, b, T, nc)
+    #res = (jnp.linalg.norm(tangents, ord=2, axis=-1)**2).mean() # squared, unstable in backward 
+    res = jnp.mean(jnp.sum(tangents**2, axis=-1))
+    return res
+
+
+@eqx.filter_jit
 def loss_AD_single_norm(model, y, dataset_name: str):
     """
     x are the primals i.e. points where we want to evaluate the JVP (on true trajectories),
@@ -610,6 +642,8 @@ def init_jit_aux_loss(aux_loss_names, min_op, dataset_name, finite_diff, lambda_
             aux_losses_dict[name] = eqx.filter_jit(eqx.Partial(loss_sup_accnorm, dataset_name=dataset_name))
         elif name == 'loss_AD_single':
             aux_losses_dict[name] = eqx.filter_jit(eqx.Partial(loss_AD_single, dataset_name=dataset_name))
+        elif name == 'loss_AD_single_rand':
+            aux_losses_dict[name] = eqx.filter_jit(eqx.Partial(loss_AD_single_rand))
         elif name == 'loss_AD_single_norm':
             aux_losses_dict[name] = eqx.filter_jit(eqx.Partial(loss_AD_single_norm, dataset_name=dataset_name))
         elif name == 'loss_AD_local_GS':

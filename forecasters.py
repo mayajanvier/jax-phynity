@@ -207,6 +207,7 @@ class Forecaster(eqx.Module):
                           "none_AD_sup_local",
                           "none_AD_sup_local_norm",
                           "none_AD_single",
+                          "none_AD_single_rand",
                           "none_AD_single_norm",
                           "none_AD_local_GS",
                           "none_sup_accnorm",
