@@ -10,7 +10,6 @@ dataset:
   num_steps_max: 1000
 
 model:
-  phy_option: none_AD_sup
   aug_option: true
   architecture: mlp_angular
   hidden: 200

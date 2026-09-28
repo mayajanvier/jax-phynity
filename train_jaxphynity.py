@@ -158,8 +158,7 @@ class CurriculumScheduler:
 
 def train(cfg, train_data, val_data, net, optimizer):
     print("Training starting...")
-    # TODO name situation
-    name_experiment = cfg.model.phy_option+"_"+("aug" if cfg.model.aug_option else "physics")+"_"+str(cfg.dataset.duration)
+    name_experiment = cfg.model.name+"_"+cfg.train.reg_loss_name+"_"+str(cfg.dataset.duration)
     # Setup logging
     wandb_run = None
     if cfg.logging.use_wandb:

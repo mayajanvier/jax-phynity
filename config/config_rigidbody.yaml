@@ -12,7 +12,6 @@ dataset:
 model:
   name: node
   gamma: 0.1
-  phy_option: none_AD_single
   aug_option: true
   architecture: "mlp"
   hidden: 200

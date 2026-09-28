@@ -12,7 +12,6 @@ dataset:
 model:
   name: node
   gamma: 0.0
-  phy_option: none
   aug_option: true
   architecture: "convnet1d"
   hidden: 64

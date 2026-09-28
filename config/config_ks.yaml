@@ -12,7 +12,6 @@ dataset:
 model:
   name: node
   gamma: 0.0
-  phy_option: none_sup_accnorm
   aug_option: true
   architecture: "mlp"
   hidden: 200
@@ -24,11 +23,11 @@ train:
   lr: 1e-3
   niter: 1
   min_op: l2
-  reg_loss_name: lip
+  reg_loss_name: none
   norm: False
   lambda0: 1e-3
   tau2: 0.0
-  aux_loss_names: ["lip"]
+  aux_loss_names: ["Accmatch_sup"]
   log_param_error: false # when hybrid
   nlog: 5
   nval: 5 

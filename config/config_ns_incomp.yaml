@@ -13,7 +13,6 @@ dataset:
 model:
   name: node
   gamma: 0.0
-  phy_option: none
   aug_option: true
   architecture: "unet2d"
   hidden: 0
