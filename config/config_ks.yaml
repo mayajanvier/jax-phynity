@@ -12,7 +12,6 @@ dataset:
 model:
   name: node
   gamma: 0.0
-  aug_option: true
   architecture: "mlp"
   hidden: 200
   init_gain: 1.0

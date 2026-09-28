@@ -12,8 +12,6 @@ dataset:
 model:
   name: node
   gamma: 0.0
-  phy_option: none_FD_unsup
-  aug_option: true
   architecture: "mlp"
   hidden: 200
   init_gain: 1.0

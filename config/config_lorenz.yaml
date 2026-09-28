@@ -10,8 +10,6 @@ dataset:
   num_steps_max: 1000
 
 model:
-  phy_option: none
-  aug_option: true
   hidden: 200
   init_gain: 1.0
   integration_method: RK4
