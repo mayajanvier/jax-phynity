@@ -3,6 +3,7 @@ import jax.numpy as jnp
 import equinox as eqx
 import numpy as np
 from losses.loss import *
+from losses.F_dynamics import F_REGISTRY
 
 
 ### TRAJECTORY LOSS
@@ -33,8 +34,8 @@ class Loss:
         self.aux_losses_dict = self.build_aux_losses()
 
     ### methods for supervised losses ###
-    def F_dynamics(self):
-        return F_REGISTRY[self.dataset_name]
+    def F_dynamics(self, x):
+        return F_REGISTRY[self.dataset_name](x)
     
     def build_aux_losses(self):
         aux_losses_dict = {}

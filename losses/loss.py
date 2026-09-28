@@ -96,8 +96,8 @@ def loss_Accmatch_sup(model, y, F, **kwargs):
             return tangent
         return jax.vmap(jax.vmap(jvp_single))   # vmap over T, then over b
 
-    jvp_batched_F      = make_jvp_batched(funF)
-    jvp_batched_Ftheta = make_jvp_batched(funFtheta)
+    jvp_batched_F      = make_jvp_batched(F)
+    jvp_batched_Ftheta = make_jvp_batched(Ftheta)
 
     acc_F      = jvp_batched_F(y, v_F)           # J_F(x)·F(x)
     acc_Ftheta = jvp_batched_Ftheta(y, v_Ftheta) # J_Ftheta(x)·Ftheta(x)
