@@ -4,10 +4,11 @@ import equinox as eqx
 from einops import rearrange
 import numpy as np
 
+np.random.seed(42)
 
 ### SUPERVISED
 @eqx.filter_jit
-def loss_AD_sup(model, y, F, v, norm=True, **kwargs):
+def loss_AD_sup(model, y, F, norm=True, **kwargs):
     """L_AD from paper v1, Hutchinson estimation 
     Reg = \sum_eps ||J_(F-Ftheta)(x).eps||_2^2 
         ~ ||J_(F-Ftheta)(x)||_F^2 
@@ -20,10 +21,16 @@ def loss_AD_sup(model, y, F, v, norm=True, **kwargs):
     y_shape = y.shape
     b, T, nc = y_shape[0], y_shape[1], y_shape[2]
     fun = lambda x: model.model_aug(x) - F(x)
+
+    # get random directions 
+    nrand = np.random.randint(10000)
+    key = jax.random.PRNGKey(nrand)
+    v = jax.random.normal(key, (10,nc))
     if norm: 
         v_norm = jnp.linalg.norm(v, ord=2, axis=1, keepdims=True) + 1e-8
         v = v / v_norm
     v_batched = jnp.broadcast_to(v[:, None, None, ...], (v.shape[0], b, T, *v.shape[1:]))
+    
     # Define single-point JVP
     def jvp_single(x_i, v_i):
         """
@@ -161,7 +168,7 @@ def loss_Jacmatch_unsup(model, y, **kwargs):
     return jac_FD_norm.mean()
 
 @eqx.filter_jit
-def loss_Lip(model, y, v, norm: bool, **kwargs): 
+def loss_Lip(model, y, norm: bool, **kwargs): 
     """
     Reg = ||J_Ftheta||_F^2
     Previously named: loss_AD_single
@@ -169,10 +176,15 @@ def loss_Lip(model, y, v, norm: bool, **kwargs):
     y_shape = y.shape
     b, T, nc = y_shape[0], y_shape[1], y_shape[2]
     fun = lambda x: model.model_aug(x) 
+
+    # get random directions 
+    nrand = np.random.randint(10000)
+    key = jax.random.PRNGKey(nrand)
+    v = jax.random.normal(key, (10,nc))
     if norm:
         v_norm = jnp.linalg.norm(v, ord=2, axis=1, keepdims=True) + 1e-8
         v = v / v_norm
-    v_batched = jnp.broadcast_to(v[:, Nonte, None, ...], (v.shape[0], b, T, *v.shape[1:]))
+    v_batched = jnp.broadcast_to(v[:, None, None, ...], (v.shape[0], b, T, *v.shape[1:]))
 
     def jvp_single(x_i, v_i):
         """ Single-point JVP
