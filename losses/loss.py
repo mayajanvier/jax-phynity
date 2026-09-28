@@ -9,7 +9,7 @@ np.random.seed(42)
 ### SUPERVISED
 @eqx.filter_jit
 def loss_AD_sup(model, y, F, norm=True, **kwargs):
-    """L_AD from paper v1, Hutchinson estimation 
+    """L_AD from paper v1, Hutchinson estimation, 
     Reg = \sum_eps ||J_(F-Ftheta)(x).eps||_2^2 
         ~ ||J_(F-Ftheta)(x)||_F^2 
 
@@ -25,7 +25,7 @@ def loss_AD_sup(model, y, F, norm=True, **kwargs):
     # get random directions 
     nrand = np.random.randint(10000)
     key = jax.random.PRNGKey(nrand)
-    v = jax.random.normal(key, (10,nc))
+    v = jax.random.normal(key, (10, *y.shape[2:]))
     if norm: 
         v_norm = jnp.linalg.norm(v, ord=2, axis=1, keepdims=True) + 1e-8
         v = v / v_norm
@@ -59,8 +59,8 @@ def loss_Jacmatch_sup(model, y, F, **kwargs):
     b, T, nc = y_shape[0], y_shape[1], y_shape[2]
     fun = lambda x: model.model_aug(x) - F(x)
     # v = F(x)
-    v = jax.vmap(F)(rearrange(y, 'b T nc -> (b T) nc'))
-    v_batched = rearrange(v, '(b T) nc -> 1 b T nc', b=b)
+    v = jax.vmap(F)(rearrange(y, 'b T ... -> (b T) ...'))
+    v_batched = rearrange(v, '(b T) ... -> 1 b T ...', b=b)
     
     def jvp_single(x_i, v_i):
         primals, tangents = jax.jvp(fun, (x_i,), (v_i,))
@@ -80,14 +80,15 @@ def loss_Accmatch_sup(model, y, F, **kwargs):
     """
     Accmatch supervised, Reg = || J_F(x)·F(x) - J_Ftheta(x)·Ftheta(x) ||_2^2
     """
-    b, T, nc = y.shape
+    yshape = y.shape
+    b, T, nc = yshape[0], yshape[1], yshape[2]
     Ftheta = model.model_aug  
-    y_flat = rearrange(y, 'b T nc -> (b T) nc')
+    y_flat = rearrange(y, 'b T ... -> (b T) ...')
     # tangent vectors for the JVP          
     v_F      = jax.vmap(F)(y_flat) # F(x)
     v_Ftheta = jax.vmap(Ftheta)(y_flat) # Ftheta(x)                
-    v_F      = rearrange(v_F,      '(b T) nc -> b T nc', b=b)   
-    v_Ftheta = rearrange(v_Ftheta, '(b T) nc -> b T nc', b=b) 
+    v_F      = rearrange(v_F,      '(b T) ... -> b T ...', b=b)   
+    v_Ftheta = rearrange(v_Ftheta, '(b T) ... -> b T ...', b=b) 
 
     def make_jvp_batched(fun):
         def jvp_single(x_i, v_i):
@@ -110,9 +111,9 @@ def loss_Accmatch_sup(model, y, F, **kwargs):
 def loss_Fa(model, y, min_op, **kwargs):
     """ APHYNITY loss, Reg = ||F_theta(x)||_2^2 """
     #print('loss_Fa')
-    y_in = rearrange(y, 'b T nc -> (b T) nc')
+    y_in = rearrange(y, 'b T ... -> (b T) ...')
     aug_deriv = jax.vmap(model.model_aug)(y_in) 
-    aug_deriv = rearrange(aug_deriv, '(b T) nc -> b T nc', b=y.shape[0])
+    aug_deriv = rearrange(aug_deriv, '(b T) ... -> b T ...', b=y.shape[0])
     if min_op == 'l2_normalized':
         loss_op = ((jnp.linalg.norm(aug_deriv, ord=2, axis=2) / (jnp.linalg.norm(y, ord=2, axis=2) + 1e-5)) ** 2).mean()
     elif min_op == 'l2':
@@ -171,16 +172,16 @@ def loss_Jacmatch_unsup(model, y, **kwargs):
 def loss_Lip(model, y, norm: bool, **kwargs): 
     """
     Reg = ||J_Ftheta||_F^2
-    Previously named: loss_AD_single
+    Previously named: loss_AD_single_rand
     """
     y_shape = y.shape
-    b, T, nc = y_shape[0], y_shape[1], y_shape[2]
+    b, T, nc = y_shape[0], y_shape[1], y_shape[2:]
     fun = lambda x: model.model_aug(x) 
 
     # get random directions 
     nrand = np.random.randint(10000)
     key = jax.random.PRNGKey(nrand)
-    v = jax.random.normal(key, (10,nc))
+    v = jax.random.normal(key, (10, *y.shape[2:]))
     if norm:
         v_norm = jnp.linalg.norm(v, ord=2, axis=1, keepdims=True) + 1e-8
         v = v / v_norm

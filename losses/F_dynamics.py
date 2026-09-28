@@ -146,7 +146,8 @@ def F_navier_stokes_2d(w0, f=f_ns, visc=VISC):
     F_h = dealias * F_h
     # Rhs
     rhs_h = - F_h + f_h - visc * lap * w_h
-    return rhs_h[0] 
+    rhs = jnp.fft.ifftn(rhs_h, (N, N))
+    return jnp.real(rhs[0])
 
 
 F_REGISTRY = {
