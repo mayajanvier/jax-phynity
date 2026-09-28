@@ -23,11 +23,11 @@ train:
   lr: 1e-3
   niter: 1
   min_op: l2
-  reg_loss_name: none
+  reg_loss_name: lip
   norm: False
   lambda0: 0.0
   tau2: 0.0
-  aux_loss_names: ["loss_FD_unsup"]
+  aux_loss_names: ["lip"]
   log_param_error: false # when hybrid
   nlog: 5
   nval: 5 
