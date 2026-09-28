@@ -7,7 +7,7 @@ dataset:
   batch_size: 128
   nb_traj_train: 512
   nb_traj_val: 128
-  num_steps_max: 140 # number of total steps per trajectory (horizon T_train/dt_model)
+  num_steps_max: 140 # number of total steps per training trajectory (horizon T_train/dt_model)
   # for ns_incomp only:
   size: 64 # dimension of the domain L
 
