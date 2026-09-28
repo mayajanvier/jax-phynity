@@ -21,7 +21,6 @@ def F_pendulum(x):
     return jnp.array([x[1], -((2*jnp.pi/12)**2)* jnp.sin(x[0]) - 0.2*x[1]])
 
 def F_lorenz(s):
-
     x, y, z = s
     dxdt = sigma * (y - x)
     dydt = rho * x - y - x * z

@@ -184,22 +184,19 @@ def train(cfg, train_data, val_data, net, optimizer):
     opt_state = optimizer.init(eqx.filter(net, eqx.is_array))
     # Jitted loss
     print("Initializing loss function...")
-    #aux_losses_dict = init_jit_aux_loss(cfg.train.aux_loss_names, cfg.train.min_op, cfg.dataset.name, cfg.train.finite_diff, cfg.train.lambda_hutch)
-    loss_fn = Loss(cfg)
+    loss = Loss(cfg)
     loss_fn_grad = eqx.filter_jit(
         eqx.filter_value_and_grad(
-            eqx.Partial(loss_fn, 
+            eqx.Partial(loss.loss_fn, 
             ),
             has_aux=True
             )
         )
-    #loss_fn_grad = eqx.Partial(loss_fn, reg_loss_name=cfg.train.reg_loss_name, aux_losses_dict=aux_losses_dict, opt_mode=cfg.train.opt_mode)
-    #loss_fn_grad = eqx.filter_jit(eqx.filter_value_and_grad(loss_fn_grad, has_aux=True))
-    # for model selection over val loss
-    loss_test_min = None
     # curriculum
     scheduler = CurriculumScheduler(cfg, train_data)
-    _lambda = cfg.train.lambda0
+    lambda_ = cfg.train.lambda0
+    # for model selection over val loss
+    loss_val_min = None
 
     for epoch in range(scheduler.nepoch): 
         print(f"Epoch {epoch+1}/{scheduler.nepoch}")
@@ -216,9 +213,16 @@ def train(cfg, train_data, val_data, net, optimizer):
                 states = jnp.asarray(data['states'][:,:epoch_rollout_index*cfg.dataset.dt_factor:cfg.dataset.dt_factor,:], dtype="float32") 
                 #t = jnp.array(data['t'][0])[::cfg.dataset.dt_factor]
                 (loss_total, (pred, losses_values_dict)), grads = loss_fn_grad(
-                    net, states, lambda_ = jnp.array(_lambda), epoch_rollout_index=epoch_rollout_index) 
+                    net,
+                    states,
+                    jnp.asarray(lambda_),
+                    epoch_rollout_index=epoch_rollout_index
+                    ) 
                 updates, opt_state = optimizer.update(
-                    grads, opt_state, eqx.filter(net, eqx.is_array))
+                    grads,
+                    opt_state,
+                    eqx.filter(net, eqx.is_array)
+                    )
                 net = eqx.apply_updates(net, updates)
                 # accumulate loss
                 for losses_values_dict_key, losses_values_dict_value in losses_values_dict.items():
@@ -233,73 +237,56 @@ def train(cfg, train_data, val_data, net, optimizer):
         for losses_values_dict_key, losses_values_dict_value in losses_values_dict.items():
             loss_train[losses_values_dict_key] /= (iteration + 1) * cfg.train.niter
         
-        # update lambda
-        if cfg.train.reg_loss_name == "none":
-            pass # _lambda stays constant
-        else:
-            if cfg.train.opt_mode == "constraint":
-                _lambda = _lambda + cfg.train.tau2 * loss_train['loss_traj'].item()
-            elif cfg.train.opt_mode == "traj":
-                _lambda = _lambda + cfg.train.tau2 * loss_train[cfg.train.reg_loss_name].item()
-                _lambda = max(0.0, _lambda)  # ensure lambda is non-negative
+        # update lambda according to chosen curriculum
+        lambda_ = loss.update_lambda(loss_train, lambda_)
 
         ### LOGS 
         total_iteration = epoch * (len(train_data)) + (iteration + 1)
         if total_iteration % cfg.train.nlog == 0:
             log(train_data, epoch, iteration, loss_train | metric, nepoch)
         # log metrics to wandb 
-        log_wandb(net, train_data, _lambda, loss_train, 'train', epoch_rollout_index, cfg.train.log_param_error)
+        log_wandb(net, train_data, lambda_, loss_train, 'train', epoch_rollout_index, cfg.train.log_param_error)
         
         # --------------------------
         ### VALIDATION STEP
         # --------------------------
         if total_iteration % cfg.train.nval == 0:
-            loss_test = {aug_loss_name: 0.0 for aug_loss_name in cfg.train.aux_loss_names}
-            loss_test["loss_traj"] = 0.0 #{"loss_traj": 0.0, "loss_op": 0.0}
-            #if cfg.model.phy_option != "none":
-            for j, data_test in enumerate(val_data, 0):
+            loss_val = {aug_loss_name: 0.0 for aug_loss_name in cfg.train.aux_loss_names}
+            loss_val["loss_traj"] = 0.0 
+            for j, dt_val in enumerate(val_data, 0):
+                states = jnp.asarray(dt_val['states'][:,::cfg.dataset.dt_factor,:], dtype="float32") # bs, time, nc with diffrax
+                #t = jnp.array(dt_val['t'][0])[::cfg.dataset.dt_factor]
                 # no backpropagation
-                states = jnp.asarray(data_test['states'][:,::cfg.dataset.dt_factor,:], dtype="float32") # bs, time, nc with diffrax
-                #states = jax.device_put(states) # move data to GPU if available
-                #t = jnp.array(data_test['t'][0])[::cfg.dataset.dt_factor]
-                (loss_total, (pred, losses_values_dict)), grads = loss_fn_grad(net, states, lambda_ = jnp.array(_lambda), epoch_rollout_index=states.shape[1]) #, Fa_prime_true=F_prime_true_val)
+                (loss_total, (pred, losses_values_dict)), grads = loss_fn_grad(
+                    net,
+                    states,
+                    lambda_ = jnp.asarray(lambda_),
+                    epoch_rollout_index=states.shape[1]) 
                 # accumulate loss
                 for losses_values_dict_key, losses_values_dict_value in losses_values_dict.items():
-                    loss_test[losses_values_dict_key] += losses_values_dict_value
-
-                # for long rollout evaluation
-                # states = jnp.array(data_test['states'])[:,::cfg.dataset.dt_factor,:] # bs, time, nc with diffrax
-                # #states = jnp.array(val_data['states'])[:,::cfg.dataset.dt_factor,:]
-                # # get model for long rollout
-                # T = states.shape[1]-1
-                # pred = jax.vmap(lambda y0: net.validation_call(y0, T))(states[:,0,:])
-                # print(pred.shape, states.shape)
-                # loss_test["loss_traj"] = jnp.mean((pred - states)**2)
-                # j = 0
-
-                
-            # average loss over test set
+                    loss_val[losses_values_dict_key] += losses_values_dict_value
+            # average loss over val set
             for losses_values_dict_key, losses_values_dict_value in losses_values_dict.items():
-                loss_test[losses_values_dict_key] /= (j + 1)
+                loss_val[losses_values_dict_key] /= (j + 1)
 
             ### LOGS
             print('#' * 80)
-            log(train_data, epoch, iteration, loss_test | metric, nepoch)
+            log(train_data, epoch, iteration, loss_val | metric, nepoch)
             print('#' * 80)
             # log metrics to wandb
-            log_wandb(net, val_data, _lambda, loss_test, 'val', epoch_rollout_index, cfg.train.log_param_error)
+            log_wandb(net, val_data, lambda_, loss_val, 'val', epoch_rollout_index, cfg.train.log_param_error)
             
-            # save model over loss_test
-            if loss_test_min == None or loss_test_min > loss_test["loss_traj"].item():
-                loss_test_min = loss_test['loss_traj'].item()
+            # save model over loss_val
+            if loss_val_min == None or loss_val_min > loss_val["loss_traj"].item():
+                loss_val_min = loss_val['loss_traj'].item()
                 # save model using equinox
                 # TODO how to also save optimizer state?
                 hyperparameters = {
                     "epoch": epoch,
-                    "loss": loss_test_min,
-                    "lambda": _lambda,
+                    "loss": loss_val_min,
+                    "lambda": lambda_,
                     }
-                save(exp_path + f'/model_{loss_test_min:.3e}.eqx', hyperparameters, net)
+                save(exp_path + f'/model_{loss_val_min:.3e}.eqx', hyperparameters, net)
 
     if wandb_run:
         wandb_run.finish()
@@ -315,33 +302,27 @@ if __name__ == '__main__':
     wandb.login()
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", type=str, default="config.yaml", help="Path to YAML config file")
-    # parser.add_argument("overrides", nargs=argparse.REMAINDER, help="Override config values (e.g. dataset.name=lorenz)")
-    # args = parser.parse_args()
-    # base_cfg = OmegaConf.load(args.config)
-    # cli_cfg = OmegaConf.from_dotlist(args.overrides)
-    # cfg = OmegaConf.merge(base_cfg, cli_cfg)
-
-    # main(cfg)
-
     args, unknown = parser.parse_known_args()
     base_cfg = OmegaConf.load(args.config)
     # remove leading "--" from wandb args
     dotlist = [arg.lstrip("--") for arg in unknown]
     cli_cfg = OmegaConf.from_dotlist(dotlist)
     cfg = OmegaConf.merge(base_cfg, cli_cfg)
-    #main(cfg)
+    main(cfg)
 
-    train_data, val_data = get_datasets(cfg)
-    model = get_model(cfg, train_data)
-    print(model)
-    loss_fn = Loss(cfg)
-    loss_fn_grad = eqx.filter_jit(
-        eqx.filter_value_and_grad(
-            eqx.Partial(loss_fn, 
-            ),
-            has_aux=True
-            )
-        )
+    # train_data, val_data = get_datasets(cfg)
+    # model = get_model(cfg, train_data)
+    # print(model)
+    # loss_fn = Loss(cfg)
+    # loss_fn_grad = eqx.filter_jit(
+    #     eqx.filter_value_and_grad(
+    #         eqx.Partial(loss_fn, 
+    #         ),
+    #         has_aux=True
+    #         )
+    #     )
+    # loss_fn.update_lambda()
+    # print(loss_fn.lambda_)
     
 
 
