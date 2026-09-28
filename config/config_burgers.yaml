@@ -27,7 +27,6 @@ train:
   reg_loss_name: none
   norm: False
   lambda0: 0.0
-  lambda_hutch: 0.0
   tau2: 0.0
   aux_loss_names: ["loss_FD_unsup"] # "loss_AD_sup",
   log_param_error: false # when hybrid

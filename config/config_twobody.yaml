@@ -27,7 +27,6 @@ train:
   reg_loss_name: loss_sup_accnorm
   norm: False
   lambda0: 1e-11
-  lambda_hutch: 0.0
   tau2: 0.0
   aux_loss_names: ["loss_sup_accnorm"]
   log_param_error: false # when hybrid
