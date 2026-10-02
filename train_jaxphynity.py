@@ -244,7 +244,7 @@ def train(cfg, train_data, val_data, net, optimizer):
         if total_iteration % cfg.train.nlog == 0:
             log(train_data, epoch, iteration, loss_train | metric, nepoch)
         # log metrics to wandb 
-        log_wandb(net, train_data, lambda_, loss_train, 'train', epoch_rollout_index, cfg.train.log_param_error)
+        log_wandb(net, train_data, lambda_, loss_train,loss_val_min, 'train', epoch_rollout_index, cfg.train.log_param_error)
         
         # --------------------------
         ### VALIDATION STEP
@@ -267,13 +267,6 @@ def train(cfg, train_data, val_data, net, optimizer):
             # average loss over val set
             for losses_values_dict_key, losses_values_dict_value in losses_values_dict.items():
                 loss_val[losses_values_dict_key] /= (j + 1)
-
-            ### LOGS
-            print('#' * 80)
-            log(train_data, epoch, iteration, loss_val | metric, nepoch)
-            print('#' * 80)
-            # log metrics to wandb
-            log_wandb(net, val_data, lambda_, loss_val, 'val', epoch_rollout_index, cfg.train.log_param_error)
             
             # save model over loss_val
             if loss_val_min == None or loss_val_min > loss_val["loss_traj"].item():
@@ -286,6 +279,13 @@ def train(cfg, train_data, val_data, net, optimizer):
                     "lambda": lambda_,
                     }
                 save(exp_path + f'/model_{loss_val_min:.3e}.eqx', hyperparameters, net)
+            
+            ### LOGS
+            print('#' * 80)
+            log(train_data, epoch, iteration, loss_val | metric, nepoch)
+            print('#' * 80)
+            # log metrics to wandb
+            log_wandb(net, val_data, lambda_, loss_val, loss_val_min, 'val', epoch_rollout_index, cfg.train.log_param_error)
 
     if wandb_run:
         wandb_run.finish()
