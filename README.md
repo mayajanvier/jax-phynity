@@ -14,3 +14,8 @@ Implementation of _Unrolled gradients in disguise: bridging interpolation-based 
 - `forecasters.py`: NODE (Chen et al. 2019), SNODE (White et al. 2024) and Hybrid forecaster methods
 - `train_jaxphynity.py`: training routine
 - `inference.py`: inference on test data, based on different metrics in `metrics.py`
+
+## Run an experiment
+To run an experiment, you just have to fill a `my_config.yaml` file in the `config` folder (details of the different parameters in `configs_args.yaml`) and then run `python train_jaxphynity.py --config config/my_config.yaml`. 
+
+The process is the same for the inference, with the `config_args_inf.yaml` as an example and running `inference.py`. 
