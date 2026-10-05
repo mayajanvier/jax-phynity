@@ -1,21 +1,16 @@
 # jax-phynity
 
-Implementation of _Augmenting Physical Models with Deep Networks for Complex Dynamics Forecasting_ (Yin et al., 2021) (APHYNITY) damped pendulum in JAX.
+Implementation of _Unrolled gradients in disguise: bridging interpolation-based and Jacobian regularization for stable neural dynamics_ (Janvier et al., NeurIPS 2026) in JAX.
 
-![Alt text](Reports/image.png)
+%![Alt text](Reports/image.png)
 
 ## Organisation of repository
-- `Reports`: reports of implementation and tests (`Issues.ipynb`), slides of presentation to ANGE team (01/04/2025)
-- `datasets`: pendulum class for generating data (derived in jax from APHYNITY)
+- `configs`: config YAML file to determine dataset, model, training parameters... `configs_args.yaml` and `config_args_inf.yaml` for understanding the different options in config files 
+- `datasets`: BaseDataset and ODEDataset (when data is generated) to generate and format data for training
+- `losses`: build losses of the paper 
 - `solvers`: custom Runge-Kutta solvers based on Butcher Tableaux (derived from diffrax)
-- `utils.py`: loggers, init weights of neural network in jax
-- `networks.py`: physical and MLP models 
-- `forecasters.py`: class to combine models for hybridation and trajectory prediction (derived from APHYNITY, simplified)
-- `train_jaxphynity.py`: training routines for sanity checks, error scheme and Lipschitz experiments
-- `inference.py`: inference for all experiments
-
-Notebooks:
-- `visualize_results`: intermediate trials, final sanity checks and final results and figures (last part is the most interesting)
-- `error_scheme`: error scheme experiment visualisation
-- `lipschitz`: Lipschitz experiments visualisation
-- `tipping_points`: robustness of models for out-of-domain initial conditions experiments 
+- `utils.py`: loggers, init weights...
+- `networks.py`: architectures
+- `forecasters.py`: NODE (Chen et al. 2019), SNODE (White et al. 2024) and Hybrid forecaster methods
+- `train_jaxphynity.py`: training routine
+- `inference.py`: inference on test data, based on different metrics in `metrics.py`
