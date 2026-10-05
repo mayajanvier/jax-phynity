@@ -2,7 +2,7 @@
 
 Implementation of _Unrolled gradients in disguise: bridging interpolation-based and Jacobian regularization for stable neural dynamics_ (Janvier et al., NeurIPS 2026) in JAX.
 
-%![Alt text](Reports/image.png)
+%![Alt text](schema_losses.png)
 
 ## Organisation of repository
 - `configs`: config YAML file to determine dataset, model, training parameters... `configs_args.yaml` and `config_args_inf.yaml` for understanding the different options in config files 
