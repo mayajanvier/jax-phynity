@@ -19,7 +19,7 @@ class PendulumParamPDE(eqx.Module):
     is_damped: bool = eqx.field(static=True)  # Static field (not JAX-traceable)
     """ Unified pendulum for generation and inference """
 
-    def __init__(self, is_damped=False, params={"alpha": 0.1, "omega0_square": 0.2}, is_true=False):
+    def __init__(self, is_damped=False, params={"alpha": 0.1, "omega0_square": 0.2}, is_true=False, **kwargs):
         super().__init__()
         self.is_damped = is_damped
         if is_true:
@@ -43,7 +43,7 @@ class Lorenz(eqx.Module) :
     sigma : jax.Array
     rho : jax.Array
 
-    def __init__(self, beta, sigma, rho) :
+    def __init__(self, beta=8/3, sigma=10., rho=28., **kwargs) :
         super().__init__()
         self.beta = beta
         self.sigma = sigma
@@ -68,18 +68,19 @@ class TwoBody(eqx.Module):
 
     
 ### Data driven model Fa    
+### MLP
 class MLP(eqx.Module):
     layers: list # we need to define the type of the attributes of the class in jax
 
-    def __init__(self, key, state_c, hidden, init_gain=0.2):
+    def __init__(self, key, dim_state, hidden, init_gain=0.2, **kwargs):
         super().__init__()
         key1, key2, key3 = jax.random.split(key, 3)
         self.layers = [
-            eqx.nn.Linear(state_c, hidden, key=key1),
+            eqx.nn.Linear(dim_state, hidden, key=key1),
             jax.nn.relu,
             eqx.nn.Linear(hidden, hidden, key=key2),
             jax.nn.relu,
-            eqx.nn.Linear(hidden, state_c, key=key3)]
+            eqx.nn.Linear(hidden, dim_state, key=key3)]
     
     def __call__(self, x):
         # shape (nc,)
@@ -90,15 +91,15 @@ class MLP(eqx.Module):
 class MLPAngular(eqx.Module):
     layers: list # we need to define the type of the attributes of the class in jax
 
-    def __init__(self, key, state_c, hidden, init_gain=0.2):
+    def __init__(self, key, dim_state, hidden, init_gain=0.2, **kwargs):
         super().__init__()
         key1, key2, key3 = jax.random.split(key, 3)
         self.layers = [
-            eqx.nn.Linear(state_c, hidden, key=key1),
+            eqx.nn.Linear(dim_state, hidden, key=key1),
             jax.nn.relu,
             eqx.nn.Linear(hidden, hidden, key=key2),
             jax.nn.relu,
-            eqx.nn.Linear(hidden, state_c, key=key3)]
+            eqx.nn.Linear(hidden, dim_state, key=key3)]
     
     def __call__(self, x):
         # shape (nc,)
@@ -109,11 +110,11 @@ class MLPAngular(eqx.Module):
             x = layer(x)
         return x
 
-
+### CNN
 class ConvNetEstimator1D(eqx.Module):
     # from APHYNITY turned into equinox
     layers: list
-    def __init__(self, key, state_c=1, hidden=16):
+    def __init__(self, key, state_c=1, hidden=16, **kwargs):
         super().__init__()
         key1, key2, key3 = jax.random.split(key, 3)
         kernel_size = 3
@@ -136,12 +137,11 @@ class ConvNetEstimator1D(eqx.Module):
             x = layer(x)
         return x[0, :]
 
-
 class ConvNetEstimator2D(eqx.Module):
     # CNODE from DIno: four two-dimensional convolutional layers with 64 hidden features, 
     # ReLU activations, 3 ×3 kernel and zero padding
     layers: list
-    def __init__(self, key, in_channels=1, out_channels=1, hidden=64):
+    def __init__(self, key, in_channels=1, out_channels=1, hidden=64, **kwargs):
         super().__init__()
         key1, key2, key3, key4 = jax.random.split(key, 4)
         kernel_size = 3
@@ -166,112 +166,8 @@ class ConvNetEstimator2D(eqx.Module):
         return x[0, ...]
 
 
-# Unet2D inspired from PDE-Bench
-def conv_block(in_ch, out_ch, key):
-    k1, k2 = jax.random.split(key)
-    return [
-        eqx.nn.Conv2d(in_ch, out_ch, kernel_size=3, padding=1, use_bias=False, key=k1),#, padding_mode='CIRCULAR'),
-        #eqx.nn.BatchNorm(out_ch, axis_name="batch"),
-        eqx.nn.GroupNorm(groups=8, channels=out_ch),
-        jax.nn.tanh,
-        eqx.nn.Conv2d(out_ch, out_ch, kernel_size=3, padding=1, use_bias=False, key=k2), #padding_mode='CIRCULAR'),
-        #eqx.nn.BatchNorm(out_ch, axis_name="batch"),
-        eqx.nn.GroupNorm(groups=8, channels=out_ch),
-        jax.nn.tanh,
-    ]
-
-def apply_block(block, x):
-    for layer in block:
-        if isinstance(layer, eqx.nn.BatchNorm):
-            x = layer(x, axis_name="batch")
-        x = layer(x)
-    return x
-
-class UNet2D(eqx.Module):
-    # Encoder
-    enc1: List
-    enc2: List
-    enc3: List
-    enc4: List
-
-    # Bottleneck
-    bottleneck: List
-
-    # Decoder
-    dec4: List
-    dec3: List
-    dec2: List
-    dec1: List
-
-    # Convs
-    up4: eqx.nn.ConvTranspose2d
-    up3: eqx.nn.ConvTranspose2d
-    up2: eqx.nn.ConvTranspose2d
-    up1: eqx.nn.ConvTranspose2d
-
-    final_conv: eqx.nn.Conv2d
-
-    def __init__(self, in_channels=3, out_channels=1, init_features=32, key=None):
-        keys = jax.random.split(key, 20)
-        f = init_features
-
-        # Encoder
-        self.enc1 = conv_block(in_channels, f, keys[0])
-        self.enc2 = conv_block(f, f * 2, keys[1])
-        self.enc3 = conv_block(f * 2, f * 4, keys[2])
-        self.enc4 = conv_block(f * 4, f * 8, keys[3])
-
-        # Bottleneck
-        self.bottleneck = conv_block(f * 8, f * 16, keys[4])
-
-        # Upsampling
-        self.up4 = eqx.nn.ConvTranspose2d(f * 16, f * 8, 2, stride=2, key=keys[5])
-        self.up3 = eqx.nn.ConvTranspose2d(f * 8, f * 4, 2, stride=2, key=keys[6])
-        self.up2 = eqx.nn.ConvTranspose2d(f * 4, f * 2, 2, stride=2, key=keys[7])
-        self.up1 = eqx.nn.ConvTranspose2d(f * 2, f, 2, stride=2, key=keys[8])
-
-        # Decoder
-        self.dec4 = conv_block(f * 16, f * 8, keys[9])
-        self.dec3 = conv_block(f * 8, f * 4, keys[10])
-        self.dec2 = conv_block(f * 4, f * 2, keys[11])
-        self.dec1 = conv_block(f * 2, f, keys[12])
-
-        # Final
-        self.final_conv = eqx.nn.Conv2d(f, out_channels, kernel_size=1, key=keys[13])#,padding_mode='CIRCULAR')
-
-    def maxpool(self, x):
-        return eqx.nn.MaxPool2d(2, stride=2)(x)
-
-    def __call__(self, x):
-        x = x[None, ...]  # add channel dimension
-        e1 = apply_block(self.enc1, x)
-        e2 = apply_block(self.enc2, self.maxpool(e1))
-        e3 = apply_block(self.enc3, self.maxpool(e2))
-        e4 = apply_block(self.enc4, self.maxpool(e3))
-
-        # Bottleneck
-        b = apply_block(self.bottleneck, self.maxpool(e4))
-
-        # Decoder
-        d4 = self.up4(b)
-        d4 = jnp.concatenate([d4, e4], axis=0)
-        d4 = apply_block(self.dec4, d4)
-
-        d3 = self.up3(d4)
-        d3 = jnp.concatenate([d3, e3], axis=0)
-        d3 = apply_block(self.dec3, d3)
-
-        d2 = self.up2(d3)
-        d2 = jnp.concatenate([d2, e2], axis=0)
-        d2 = apply_block(self.dec2, d2)
-
-        d1 = self.up1(d2)
-        d1 = jnp.concatenate([d1, e1], axis=0)
-        d1 = apply_block(self.dec1, d1)
-
-        return self.final_conv(d1)[0]
-
-# Unet inspired from PDE-Refiner 
+### UNet 
+# 1D UNet inspired from PDE-Refiner 
 class ResBlock1D(eqx.Module):
     conv1: eqx.nn.Conv1d
     conv2: eqx.nn.Conv1d
@@ -294,7 +190,6 @@ class ResBlock1D(eqx.Module):
         h = self.conv2(jax.nn.gelu(self.norm2(h)))
         return x + h
 
-
 class Downsample1D(eqx.Module):
     conv: eqx.nn.Conv1d
 
@@ -305,7 +200,6 @@ class Downsample1D(eqx.Module):
 
     def __call__(self, x):
         return self.conv(x)
-
 
 class Upsample1D(eqx.Module):
     conv: eqx.nn.ConvTranspose1d
@@ -358,7 +252,7 @@ class UNet1D(eqx.Module):
     norm_out: eqx.nn.GroupNorm
     conv_out: eqx.nn.Conv1d
 
-    def __init__(self, *, key,c1=32, c2=64, c3=128, c4=256):  #c1=64, c2=128, c3=256, c4=1024):
+    def __init__(self, *, key, c1=32, c2=64, c3=128, c4=256, **kwargs):  #c1=64, c2=128, c3=256, c4=1024):
         keys = jax.random.split(key, 30)
         k = iter(keys)
 
@@ -442,6 +336,129 @@ class UNet1D(eqx.Module):
 
         x = self.conv_out(jax.nn.gelu(self.norm_out(x)))
         return x[0, :] # remove channel dimension
+
+
+# 2D UNet inspired from PDE-Bench
+def conv_block(in_ch, out_ch, key):
+    k1, k2 = jax.random.split(key)
+    return [
+        eqx.nn.Conv2d(in_ch, out_ch, kernel_size=3, padding=1, use_bias=False, key=k1),#, padding_mode='CIRCULAR'),
+        #eqx.nn.BatchNorm(out_ch, axis_name="batch"),
+        eqx.nn.GroupNorm(groups=8, channels=out_ch),
+        jax.nn.tanh,
+        eqx.nn.Conv2d(out_ch, out_ch, kernel_size=3, padding=1, use_bias=False, key=k2), #padding_mode='CIRCULAR'),
+        #eqx.nn.BatchNorm(out_ch, axis_name="batch"),
+        eqx.nn.GroupNorm(groups=8, channels=out_ch),
+        jax.nn.tanh,
+    ]
+
+def apply_block(block, x):
+    for layer in block:
+        if isinstance(layer, eqx.nn.BatchNorm):
+            x = layer(x, axis_name="batch")
+        x = layer(x)
+    return x
+
+class UNet2D(eqx.Module):
+    # Encoder
+    enc1: List
+    enc2: List
+    enc3: List
+    enc4: List
+
+    # Bottleneck
+    bottleneck: List
+
+    # Decoder
+    dec4: List
+    dec3: List
+    dec2: List
+    dec1: List
+
+    # Convs
+    up4: eqx.nn.ConvTranspose2d
+    up3: eqx.nn.ConvTranspose2d
+    up2: eqx.nn.ConvTranspose2d
+    up1: eqx.nn.ConvTranspose2d
+
+    final_conv: eqx.nn.Conv2d
+
+    def __init__(self, in_channels=1, out_channels=1, dim_state=32, key=None, **kwargs):
+        keys = jax.random.split(key, 20)
+        f = dim_state # init features dimension
+
+        # Encoder
+        self.enc1 = conv_block(in_channels, f, keys[0])
+        self.enc2 = conv_block(f, f * 2, keys[1])
+        self.enc3 = conv_block(f * 2, f * 4, keys[2])
+        self.enc4 = conv_block(f * 4, f * 8, keys[3])
+
+        # Bottleneck
+        self.bottleneck = conv_block(f * 8, f * 16, keys[4])
+
+        # Upsampling
+        self.up4 = eqx.nn.ConvTranspose2d(f * 16, f * 8, 2, stride=2, key=keys[5])
+        self.up3 = eqx.nn.ConvTranspose2d(f * 8, f * 4, 2, stride=2, key=keys[6])
+        self.up2 = eqx.nn.ConvTranspose2d(f * 4, f * 2, 2, stride=2, key=keys[7])
+        self.up1 = eqx.nn.ConvTranspose2d(f * 2, f, 2, stride=2, key=keys[8])
+
+        # Decoder
+        self.dec4 = conv_block(f * 16, f * 8, keys[9])
+        self.dec3 = conv_block(f * 8, f * 4, keys[10])
+        self.dec2 = conv_block(f * 4, f * 2, keys[11])
+        self.dec1 = conv_block(f * 2, f, keys[12])
+
+        # Final
+        self.final_conv = eqx.nn.Conv2d(f, out_channels, kernel_size=1, key=keys[13])#,padding_mode='CIRCULAR')
+
+    def maxpool(self, x):
+        return eqx.nn.MaxPool2d(2, stride=2)(x)
+
+    def __call__(self, x):
+        x = x[None, ...]  # add channel dimension
+        e1 = apply_block(self.enc1, x)
+        e2 = apply_block(self.enc2, self.maxpool(e1))
+        e3 = apply_block(self.enc3, self.maxpool(e2))
+        e4 = apply_block(self.enc4, self.maxpool(e3))
+
+        # Bottleneck
+        b = apply_block(self.bottleneck, self.maxpool(e4))
+
+        # Decoder
+        d4 = self.up4(b)
+        d4 = jnp.concatenate([d4, e4], axis=0)
+        d4 = apply_block(self.dec4, d4)
+
+        d3 = self.up3(d4)
+        d3 = jnp.concatenate([d3, e3], axis=0)
+        d3 = apply_block(self.dec3, d3)
+
+        d2 = self.up2(d3)
+        d2 = jnp.concatenate([d2, e2], axis=0)
+        d2 = apply_block(self.dec2, d2)
+
+        d1 = self.up1(d2)
+        d1 = jnp.concatenate([d1, e1], axis=0)
+        d1 = apply_block(self.dec1, d1)
+
+        return self.final_conv(d1)[0]
+
+
+### REGISTRIES
+PHYSIC_MODEL_REGISTRY = {
+    "pendulum": PendulumParamPDE,
+    "lorenz": Lorenz,
+    "twobody": TwoBody
+}
+
+AUG_MODEL_REGISTRY = {
+    "mlp": MLP,
+    "mlp_angular": MLPAngular,
+    "convnet1d": ConvNetEstimator1D,
+    "convnet2d": ConvNetEstimator2D,
+    "unet1d": UNet1D,
+    "unet2d": UNet2D,
+}
 
 if __name__ == '__main__':
     nb_neurons = 200

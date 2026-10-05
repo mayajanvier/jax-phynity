@@ -1,23 +1,30 @@
 dataset:
-  name: doublependulum
+  name: twobody_forcing
   integration_method: RK4
   duration: 0.1
   dt_num: 0.01
-  dt_factor: 5
+  dt_factor: 1
+  batch_size: 40
+  nb_traj_train: 40
+  nb_traj_val: 40
+  num_steps_max: 5000
 
 model:
-  phy_option: none_AD_sup
-  aug_option: true
+  name: node
+  gamma: 0.0
+  architecture: "mlp"
   hidden: 200
   init_gain: 1.0
   integration_method: RK4
+  dim_state: 5
 
 train:
   lr: 1e-3
-  niter: 5
+  niter: 1 #5
   min_op: l2
-  reg_loss_name: loss_AD_sup
-  lambda0: 1e-8
+  reg_loss_name: loss_FD_unsup
+  norm: False
+  lambda0: 1e-13
   tau2: 0.0
   aux_loss_names: ["loss_AD_sup", "loss_FD_unsup"]
   log_param_error: false # when hybrid
@@ -26,11 +33,10 @@ train:
   curriculum: no_curr
   opt_mode: traj
   finite_diff: forward
-  nepoch: 900
+  nepoch: 1000 #900
 
 experiment:
-  path: data_exp/doublependulum_dt005
-
+  path: data_exp/twobody_forcing
 logging:
   use_wandb: true
-  project: DoublePendulumICML
+  project: TwoBodyForcingICML

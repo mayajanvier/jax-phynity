@@ -1,0 +1,10 @@
+dataset:
+  name: ks # dataset name
+  integration_method: RK4 # generation method for the true test trajectories
+  dt_num: 0.2 # dt for the generation of the true test trajectories
+  duration: 128.0
+  nb_traj_test: 128
+
+dt: 0.2 # dt for the generation of the predicted test trajectories
+integration_method: RK4 # generation method for the predicted test trajectories
+data_folder: data_exp/KS_inf # folder to perform inference on

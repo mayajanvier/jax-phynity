@@ -1,0 +1,10 @@
+dataset:
+  name: ns_incomp
+  integration_method: RK4
+  dt_num: 1.0
+  duration: 400.0
+  nb_traj_test: 128
+
+dt: 1.0
+integration_method: RK4
+data_folder: data_exp/ns_incomp_inf

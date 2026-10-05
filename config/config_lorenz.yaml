@@ -4,19 +4,23 @@ dataset:
   duration: 0.5
   dt_num: 0.01
   dt_factor: 10
+  batch_size: 40
+  nb_traj_train: 40
+  nb_traj_val: 40
+  num_steps_max: 1000
 
 model:
-  phy_option: none
-  aug_option: true
   hidden: 200
   init_gain: 1.0
   integration_method: RK4
+  dim_state: 3
 
 train:
   lr: 1e-3
   niter: 5
   min_op: l2
   reg_loss_name: none
+  norm: False
   lambda0: 0.0
   tau2: 0.0
   aux_loss_names: ["loss_AD_sup", "loss_FD_unsup"]

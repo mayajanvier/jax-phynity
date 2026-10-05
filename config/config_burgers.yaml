@@ -1,42 +1,44 @@
 dataset:
-  name: twobody
+  name: burgers
   integration_method: RK4
   duration: 0.02
   dt_num: 0.01
   dt_factor: 1
-  batch_size: 40
-  nb_traj_train: 40
-  nb_traj_val: 40
-  num_steps_max: 800
+  batch_size: 128
+  nb_traj_train: 512
+  nb_traj_val: 128
+  num_steps_max: 20
 
 model:
   name: node
   gamma: 0.0
-  architecture: "mlp"
-  hidden: 200
+  aug_option: true
+  architecture: "convnet1d"
+  hidden: 64
   init_gain: 1.0
   integration_method: RK4
-  dim_state: 4
+  dim_state: 1024
 
 train:
   lr: 1e-3
-  niter: 5
+  niter: 1
   min_op: l2
-  reg_loss_name: loss_sup_accnorm
+  reg_loss_name: none
   norm: False
-  lambda0: 1e-11
+  lambda0: 0.0
   tau2: 0.0
-  aux_loss_names: ["loss_sup_accnorm"]
+  aux_loss_names: ["loss_FD_unsup"] # "loss_AD_sup",
   log_param_error: false # when hybrid
   nlog: 5
   nval: 5 
   curriculum: no_curr
   opt_mode: traj
   finite_diff: forward
-  nepoch: 900
+  nepoch: 1000
 
 experiment:
-  path: data_exp/twobody_dt001_8s
+  path: data_exp/burgers
+
 logging:
   use_wandb: true
-  project: TwoBodyProblemICML4
+  project: burgersICML

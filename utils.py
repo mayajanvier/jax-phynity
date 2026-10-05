@@ -81,7 +81,7 @@ def compute_metric(net, train_data):
     metrics.update({f'{k}_real': v for k, v in train_data.dataset.params.items() if k in metrics})
     return metrics
 
-def log_wandb(net, dataloader, _lambda, loss_dict, split, epoch_rollout_index, log_param_error=True):
+def log_wandb(net, dataloader, _lambda, loss_dict, loss_val_min, split, epoch_rollout_index, log_param_error=True):
     if log_param_error:
         metric = compute_metric(net, dataloader)
         omega_error = abs(metric["omega0_square"] - metric["omega0_square_real"]) / metric["omega0_square_real"]
@@ -102,7 +102,8 @@ def log_wandb(net, dataloader, _lambda, loss_dict, split, epoch_rollout_index, l
         if split == 'train':
             wandb.log({"Lambda": _lambda, "Rollout index": epoch_rollout_index} |loss_dict)
         elif split == 'val':
-            wandb.log({"Test loss": loss_dict["loss_traj"]})
+            # best val loss for lambda choice when doing a sweep
+            wandb.log({"val loss": loss_dict["loss_traj"], "best val loss": loss_val_min})
 
 def save_loss_local(val_losses, train_losses, l_test, l_train, exp_path):
     val_losses.append(l_test['loss_traj'].item())
@@ -163,7 +164,6 @@ def init_linear_weight(model, init_fn, key, init_gain=0.2):
     return new_model
 
 # fft utils
-
 def fft_diff_jax(x, order=1, period=None):
     """
     JAX equivalent of scipy.fftpack.diff

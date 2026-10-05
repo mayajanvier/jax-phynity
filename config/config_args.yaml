@@ -1,0 +1,47 @@
+dataset:
+  name: ks # names from DATASET_REGISTRY in datasets
+  integration_method: RK4 # names from RK_tableaux in solvers.runge_kutta
+  duration: 0.4 # duration in seconds of training rollout
+  dt_num: 0.2 # timestep of ground truth
+  dt_factor: 1 # dt_model = dt_factor * dt_num
+  batch_size: 128
+  nb_traj_train: 512
+  nb_traj_val: 128
+  num_steps_max: 140 # number of total steps per training trajectory (horizon T_train/dt_model)
+  # for ns_incomp only:
+  size: 64 # dimension of the domain L
+
+model:
+  name: node # method, names from FORECASTER_REGISTRY in forecasters
+  gamma: 0.0 # for SNODE, gamma parameter
+  architecture: "mlp" # names from AUG_MODEL_REGISTRY in networks
+  hidden: 200 # number of neurons in hidden dimension
+  init_gain: 1.0 # weight factor for initialization of NN
+  integration_method: RK4 # names from RK_tableaux in solvers.runge_kutta
+  dim_state: 256 # dim_state arg in networks (1d: dim of X state, 2d: dim of in channels)
+  # if name=hybrid (APHYNITY)
+  is_augmented: True # True: F=Fp+Fa, False: F=Fp
+
+train:
+  lr: 1e-3 # learning rate
+  niter: 1 # second internal loop of APHYNITY over batches (1=default)
+  min_op: l2 # regularization choice for APHYNITY loss (l2, )
+  reg_loss_name: none # none=no regularization, names from LOSS_REGISTRY in losses.loss
+  norm: False # normalization of directions for Hutchinson methods
+  lambda0: 1e-3 # L=L_traj + lambda L_reg
+  tau2: 0.0 # weight for lambda curriculum, from APHYNITY
+  aux_loss_names: ["Accmatch_sup"] # losses you want to log into W&B, always add reg_loss in it
+  log_param_error: false # when hybrid, log parameter estimation error (pendulum APHYNITY)
+  nlog: 5 # log into W&B every nlog
+  nval: 5 # perform validation step every nval
+  curriculum: no_curr # epoch curriculum, see CurriculumScheduler in train_jaxphynity
+  opt_mode: traj # mode for updating lambda_curriculum (traj=default)
+  finite_diff: forward # FD choice for loss_FD_unsup
+  nepoch: 1000 # nb of epochs
+
+experiment:
+  path: data_exp/KS_gridsearch # where to save experiment data
+
+logging:
+  use_wandb: true
+  project: ksICML
